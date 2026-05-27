@@ -3,94 +3,105 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Schedule & Deadlines | UniFlow</title>
+<title>UniFlow | Schedule</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script src="../js/components/tailwind.js"></script>
 <script>initTailwind();</script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="../css/theme.css"/>
 <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #12111A; color: #e5e0ee; overflow-x: hidden; }
-    .bg-glow { position: fixed; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(207,189,248,0.08) 0%, rgba(14,13,22,0) 70%); z-index: -1; filter: blur(80px); }
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(158,151,179,0.25); border-radius: 10px; }
+    body { font-family:'Plus Jakarta Sans',sans-serif; background-color:#12111A; }
+    .bg-glow-violet { background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(214,196,255,0.14) 0%,transparent 65%); }
+    .custom-scrollbar::-webkit-scrollbar { width:4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background:transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background:rgba(158,151,179,0.25); border-radius:10px; }
+    .time-slot { min-height:60px; border-bottom:1px solid rgba(255,255,255,0.04); }
+    .time-label { width:56px; flex-shrink:0; }
+    .day-col { flex:1; min-width:0; }
+    .event-block { transition:all 0.2s; cursor:pointer; }
+    .event-block:hover { transform:scale(1.02); z-index:10; box-shadow:0 4px 20px rgba(0,0,0,0.4); }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+    .fade-in { animation:fadeIn 0.3s ease-out forwards; }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    .fade-in-up { animation:fadeInUp 0.4s ease-out forwards; }
+    .today-col { background:rgba(214,196,255,0.03); }
+    .cal-grid { display:flex; }
+    .cal-body { overflow-y:auto; max-height:calc(100vh - 220px); }
+    .cal-body::-webkit-scrollbar { width:4px; }
+    .cal-body::-webkit-scrollbar-thumb { background:rgba(158,151,179,0.2); border-radius:10px; }
+    .nav-btn:hover { background:rgba(214,196,255,0.15); }
+    .nav-btn:active { transform:scale(0.95); }
+    .view-toggle-active { background:rgba(214,196,255,0.2); color:#D6C4FF; }
+    .overlap-warn { animation:pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
 </style>
 </head>
-<body class="bg-background min-h-screen">
-
-<div class="bg-glow top-[-200px] left-[-100px]" style="background: radial-gradient(circle, rgba(207,189,248,0.12) 0%, rgba(14,13,22,0) 70%);"></div>
-<div class="bg-glow bottom-[-200px] right-[-100px]" style="background: radial-gradient(circle, rgba(150,205,242,0.08) 0%, rgba(14,13,22,0) 70%);"></div>
+<body class="bg-background text-on-surface">
+<div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
+    <div class="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-glow-violet"></div>
+</div>
 
 <div id="sidebar-mount"></div>
 <div id="header-mount"></div>
 
-<main class="md:ml-[280px] min-h-screen flex flex-col">
-    <div class="pt-20 flex-1 p-margin-desktop space-y-gutter overflow-y-auto">
-        <!-- Hero: Sync & Import -->
-        <section class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
-            <div class="lg:col-span-2 bg-surface-container rounded-lg p-8 flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden group">
-                <div class="relative z-10">
-                    <h3 class="font-headline-lg text-headline-lg mb-2">Import University Calendar</h3>
-                    <p class="text-on-surface-variant max-w-md">Scrape your university's academic calendar to auto-populate semester dates, exams, and holidays.</p>
-                    <div class="mt-6 flex flex-wrap gap-3">
-                        <select id="uni-select" class="bg-surface-container-high text-on-surface px-4 py-3 rounded-full font-medium border border-white/10 focus:outline-none focus:border-primary">
-                            <option value="UM">Universiti Malaya (UM)</option>
-                            <option value="USM">USM</option>
-                            <option value="UKM">UKM</option>
-                            <option value="UTM">UTM</option>
-                        </select>
-                        <button id="scrape-btn" class="bg-primary text-on-primary px-8 py-3 rounded-full font-bold hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
-                            <span class="material-symbols-outlined">sync</span>
-                            Import Calendar
-                        </button>
-                    </div>
-                </div>
-                <div class="relative w-48 h-48 md:w-64 md:h-64 flex items-center justify-center">
-                    <div class="absolute inset-0 bg-primary/10 rounded-full animate-pulse"></div>
-                    <span class="material-symbols-outlined text-[80px] text-primary/40" style="font-variation-settings: 'wght' 200;">event_repeat</span>
-                </div>
-            </div>
-            <!-- Next Up Card -->
-            <div id="next-up-card" class="bg-gradient-to-br from-secondary-container/40 to-surface-container rounded-lg p-8 flex flex-col justify-between border border-white/5">
-                <div class="flex items-center gap-2 text-secondary mb-4">
-                    <span class="material-symbols-outlined">alarm</span>
-                    <span class="font-label-sm uppercase tracking-widest">Next Up</span>
-                </div>
-                <div id="next-up-content">
-                    <p class="text-on-surface-variant font-body-md">No upcoming events yet. Start chatting to add some.</p>
-                </div>
-            </div>
-        </section>
+<!-- Event Detail Modal -->
+<div id="event-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display:none;">
+    <div class="bg-surface-container-high rounded-3xl p-6 max-w-md w-full shadow-2xl border border-outline-variant/20 fade-in-up">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-headline-sm font-bold text-primary" id="modal-title">Event</h3>
+            <button onclick="closeModal()" class="p-2 rounded-xl hover:bg-surface-container-highest transition-colors">
+                <span class="material-symbols-outlined text-on-surface-variant">close</span>
+            </button>
+        </div>
+        <div id="modal-body" class="space-y-3"></div>
+        <div class="flex gap-3 mt-5">
+            <button id="modal-toggle-btn" onclick="toggleModalEvent()" class="flex-1 py-2.5 bg-primary text-on-primary rounded-2xl font-bold text-label-sm hover:brightness-110 active:scale-[0.97] transition-all">Mark Complete</button>
+            <button id="modal-delete-btn" onclick="deleteModalEvent()" class="py-2.5 px-4 bg-rose-500/10 text-rose-400 rounded-2xl font-bold text-label-sm hover:bg-rose-500/20 active:scale-[0.97] transition-all">Delete</button>
+        </div>
+    </div>
+</div>
 
-        <!-- Events List -->
-        <section class="grid grid-cols-1 xl:grid-cols-4 gap-gutter">
-            <div class="xl:col-span-3 bg-surface rounded-lg border border-white/5 overflow-hidden flex flex-col">
-                <div class="p-6 border-b border-white/5 flex flex-wrap justify-between items-center gap-4">
-                    <h3 class="font-headline-lg-mobile text-headline-lg-mobile">Your Events</h3>
-                    <span id="event-count" class="px-3 py-1 rounded-full bg-primary/10 text-primary text-label-sm font-bold">0 events</span>
-                </div>
-                <div id="events-list" class="p-6 space-y-3 custom-scrollbar max-h-[600px] overflow-y-auto">
-                    <div class="flex flex-col items-center justify-center py-16 text-center">
-                        <span class="material-symbols-outlined text-[48px] text-on-surface-variant/30 mb-4">event_note</span>
-                        <p class="text-on-surface-variant">No events yet. Use the AI Command Hub to add events via chat.</p>
-                        <a href="09.html" class="mt-4 text-primary hover:underline font-bold">Go to AI Chat →</a>
-                    </div>
-                </div>
+<main class="md:ml-[280px] pt-20 h-screen flex flex-col relative">
+    <div class="flex-1 overflow-y-auto custom-scrollbar px-margin-mobile md:px-margin-desktop pr-4 pb-24">
+        <!-- Top Bar -->
+        <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+                <button onclick="navigateWeek(-1)" class="nav-btn p-2 rounded-xl transition-all">
+                    <span class="material-symbols-outlined text-on-surface-variant">chevron_left</span>
+                </button>
+                <h2 class="text-headline-sm font-bold text-on-surface min-w-[200px] text-center" id="week-label">This Week</h2>
+                <button onclick="navigateWeek(1)" class="nav-btn p-2 rounded-xl transition-all">
+                    <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+                </button>
+                <button onclick="goToday()" class="px-4 py-2 bg-primary/10 text-primary rounded-2xl text-label-sm font-bold hover:bg-primary/20 active:scale-[0.97] transition-all">Today</button>
             </div>
-            <!-- Uni Calendar Events -->
-            <div class="xl:col-span-1 space-y-gutter">
-                <div class="bg-surface-container-high rounded-lg p-6 border border-white/5 flex flex-col">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="font-headline-lg-mobile text-headline-lg-mobile">Uni Calendar</h3>
-                    </div>
-                    <div id="uni-events-list" class="space-y-3 custom-scrollbar max-h-[500px] overflow-y-auto">
-                        <p class="text-on-surface-variant text-label-sm">Import your university calendar to see academic events here.</p>
-                    </div>
-                </div>
+            <div class="flex items-center gap-2 bg-surface-container-high rounded-2xl p-1">
+                <button onclick="setView('week')" id="view-week" class="px-4 py-2 rounded-xl text-label-sm font-bold transition-all view-toggle-active">Week</button>
+                <button onclick="setView('month')" id="view-month" class="px-4 py-2 rounded-xl text-label-sm font-bold transition-all text-on-surface-variant hover:text-primary">Month</button>
             </div>
-        </section>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex items-center gap-4 mb-4 flex-wrap">
+            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-rose-400"></span><span class="text-[11px] text-on-surface-variant">Exam</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-400"></span><span class="text-[11px] text-on-surface-variant">Assignment</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-400"></span><span class="text-[11px] text-on-surface-variant">Class</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-purple-400"></span><span class="text-[11px] text-on-surface-variant">Meeting</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-400"></span><span class="text-[11px] text-on-surface-variant">Social</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-gray-400"></span><span class="text-[11px] text-on-surface-variant">Other</span></div>
+        </div>
+
+        <!-- Calendar Container -->
+        <div id="calendar-container" class="bg-surface-container/30 rounded-3xl border border-outline-variant/10 overflow-hidden"></div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="flex flex-col items-center justify-center py-20 text-center" style="display:none;">
+            <div class="w-14 h-14 rounded-3xl bg-surface-container-high flex items-center justify-center mb-4">
+                <span class="material-symbols-outlined text-on-surface-variant text-3xl">calendar_month</span>
+            </div>
+            <h3 class="text-headline-sm text-on-surface-variant mb-2">No events this week</h3>
+            <p class="text-on-surface-variant text-body-md max-w-sm">Head to the <a href="09.html" class="text-primary font-bold hover:underline">AI Command Hub</a> to add events by typing naturally.</p>
+        </div>
     </div>
 </main>
 
@@ -99,125 +110,306 @@
 <script src="../js/components/sidebar.js"></script>
 <script src="../js/components/header.js"></script>
 <script src="../js/components/bottomNav.js"></script>
-<script src="../js/components/loading.js"></script>
 <script src="../js/store.js"></script>
 
 <script>
+var TYPE_COLORS = {
+    exam:       { bg:'bg-rose-400', text:'text-rose-400', light:'bg-rose-500/15', border:'border-rose-400/30' },
+    assignment: { bg:'bg-blue-400', text:'text-blue-400', light:'bg-blue-500/15', border:'border-blue-400/30' },
+    meeting:    { bg:'bg-purple-400', text:'text-purple-400', light:'bg-purple-500/15', border:'border-purple-400/30' },
+    class:      { bg:'bg-amber-400', text:'text-amber-400', light:'bg-amber-500/15', border:'border-amber-400/30' },
+    social:     { bg:'bg-emerald-400', text:'text-emerald-400', light:'bg-emerald-500/15', border:'border-emerald-400/30' },
+    deadline:   { bg:'bg-red-400', text:'text-red-400', light:'bg-red-500/15', border:'border-red-400/30' },
+    reminder:   { bg:'bg-cyan-400', text:'text-cyan-400', light:'bg-cyan-500/15', border:'border-cyan-400/30' },
+    other:      { bg:'bg-gray-400', text:'text-gray-400', light:'bg-gray-500/15', border:'border-gray-400/30' },
+};
+var TYPE_ICONS = {
+    exam:'quiz', assignment:'assignment', meeting:'groups', class:'school',
+    social:'celebration', deadline:'alarm', reminder:'notifications', other:'event'
+};
+
+var currentWeekStart = getMonday(new Date());
+var currentView = 'week';
+var currentModalEventId = null;
+
+function getMonday(d) {
+    d = new Date(d);
+    var day = d.getDay();
+    var diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    d.setDate(diff);
+    d.setHours(0,0,0,0);
+    return d;
+}
+
+function fmt(d) {
+    return d.toISOString().slice(0,10);
+}
+
+function escapeHtml(t) { var d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
+
 document.addEventListener('DOMContentLoaded', function() {
     renderSidebar('02');
-    renderHeader({ title: 'Schedule & Deadlines' });
+    renderHeader({ title:'Schedule', subtitle:'Your Calendar' });
     renderBottomNav('02');
-    renderEvents();
-    renderUniEvents();
-
-    document.getElementById('scrape-btn').addEventListener('click', scrapeUni);
+    renderCalendar();
 });
 
-const TYPE_COLORS = {
-    exam: 'border-rose-500', assignment: 'border-blue-500', meeting: 'border-emerald-500',
-    class: 'border-amber-500', deadline: 'border-red-500', reminder: 'border-cyan-500',
-    social: 'border-pink-500', expense: 'border-green-500', other: 'border-gray-500',
-};
-const TYPE_ICONS = {
-    exam: 'quiz', assignment: 'assignment', meeting: 'groups', class: 'school',
-    deadline: 'alarm', reminder: 'notifications', social: 'celebration',
-    expense: 'payments', other: 'event',
-};
-
-function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
-
-function renderEvents() {
-    const events = Store.getUpcomingEvents(50);
-    const container = document.getElementById('events-list');
-    const countEl = document.getElementById('event-count');
-
-    if (events.length === 0) {
-        container.innerHTML = '<div class="flex flex-col items-center justify-center py-16 text-center">' +
-            '<span class="material-symbols-outlined text-[48px] text-on-surface-variant/30 mb-4">event_note</span>' +
-            '<p class="text-on-surface-variant">No events yet. Use the AI Command Hub to add events via chat.</p>' +
-            '<a href="09.html" class="mt-4 text-primary hover:underline font-bold">Go to AI Chat →</a></div>';
-        countEl.textContent = '0 events';
-        return;
-    }
-
-    countEl.textContent = events.length + ' event' + (events.length !== 1 ? 's' : '');
-
-    container.innerHTML = events.map(function(evt) {
-        var dateObj = new Date(evt.date + 'T00:00:00');
-        var dateStr = !isNaN(dateObj) ? dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : evt.date;
-        var timeStr = evt.time || '—';
-        var color = TYPE_COLORS[evt.type] || TYPE_COLORS.other;
-        var icon = TYPE_ICONS[evt.type] || TYPE_ICONS.other;
-        var completedClass = evt.completed ? 'opacity-50 line-through' : '';
-        return '<div class="flex items-center gap-4 p-4 rounded-xl bg-surface-container hover:bg-surface-variant/40 transition-colors border-l-4 ' + color + '">' +
-            '<div class="flex items-center gap-2 flex-shrink-0">' +
-                '<input type="checkbox" ' + (evt.completed ? 'checked' : '') + ' onchange="toggleComplete(\'' + evt.id + '\')" class="w-5 h-5 rounded accent-primary cursor-pointer">' +
-            '</div>' +
-            '<div class="flex-1 min-w-0 ' + completedClass + '">' +
-                '<h4 class="font-body-md font-bold">' + escapeHtml(evt.title) + '</h4>' +
-                '<div class="flex items-center gap-3 mt-1">' +
-                    '<span class="text-[11px] text-on-surface-variant">' + dateStr + '</span>' +
-                    '<span class="text-[11px] text-on-surface-variant">' + timeStr + '</span>' +
-                '</div>' +
-            '</div>' +
-            '<span class="px-3 py-1 bg-white/5 ' + color.replace('border-', 'text-') + ' rounded-full text-[10px] font-bold uppercase">' + evt.type + '</span>' +
-        '</div>';
-    }).join('');
-
-    // Next up card
-    var next = events[0];
-    if (next) {
-        var nextDate = new Date(next.date + 'T00:00:00');
-        var nextDateStr = !isNaN(nextDate) ? nextDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : next.date;
-        document.getElementById('next-up-content').innerHTML =
-            '<h4 class="font-headline-lg-mobile text-headline-lg-mobile font-bold leading-tight">' + escapeHtml(next.title) + '</h4>' +
-            '<p class="text-on-surface-variant mt-2">' + nextDateStr + (next.time ? ' • ' + next.time : '') + '</p>';
-    }
+function navigateWeek(dir) {
+    currentWeekStart.setDate(currentWeekStart.getDate() + dir * 7);
+    renderCalendar();
+}
+function goToday() {
+    currentWeekStart = getMonday(new Date());
+    renderCalendar();
+}
+function setView(v) {
+    currentView = v;
+    document.getElementById('view-week').className = 'px-4 py-2 rounded-xl text-label-sm font-bold transition-all ' + (v==='week'?'view-toggle-active':'text-on-surface-variant hover:text-primary');
+    document.getElementById('view-month').className = 'px-4 py-2 rounded-xl text-label-sm font-bold transition-all ' + (v==='month'?'view-toggle-active':'text-on-surface-variant hover:text-primary');
+    renderCalendar();
 }
 
-function toggleComplete(id) {
-    Store.toggleEventComplete(id);
-    renderEvents();
-}
-
-function renderUniEvents() {
+function renderCalendar() {
+    var container = document.getElementById('calendar-container');
+    var emptyState = document.getElementById('empty-state');
+    var events = Store.getEvents().filter(function(e) { return e.type !== 'expense' && e.date; });
     var uniEvents = Store.getUniEvents();
-    var container = document.getElementById('uni-events-list');
-    if (!uniEvents.length) return;
 
-    var catColors = { exam: 'text-rose-400', holiday: 'text-emerald-400', registration: 'text-secondary', semester: 'text-primary', other: 'text-on-surface-variant' };
-    container.innerHTML = uniEvents.map(function(evt) {
-        var color = catColors[evt.category] || catColors.other;
-        return '<div class="bg-white/5 p-3 rounded-xl border border-white/5">' +
-            '<p class="font-bold text-label-sm ' + color + '">' + escapeHtml(evt.title) + '</p>' +
-            '<p class="text-[10px] text-on-surface-variant mt-1">' + escapeHtml(evt.date) + (evt.end_date && evt.end_date !== evt.date ? ' — ' + escapeHtml(evt.end_date) : '') + '</p>' +
-        '</div>';
-    }).join('');
-}
+    // Update week label
+    var endOfWeek = new Date(currentWeekStart);
+    endOfWeek.setDate(endOfWeek.getDate() + 6);
+    var label = currentWeekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' – ' + endOfWeek.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    document.getElementById('week-label').textContent = label;
 
-async function scrapeUni() {
-    var uni = document.getElementById('uni-select').value;
-    var btn = document.getElementById('scrape-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Importing...';
-
-    try {
-        var data = await Store.scrapeUniCalendar(uni);
-        if (data.events && data.events.length > 0) {
-            Store.setUniEvents(data.events);
-            renderUniEvents();
-            btn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Imported ' + data.events.length + ' events';
-        } else {
-            btn.innerHTML = '<span class="material-symbols-outlined">info</span> No events found';
-        }
-    } catch (err) {
-        btn.innerHTML = '<span class="material-symbols-outlined">error</span> ' + escapeHtml(err.message);
+    if (currentView === 'week') {
+        renderWeekView(container, events, uniEvents);
+    } else {
+        renderMonthView(container, events, uniEvents);
     }
-    setTimeout(function() {
-        btn.disabled = false;
-        btn.innerHTML = '<span class="material-symbols-outlined">sync</span> Import Calendar';
-    }, 3000);
+
+    var hasEvents = events.length > 0 || uniEvents.length > 0;
+    emptyState.style.display = hasEvents ? 'none' : 'flex';
+    container.style.display = hasEvents ? 'block' : 'none';
 }
+
+function renderWeekView(container, events, uniEvents) {
+    var today = fmt(new Date());
+    var days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    var hours = [];
+    for (var h=7; h<=22; h++) hours.push(h);
+
+    // Group events by day
+    var eventsByDay = {};
+    for (var i=0; i<7; i++) {
+        var d = new Date(currentWeekStart);
+        d.setDate(d.getDate() + i);
+        eventsByDay[fmt(d)] = [];
+    }
+
+    events.forEach(function(evt) {
+        if (eventsByDay[evt.date]) eventsByDay[evt.date].push(evt);
+    });
+
+    // Detect overlaps
+    var overlaps = {};
+    Object.keys(eventsByDay).forEach(function(day) {
+        var dayEvents = eventsByDay[day].filter(function(e) { return e.time; });
+        dayEvents.sort(function(a,b) { return (a.time||'').localeCompare(b.time||''); });
+        for (var i=0; i<dayEvents.length; i++) {
+            for (var j=i+1; j<dayEvents.length; j++) {
+                if (dayEvents[i].time === dayEvents[j].time) {
+                    overlaps[dayEvents[i].id] = true;
+                    overlaps[dayEvents[j].id] = true;
+                }
+            }
+        }
+    });
+
+    // Build header
+    var html = '<div class="cal-grid border-b border-outline-variant/10">';
+    html += '<div class="time-label p-2"></div>';
+    for (var i=0; i<7; i++) {
+        var d = new Date(currentWeekStart);
+        d.setDate(d.getDate() + i);
+        var dateStr = fmt(d);
+        var isToday = dateStr === today;
+        html += '<div class="day-col p-2 text-center ' + (isToday?'today-col':'') + '">';
+        html += '<div class="text-[10px] text-on-surface-variant uppercase tracking-wider">' + days[i] + '</div>';
+        html += '<div class="text-lg font-bold ' + (isToday?'text-primary':'text-on-surface') + '">' + d.getDate() + '</div>';
+        html += '</div>';
+    }
+    html += '</div>';
+
+    // Build time grid
+    html += '<div class="cal-body">';
+    hours.forEach(function(h) {
+        var timeLabel = (h < 12 ? h : h > 12 ? h-12 : 12) + (h < 12 ? 'am' : 'pm');
+        html += '<div class="cal-grid time-slot">';
+        html += '<div class="time-label p-2 text-[10px] text-on-surface-variant/50 text-right pr-3 pt-1">' + timeLabel + '</div>';
+
+        for (var i=0; i<7; i++) {
+            var d = new Date(currentWeekStart);
+            d.setDate(d.getDate() + i);
+            var dateStr = fmt(d);
+            var isToday = dateStr === today;
+            var dayEvents = (eventsByDay[dateStr]||[]).filter(function(e) {
+                if (!e.time) return false;
+                var evtHour = parseInt(e.time.split(':')[0]);
+                var evtAmpm = (e.time.match(/am|pm/i)||[''])[0].toLowerCase();
+                if (evtAmpm === 'pm' && evtHour !== 12) evtHour += 12;
+                if (evtAmpm === 'am' && evtHour === 12) evtHour = 0;
+                if (isNaN(evtHour)) {
+                    // Try 24h format
+                    evtHour = parseInt(e.time.split(':')[0]);
+                }
+                return evtHour === h;
+            });
+
+            html += '<div class="day-col p-1 border-l border-outline-variant/5 ' + (isToday?'today-col':'') + '">';
+            dayEvents.forEach(function(evt) {
+                var cfg = TYPE_COLORS[evt.type] || TYPE_COLORS.other;
+                var icon = TYPE_ICONS[evt.type] || 'event';
+                var isOverlap = overlaps[evt.id];
+                html += '<div onclick="openEventModal(\'' + evt.id + '\')" class="event-block ' + cfg.light + ' ' + cfg.border + ' border rounded-xl p-2 mb-1 ' + (evt.completed?'opacity-50 line-through':'') + '">';
+                if (isOverlap) html += '<span class="overlap-warn material-symbols-outlined text-amber-400 text-[12px] float-right" title="Time conflict!">warning</span>';
+                html += '<div class="flex items-center gap-1"><span class="material-symbols-outlined ' + cfg.text + ' text-[14px]">' + icon + '</span>';
+                html += '<span class="text-[11px] font-bold text-on-surface truncate">' + escapeHtml(evt.title) + '</span></div>';
+                html += '<div class="text-[10px] text-on-surface-variant mt-0.5">' + (evt.time||'') + '</div>';
+                html += '</div>';
+            });
+
+            // Also check for events without time on this day
+            var noTimeEvents = (eventsByDay[dateStr]||[]).filter(function(e) { return !e.time && h === 7; });
+            noTimeEvents.forEach(function(evt) {
+                var cfg = TYPE_COLORS[evt.type] || TYPE_COLORS.other;
+                var icon = TYPE_ICONS[evt.type] || 'event';
+                html += '<div onclick="openEventModal(\'' + evt.id + '\')" class="event-block ' + cfg.light + ' ' + cfg.border + ' border rounded-xl p-2 mb-1 ' + (evt.completed?'opacity-50 line-through':'') + '">';
+                html += '<div class="flex items-center gap-1"><span class="material-symbols-outlined ' + cfg.text + ' text-[14px]">' + icon + '</span>';
+                html += '<span class="text-[11px] font-bold text-on-surface truncate">' + escapeHtml(evt.title) + '</span></div>';
+                html += '<div class="text-[10px] text-on-surface-variant mt-0.5">All day</div>';
+                html += '</div>';
+            });
+            html += '</div>';
+        }
+        html += '</div>';
+    });
+    html += '</div>';
+
+    container.innerHTML = html;
+}
+
+function renderMonthView(container, events, uniEvents) {
+    var today = fmt(new Date());
+    var year = currentWeekStart.getFullYear();
+    var month = currentWeekStart.getMonth();
+
+    var firstDay = new Date(year, month, 1);
+    var lastDay = new Date(year, month + 1, 0);
+    var startDow = firstDay.getDay() || 7; // Mon=1
+
+    var days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+    // Update label
+    document.getElementById('week-label').textContent = firstDay.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+
+    // Group events by date
+    var eventsByDate = {};
+    events.forEach(function(evt) {
+        if (!eventsByDate[evt.date]) eventsByDate[evt.date] = [];
+        eventsByDate[evt.date].push(evt);
+    });
+
+    var html = '<div class="p-4">';
+
+    // Day headers
+    html += '<div class="grid grid-cols-7 gap-1 mb-2">';
+    days.forEach(function(d) {
+        html += '<div class="text-center text-[10px] text-on-surface-variant uppercase tracking-wider py-2">' + d + '</div>';
+    });
+    html += '</div>';
+
+    // Calendar grid
+    html += '<div class="grid grid-cols-7 gap-1">';
+    var d = new Date(firstDay);
+    d.setDate(d.getDate() - (startDow - 1));
+
+    for (var i = 0; i < 42; i++) {
+        var dateStr = fmt(d);
+        var isCurrentMonth = d.getMonth() === month;
+        var isToday = dateStr === today;
+        var dayEvents = eventsByDate[dateStr] || [];
+
+        html += '<div class="min-h-[80px] p-1.5 rounded-xl ' + (isToday?'bg-primary/10 border border-primary/20':'bg-surface-container/50') + ' ' + (!isCurrentMonth?'opacity-30':'') + '">';
+        html += '<div class="text-[11px] font-bold mb-1 ' + (isToday?'text-primary':'text-on-surface-variant') + '">' + d.getDate() + '</div>';
+
+        dayEvents.slice(0,3).forEach(function(evt) {
+            var cfg = TYPE_COLORS[evt.type] || TYPE_COLORS.other;
+            html += '<div onclick="openEventModal(\'' + evt.id + '\')" class="event-block text-[9px] truncate ' + cfg.light + ' ' + cfg.text + ' rounded px-1 py-0.5 mb-0.5 font-semibold cursor-pointer">' + escapeHtml(evt.title) + '</div>';
+        });
+        if (dayEvents.length > 3) {
+            html += '<div class="text-[9px] text-on-surface-variant">+' + (dayEvents.length-3) + ' more</div>';
+        }
+        html += '</div>';
+        d.setDate(d.getDate() + 1);
+    }
+    html += '</div></div>';
+    container.innerHTML = html;
+}
+
+// ── Event Modal ──
+function openEventModal(id) {
+    var events = Store.getEvents();
+    var evt = events.find(function(e) { return e.id === id; });
+    if (!evt) return;
+    currentModalEventId = id;
+
+    var cfg = TYPE_COLORS[evt.type] || TYPE_COLORS.other;
+    var icon = TYPE_ICONS[evt.type] || 'event';
+    var dateObj = new Date(evt.date + 'T00:00:00');
+    var dateStr = !isNaN(dateObj) ? dateObj.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}) : evt.date;
+
+    document.getElementById('modal-title').textContent = evt.title;
+    document.getElementById('modal-body').innerHTML =
+        '<div class="flex items-center gap-3 p-3 ' + cfg.light + ' rounded-2xl">' +
+            '<span class="material-symbols-outlined ' + cfg.text + ' text-2xl">' + icon + '</span>' +
+            '<div><div class="text-label-sm font-bold capitalize ' + cfg.text + '">' + evt.type + '</div></div>' +
+            (evt.completed ? '<span class="ml-auto material-symbols-outlined text-primary">check_circle</span>' : '') +
+        '</div>' +
+        '<div class="space-y-2 text-on-surface-variant">' +
+            '<div class="flex items-center gap-2"><span class="material-symbols-outlined text-lg">calendar_today</span><span class="text-body-md">' + dateStr + '</span></div>' +
+            (evt.time ? '<div class="flex items-center gap-2"><span class="material-symbols-outlined text-lg">schedule</span><span class="text-body-md">' + evt.time + '</span></div>' : '') +
+        '</div>';
+
+    document.getElementById('modal-toggle-btn').textContent = evt.completed ? 'Mark Incomplete' : 'Mark Complete';
+    document.getElementById('event-modal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('event-modal').style.display = 'none';
+    currentModalEventId = null;
+}
+
+function toggleModalEvent() {
+    if (currentModalEventId) {
+        Store.toggleEventComplete(currentModalEventId);
+        closeModal();
+        renderCalendar();
+    }
+}
+
+function deleteModalEvent() {
+    if (currentModalEventId) {
+        var events = Store.getEvents().filter(function(e) { return e.id !== currentModalEventId; });
+        Store._set('events', events);
+        closeModal();
+        renderCalendar();
+    }
+}
+
+// Close modal on backdrop click
+document.getElementById('event-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
 </script>
 </body>
 </html>
