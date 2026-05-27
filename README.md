@@ -6,10 +6,10 @@
 
 ```
 UniFlow/
-├── backend/           # FastAPI + Gemini + Bright Data
+├── backend/           # FastAPI + DeepSeek + Bright Data
 │   ├── app/
 │   │   ├── main.py        # API endpoints (/api/parse, /api/scholarships, /api/resources)
-│   │   ├── parser.py      # Gemini-powered NLP parser
+│   │   ├── parser.py      # DeepSeek-powered NLP parser
 │   │   ├── brightdata.py  # Bright Data web scraper
 │   │   ├── models.py      # Pydantic schemas
 │   │   └── config.py      # Settings
@@ -24,6 +24,7 @@ UniFlow/
 │       ├── 01.html         # Hub Dashboard
 │       ├── 02.html         # Schedule Calendar
 │       ├── 03.html         # Study Resources (Bright Data)
+│       ├── 04.html         # Data Structures Vault
 │       ├── 05.html         # Assignments
 │       ├── 06.html         # Group Projects
 │       ├── 07.html         # Budget Tracker
@@ -48,7 +49,7 @@ pip install -r requirements.txt
 
 # 3. Set up environment variables
 cp .env.example .env
-# Edit .env — add your GEMINI_API_KEY and BRIGHTDATA_TOKEN
+# Edit .env — add your DEEPSEEK_API_KEY and BRIGHTDATA_API_KEY
 
 # 4. Run the server
 uvicorn app.main:app --reload --port 8080
@@ -67,7 +68,7 @@ python -m http.server 3000
 ## Features
 
 ### 🤖 AI Command Hub (Screen 09)
-Type naturally: *"calc quiz thursday 2pm, OS assignment due friday, spent RM15 on lunch"* — Gemini parses events, expenses, and reminders simultaneously.
+Type naturally: *"calc quiz thursday 2pm, OS assignment due friday, spent RM15 on lunch"* — DeepSeek parses events, expenses, and reminders simultaneously.
 
 ### 📅 Smart Schedule (Screen 02)
 Weekly calendar grid with time slots, color-coded events by type, month view toggle, overlap detection, and event modal with edit/delete.
@@ -132,16 +133,17 @@ Create groups, manage members, assign tasks, track completion progress.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `GEMINI_API_KEY` | Yes | Google Gemini API key |
-| `BRIGHTDATA_TOKEN` | No | Bright Data SERP API token |
-| `BRIGHTDATA_SERP_URL` | No | Bright Data SERP endpoint |
+| `DEEPSEEK_API_KEY` | Yes | DeepSeek API key |
+| `DEEPSEEK_BASE_URL` | No | DeepSeek API base URL (default: https://api.deepseek.com) |
+| `DEEPSEEK_MODEL` | No | Model name (default: deepseek-chat) |
+| `BRIGHTDATA_API_KEY` | No | Bright Data API key |
 
 ## Tech Stack
 
-- **Backend:** FastAPI, Google Gemini 2.0 Flash, Bright Data
+- **Backend:** FastAPI, DeepSeek Chat (OpenAI-compatible), Bright Data
 - **Frontend:** Tailwind CSS, Material Symbols, vanilla JS
 - **Storage:** localStorage (client), in-memory cache (server)
-- **LLM:** Google Gemini for NLP parsing
+- **LLM:** DeepSeek Chat (OpenAI-compatible) for NLP parsing
 - **Web Data:** Bright Data for real-time scholarship/resource search
 
 ## License

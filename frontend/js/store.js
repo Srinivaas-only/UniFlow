@@ -2,7 +2,11 @@
  * UniFlow Data Store — localStorage wrapper
  * All screens read/write through this module.
  */
-const BACKEND_URL = "http://localhost:8080";
+// Auto-detect backend URL: use same host on port 8080, or override via localStorage
+const BACKEND_URL = localStorage.getItem("uniflow_backend_url") || 
+    (window.location.protocol === "file:" 
+        ? "http://localhost:8080" 
+        : window.location.protocol + "//" + window.location.hostname + ":8080");
 
 const Store = {
   // ── Helpers ──
