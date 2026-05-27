@@ -9,13 +9,17 @@
 <script>initTailwind();</script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="../css/theme.css"/>
-<style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #12111A; overflow-x: hidden; }
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(158,151,179,0.25); border-radius: 10px; }
-</style>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #12111A; overflow-x: hidden; }
+        .bg-glow-violet { background: radial-gradient(ellipse 80% 60% at 20% 10%,rgba(214,196,255,0.14) 0%,transparent 65%); }
+        .bg-glow-rose { background: radial-gradient(ellipse 70% 50% at 85% 75%,rgba(255,194,220,0.08) 0%,transparent 60%); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(158,151,179,0.25); border-radius: 10px; }
+        @keyframes fadeInUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+        .fade-in-up { animation: fadeInUp 0.4s ease-out forwards; opacity:0; }
+        .stat-card:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,0.3); }
+    </style>
 </head>
 <body class="bg-background min-h-screen text-on-surface">
 <div id="sidebar-mount"></div>
