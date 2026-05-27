@@ -11,298 +11,208 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="../css/theme.css"/>
 <style>
-    body { background-color: #12111A; }
-    .bg-glow {
-        position: fixed;
-        width: 600px;
-        height: 600px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(207, 189, 248, 0.08) 0%, rgba(18, 17, 26, 0) 70%);
-        filter: blur(80px);
-        z-index: -1;
-        pointer-events: none;
-    }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #12111A; overflow-x: hidden; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(158,151,179,0.25); border-radius: 10px; }
+    .modal-backdrop { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
 </style>
 </head>
-<body class="font-body-md text-on-surface selection:bg-primary-container selection:text-on-primary-container">
-
-<!-- Ambient Glows -->
-<div class="bg-glow top-[-200px] left-[-100px]"></div>
-<div class="bg-glow bottom-[-200px] right-[-100px]" style="background: radial-gradient(circle, rgba(150, 205, 242, 0.08) 0%, rgba(18, 17, 26, 0) 70%);"></div>
-
-<!-- Shared Components -->
+<body class="bg-background min-h-screen text-on-surface">
 <div id="sidebar-mount"></div>
 <div id="header-mount"></div>
 
-<!-- Main Content Area -->
 <main class="md:ml-[280px] pt-20 min-h-screen">
-    <div id="loading-overlay" class="p-margin-desktop pt-20"></div>
-    <div id="page-content">
-        <!-- Page Canvas -->
-        <div class="p-margin-desktop space-y-gutter">
-            <!-- Bento Grid - Project Status & Squad -->
-            <div class="grid grid-cols-12 gap-gutter">
-                <!-- Main Project Card -->
-                <div class="col-span-12 lg:col-span-8 bg-surface-container rounded-lg p-8 relative overflow-hidden group">
-                    <div class="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <span class="material-symbols-outlined text-[120px]">architecture</span>
-                    </div>
-                    <div class="relative z-10">
-                        <div class="flex items-center gap-3 mb-4">
-                            <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-label-sm uppercase tracking-wider">Active Project</span>
-                            <span class="text-on-surface-variant text-label-sm">Due in 5 days</span>
-                        </div>
-                        <h3 class="font-display-lg text-display-lg mb-6 max-w-lg">Advanced Bio-Tech Innovation Design</h3>
-                        <div class="flex items-center gap-8">
-                            <div class="flex flex-col">
-                                <span class="text-on-surface-variant text-label-sm uppercase">Overall Progress</span>
-                                <div class="flex items-center gap-4 mt-2">
-                                    <div class="w-48 h-2 bg-surface-container-highest rounded-full overflow-hidden">
-                                        <div class="h-full bg-primary w-[68%]"></div>
-                                    </div>
-                                    <span class="font-bold text-primary">68%</span>
-                                </div>
-                            </div>
-                            <div class="flex -space-x-3">
-                                <img alt="Member 1" class="w-10 h-10 rounded-full border-2 border-surface shadow-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCU7z4nBqCVpcYOK416QR6jcDniCCss6ARhxV_sgbSvngGmDa8R1XxoGlZUeGru5ZbPIoTrIWRs_d6JTucbgZIM_f1YkLdhBguUX0LgupfX4y_iYhSatQYqu0VsDEm_Aftfos9LQsMmx1rytLt37s8jM3GbQZ9o1c7GnY9tYpBjg38uEMG5RoQjeuKScAwYLyvbjCH2KgQonuemSAFIJNvK0djltY3bfJrL4xABfPV4vhHvnHkMbWTxZrDVnxBvqUjerDyrhAp4kbFB"/>
-                                <img alt="Member 2" class="w-10 h-10 rounded-full border-2 border-surface shadow-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBu5cgIn576piZdTe4v5zxzz-RPQ4ayXLNOrQZzW7EfNNubb9ctgMm7kGRLhOt2LroUh4rNpL1kbScOwGlqrtDxt0F9zp9nYK3-uvuUwoTHtUCjBsJubEwzyIE_Y7ASYWEzie8dh_a0ieh_a8s2fz-DxqH-zR1-PLX2zjYaxyGLdGPxgk3j5NEV7LYqtZOm07sTj8_pB3EcJV9BqODdr2rhNIcqyFFXoAOO0v4YVVRxy_GZJSZcWc6x8Su2MzYz7AzkLP6LEU0rYkeN"/>
-                                <img alt="Member 3" class="w-10 h-10 rounded-full border-2 border-surface shadow-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4jdv3KkJE_XO3LXt5CSkBdkDia5dzRtnsYWVVxgRMkKC2lVdh3v00lNKf4qtMJgj-i26lRRx32duvOB6O5urqGu6l3IRzO9Seg2QXLeKckWQNEMCIQb9FlhL0_X24kptIRzRi1bdgTKmqdWTNaYlwhs8ouI17sidZhO3wOdczefrddaHyoLwJxhEU6KLX2jKEw8HszL3edPTFZtzjyfwK9RmDScaSlJHp5dhIifb2O-OH5e4sRc5QASxT5Tq5f8FhlU2mknbhuMvj"/>
-                                <div class="w-10 h-10 rounded-full border-2 border-surface bg-surface-container-highest flex items-center justify-center text-label-sm font-bold shadow-md">+2</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Squad Accountability Card -->
-                <div class="col-span-12 lg:col-span-4 bg-surface-container-low border border-white/5 rounded-lg p-6 flex flex-col">
-                    <div class="flex justify-between items-center mb-6">
-                        <h4 class="font-headline-lg-mobile text-headline-lg-mobile">Squad Status</h4>
-                        <button class="text-secondary hover:underline text-label-sm">View Roles</button>
-                    </div>
-                    <div class="space-y-4 flex-1">
-                        <div class="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
-                            <div class="flex items-center gap-3">
-                                <div class="w-2 h-2 rounded-full bg-green-400"></div>
-                                <span class="font-body-md">Sarah J.</span>
-                            </div>
-                            <span class="text-label-sm bg-green-400/10 text-green-400 px-2 py-1 rounded">On Track</span>
-                        </div>
-                        <div class="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
-                            <div class="flex items-center gap-3">
-                                <div class="w-2 h-2 rounded-full bg-tertiary"></div>
-                                <span class="font-body-md">Marcus T.</span>
-                            </div>
-                            <span class="text-label-sm bg-tertiary/10 text-tertiary px-2 py-1 rounded">Working</span>
-                        </div>
-                        <div class="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
-                            <div class="flex items-center gap-3">
-                                <div class="w-2 h-2 rounded-full bg-error"></div>
-                                <span class="font-body-md">Elena R.</span>
-                            </div>
-                            <span class="text-label-sm bg-error/10 text-error px-2 py-1 rounded">Blocked</span>
-                        </div>
-                    </div>
-                    <button class="mt-6 w-full py-3 border border-secondary/30 text-secondary rounded-full font-bold hover:bg-secondary/5 transition-colors">Sync Squad</button>
-                </div>
-            </div>
-            <!-- Task Tracking Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-                <!-- Column 1: To Do -->
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between px-2">
-                        <h5 class="text-on-surface-variant font-bold uppercase tracking-widest text-label-sm">Backlog &bull; 3</h5>
-                        <button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined">add</span></button>
-                    </div>
-                    <div class="bg-surface-container rounded-lg p-5 border-l-4 border-white/10 hover:border-primary transition-all cursor-grab active:cursor-grabbing">
-                        <div class="flex justify-between items-start mb-3">
-                            <span class="text-label-sm text-secondary bg-secondary/10 px-2 py-1 rounded">Research</span>
-                            <span class="material-symbols-outlined text-on-surface-variant text-[18px]">more_horiz</span>
-                        </div>
-                        <p class="font-body-md font-semibold mb-4">Competitor analysis for wearable sensory modules</p>
-                        <div class="flex justify-between items-center">
-                            <div class="flex -space-x-2">
-                                <img alt="Assignee" class="w-6 h-6 rounded-full border border-surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2qLp7yhacmIn0IqhO1wNsQA8iWR-U19lnWXmgo54h_j93kuR-hPZZ0IB3lz55BFldVMAMv4bOnZIeoJELtqWfizPfTZLB4AJI8liywdA2_yOqXQxKoEydDobFOJPJaUkBHs5vFsY9Hi54Vz8JtU5OF9CiOHQJeA3SHVLuej_DiGdDNubuQ8Xm_OZtBeBVXNl1KcbEBrK-tfkBdi61YfemOrbrPN6j3D3ifiVDMPi5_9vP4s1TxninVShi8zTl0wHdl8rGMpwfQj0N"/>
-                            </div>
-                            <div class="flex items-center gap-1 text-on-surface-variant">
-                                <span class="material-symbols-outlined text-[14px]">attach_file</span>
-                                <span class="text-label-sm">2</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-surface-container rounded-lg p-5 border-l-4 border-white/10 hover:border-primary transition-all cursor-grab">
-                        <div class="flex justify-between items-start mb-3">
-                            <span class="text-label-sm text-tertiary bg-tertiary/10 px-2 py-1 rounded">Design</span>
-                            <span class="material-symbols-outlined text-on-surface-variant text-[18px]">more_horiz</span>
-                        </div>
-                        <p class="font-body-md font-semibold mb-4">Draft 3D prototypes for casing ergonomics</p>
-                        <div class="flex justify-between items-center">
-                            <div class="flex -space-x-2">
-                                <img alt="Assignee" class="w-6 h-6 rounded-full border border-surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvZG09tPt87ODBH63HvbFiea1QXKr-rUELIBrgxUHbeKGMwnWZUmLiNgy2aDsKGCujMdflvJAN4RKP9TV90aoHEJz-GUwEqLeJchxJSYRh18WVA_vrZJm_aoi1sP0ymL4OYwbqGVbPKRbiLfGPQ-XPg5rjEZMZ5vuVK9-6pw92kb0RMujdaRVxMUnEIS9RPb5ojeTuyDP2f5LpUP4x9R5-5mLZtiYwAwGu8ZNiVMZ18sennv1A0RETY1buhrNa0TWAzDiWrX87GZfN"/>
-                            </div>
-                            <span class="text-label-sm text-on-surface-variant">Tomorrow</span>
-                        </div>
-                    </div>
-                </div>
-                <!-- Column 2: In Progress -->
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between px-2">
-                        <h5 class="text-primary font-bold uppercase tracking-widest text-label-sm">In Motion &bull; 2</h5>
-                        <div class="flex gap-2">
-                            <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                        </div>
-                    </div>
-                    <div class="bg-surface-container-high rounded-lg p-5 border-l-4 border-primary shadow-lg shadow-primary/5 transition-all">
-                        <div class="flex justify-between items-start mb-3">
-                            <span class="text-label-sm text-primary bg-primary/20 px-2 py-1 rounded">Core</span>
-                            <span class="material-symbols-outlined text-on-surface-variant text-[18px]">bolt</span>
-                        </div>
-                        <p class="font-body-md font-semibold mb-4">Execute final assembly of the biotech sensor kit</p>
-                        <div class="flex justify-between items-center">
-                            <div class="flex -space-x-2">
-                                <img alt="Assignee" class="w-6 h-6 rounded-full border border-surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuT-vLB5BrO24UoisEiSsWzntwkIqfe2jSrepVCuxzZj8t7Zqo8LDWz-lc9tXPB4xBN1IT-OVVWxngqTwdcFJ-mY4IwLxYru5lS2Qodr9zwFgvdeYfGQKZ5Vq8so0bsOcFOYz_p2L4NzqsW0aDzweNN-_l9RmPYIDii9r9XicD8gLvgDIboY-dJWH6Tui_m2Y_BnSEhCNEaM7LrdAiAYmB-edwswoq-K_6D6eoMGiP7QHqzksI0qPHFKVMamJlyJeizcQoJocrOWZA"/>
-                                <img alt="Assignee" class="w-6 h-6 rounded-full border border-surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA90TOYd86TvyB6X2eK0WSBub8r2RsgVBOKN3K_5MoWC-X_ihqTnNJ3cr-RxG8OVQhmbxoRJPit9IC5OwhTKoAyGeh5PWM1SrsnZ4LeuavM1i1UNrd05l0jhfvN4ilB4znxeflvr8vF15V6-IW75-N5ScDP8_QrJl81_AXaHDKUcimP67WxjkbE-bhmOnmPyuMgnsArBvoaNqa4BiyP6uSGx72k3uaXC2EQAUBnt3sn6HkzxAIGDreSzDpyuEGi_Ubk3Zx5wMeZkF7c"/>
-                            </div>
-                            <div class="flex items-center gap-1 text-primary">
-                                <span class="material-symbols-outlined text-[14px]">chat_bubble</span>
-                                <span class="text-label-sm font-bold">8</span>
-                            </div>
-                        </div>
-                        <div class="mt-4 pt-4 border-t border-white/5 flex gap-2">
-                            <div class="flex-1 h-1 bg-surface-container rounded-full overflow-hidden">
-                                <div class="h-full bg-primary w-[45%]"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Column 3: Blocked/Needs Review -->
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between px-2">
-                        <h5 class="text-error font-bold uppercase tracking-widest text-label-sm">Halt / Review &bull; 1</h5>
-                    </div>
-                    <div class="bg-surface-container rounded-lg p-5 border-l-4 border-error/50 bg-error/5 transition-all">
-                        <div class="flex justify-between items-start mb-3">
-                            <span class="text-label-sm text-error bg-error/20 px-2 py-1 rounded">Hardware</span>
-                            <span class="material-symbols-outlined text-error text-[18px]">warning</span>
-                        </div>
-                        <p class="font-body-md font-semibold mb-2">Micro-controller delivery delay</p>
-                        <p class="text-label-sm text-on-surface-variant mb-4">Supplier reported 48hr shipment delay. Impacting assembly phase.</p>
-                        <div class="flex justify-between items-center">
-                            <div class="flex -space-x-2">
-                                <img alt="Assignee" class="w-6 h-6 rounded-full border border-surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiHlhVdOmPluNWWxcVzCTJPtMJIegAI0LK0VP5tjnJ29Ld1MtvOiplmmuqOUM2VLXahBB4iMv8Hkt34G2Ar0F8d76IgIUE4gmjuDfFLyRQNVJRBC4GfWxRyIf11d-kT6l1ji3tL4-1CuiiF5ubmS2NSdrXO5oLpaSrf57MZ9sfsb-x5aEmNnCkuheMWZeScgqll1RJyDg1m92UXEC9HS1siGQfGRVHx6NlLxeoyX8HpfvT-NYwrV99352dRPYY_53a0do0cL4sC75N"/>
-                            </div>
-                            <button class="bg-error/20 text-error font-bold text-label-sm px-3 py-1 rounded-full hover:bg-error/30 transition-all">Resolve</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Bottom Horizontal Section: Feed & Quick Resources -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter pt-4">
-                <!-- Activity Feed -->
-                <div class="bg-surface-container rounded-lg p-6">
-                    <h4 class="font-headline-lg-mobile text-headline-lg-mobile mb-6">Recent Coordination</h4>
-                    <div class="space-y-6">
-                        <div class="flex gap-4">
-                            <div class="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center shrink-0">
-                                <span class="material-symbols-outlined text-secondary text-[18px]">upload_file</span>
-                            </div>
-                            <div>
-                                <p class="text-body-md"><span class="font-bold">Sarah J.</span> uploaded <span class="text-primary italic">TechnicalSpec_v4.pdf</span></p>
-                                <p class="text-label-sm text-on-surface-variant mt-1">14 minutes ago</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4">
-                            <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                                <span class="material-symbols-outlined text-primary text-[18px]">chat</span>
-                            </div>
-                            <div>
-                                <p class="text-body-md"><span class="font-bold">Marcus T.</span> commented on <span class="text-primary">"Draft 3D Prototypes"</span></p>
-                                <p class="text-label-sm text-on-surface-variant mt-1">2 hours ago</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Shared Resources Quick Access -->
-                <div class="bg-surface-container rounded-lg p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h4 class="font-headline-lg-mobile text-headline-lg-mobile">Project Assets</h4>
-                        <span class="material-symbols-outlined text-on-surface-variant">folder</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="p-4 rounded-xl bg-surface-container-high border border-white/5 hover:bg-primary/5 transition-all cursor-pointer group">
-                            <span class="material-symbols-outlined text-primary mb-2">description</span>
-                            <p class="font-bold text-body-md group-hover:text-primary transition-colors">Lab Journal</p>
-                            <p class="text-label-sm text-on-surface-variant">Shared Workspace</p>
-                        </div>
-                        <div class="p-4 rounded-xl bg-surface-container-high border border-white/5 hover:bg-secondary/5 transition-all cursor-pointer group">
-                            <span class="material-symbols-outlined text-secondary mb-2">slideshow</span>
-                            <p class="font-bold text-body-md group-hover:text-secondary transition-colors">Final Pitch Deck</p>
-                            <p class="text-label-sm text-on-surface-variant">12 slides &bull; Draft</p>
-                        </div>
-                    </div>
-                </div>
+    <div class="p-margin-desktop space-y-gutter">
+        <div class="flex justify-between items-center">
+            <h2 class="font-headline-lg text-headline-lg">Group Projects</h2>
+            <button onclick="openCreateModal()" class="bg-primary text-on-primary px-6 py-3 rounded-full font-bold hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined">add</span> New Group
+            </button>
+        </div>
+
+        <div id="groups-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-gutter">
+            <div class="col-span-full flex flex-col items-center justify-center py-16 text-center">
+                <span class="material-symbols-outlined text-[48px] text-on-surface-variant/30 mb-4">group_work</span>
+                <p class="text-on-surface-variant">No groups yet. Create one to start collaborating.</p>
             </div>
         </div>
     </div>
 </main>
 
-<!-- FAB -->
-<button class="fixed bottom-10 right-10 w-16 h-16 bg-primary text-on-primary rounded-2xl shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
-    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
-</button>
+<!-- Create Group Modal -->
+<div id="create-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+    <div class="bg-surface-container rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-white/10">
+        <h3 class="font-headline-lg-mobile text-headline-lg-mobile mb-6">Create New Group</h3>
+        <input id="group-name-input" type="text" placeholder="Group name (e.g. FYP Team)" class="w-full bg-surface-container-high text-on-surface px-4 py-3 rounded-xl border border-white/10 focus:outline-none focus:border-primary mb-4">
+        <div class="flex gap-3 justify-end">
+            <button onclick="closeCreateModal()" class="px-6 py-2 rounded-full text-on-surface-variant hover:bg-white/5 transition-all">Cancel</button>
+            <button onclick="createGroup()" class="bg-primary text-on-primary px-6 py-2 rounded-full font-bold hover:scale-105 transition-all">Create</button>
+        </div>
+    </div>
+</div>
 
-<!-- Shared Bottom Nav -->
+<!-- Group Detail Modal -->
+<div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+    <div class="bg-surface-container rounded-2xl p-8 max-w-lg w-full mx-4 shadow-2xl border border-white/10 max-h-[80vh] overflow-y-auto custom-scrollbar">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="font-headline-lg-mobile text-headline-lg-mobile" id="detail-title">Group</h3>
+            <button onclick="closeDetailModal()" class="text-on-surface-variant hover:text-on-surface">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <!-- Members -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-3">
+                <h4 class="text-label-sm font-bold text-on-surface-variant uppercase tracking-widest">Members</h4>
+                <button onclick="addMember()" class="text-primary text-label-sm hover:underline">+ Add</button>
+            </div>
+            <div id="detail-members" class="flex flex-wrap gap-2"></div>
+        </div>
+        <!-- Tasks -->
+        <div>
+            <div class="flex justify-between items-center mb-3">
+                <h4 class="text-label-sm font-bold text-on-surface-variant uppercase tracking-widest">Tasks</h4>
+                <button onclick="addTask()" class="text-primary text-label-sm hover:underline">+ Add</button>
+            </div>
+            <div id="detail-tasks" class="space-y-2"></div>
+        </div>
+    </div>
+</div>
+
 <div id="bottomnav-mount"></div>
-
-<!-- Shared Component Scripts -->
 <script src="../js/components/sidebar.js"></script>
 <script src="../js/components/header.js"></script>
 <script src="../js/components/bottomNav.js"></script>
-<script src="../js/components/loading.js"></script>
+<script src="../js/store.js"></script>
 
-<!-- Page Init -->
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        renderSidebar('06');
-        renderHeader({ title: 'Group Projects' });
-        renderBottomNav('06');
-        initLoading('Loading Group Projects...');
-        initPage();
-    });
+var currentGroupId = null;
 
-    function fetchPageData() {
-        return new Promise((resolve) => {
-            setTimeout(() => resolve({
-                activeProjects: [
-                    { name: "Urban Transit Redesign", course: "Urban Planning 101", members: 4, progress: 68, deadline: "Nov 15", role: "Lead Architect", color: "primary" },
-                    { name: "Biochem Lab Report #5", course: "Biochemistry", members: 3, progress: 90, deadline: "Oct 28", role: "Data Analyst", color: "secondary" },
-                    { name: "Data Viz Dashboard", course: "Data Structures", members: 5, progress: 35, deadline: "Dec 01", role: "Frontend Dev", color: "tertiary" }
-                ],
-                contributions: { thisWeek: 12, totalComments: 47, filesUploaded: 8 }
-            }), 1000);
-        });
+document.addEventListener('DOMContentLoaded', function() {
+    renderSidebar('06');
+    renderHeader({ title: 'Group Projects' });
+    renderBottomNav('06');
+    renderGroups();
+});
+
+function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+function renderGroups() {
+    var groups = Store.getGroups();
+    var container = document.getElementById('groups-container');
+    if (groups.length === 0) {
+        container.innerHTML = '<div class="col-span-full flex flex-col items-center justify-center py-16 text-center"><span class="material-symbols-outlined text-[48px] text-on-surface-variant/30 mb-4">group_work</span><p class="text-on-surface-variant">No groups yet. Create one to start collaborating.</p></div>';
+        return;
     }
+    container.innerHTML = groups.map(function(g) {
+        var taskDone = g.tasks.filter(t => t.done).length;
+        var taskTotal = g.tasks.length;
+        var pct = taskTotal ? Math.round(taskDone / taskTotal * 100) : 0;
+        return '<div class="bg-surface-container rounded-lg p-6 border border-white/5 hover:border-primary/30 transition-all cursor-pointer" onclick="openDetail(\'' + g.id + '\')">' +
+            '<div class="flex justify-between items-start mb-4">' +
+                '<h4 class="font-body-lg font-bold">' + escapeHtml(g.name) + '</h4>' +
+                '<button onclick="event.stopPropagation(); deleteGroup(\'' + g.id + '\')" class="text-on-surface-variant hover:text-rose-400 transition-colors"><span class="material-symbols-outlined text-lg">delete</span></button>' +
+            '</div>' +
+            '<div class="flex items-center gap-4 mb-4">' +
+                '<span class="text-label-sm text-on-surface-variant"><span class="material-symbols-outlined text-sm align-middle">person</span> ' + g.members.length + ' members</span>' +
+                '<span class="text-label-sm text-on-surface-variant"><span class="material-symbols-outlined text-sm align-middle">task_alt</span> ' + taskDone + '/' + taskTotal + ' tasks</span>' +
+            '</div>' +
+            '<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden"><div class="h-full bg-primary rounded-full" style="width: ' + pct + '%;"></div></div>' +
+            '<p class="text-[10px] text-on-surface-variant mt-2">' + pct + '% complete</p>' +
+        '</div>';
+    }).join('');
+}
 
-    async function initPage() {
-        try {
-            const data = await fetchPageData();
-            hideLoading();
-        } catch (error) {
-            console.error('Failed to load page:', error);
-            var overlay = document.getElementById('loading-overlay');
-            if (overlay) overlay.innerHTML = '<p class="text-error font-bold">Failed to load. Please refresh.</p>';
-        }
-    }
+function openCreateModal() {
+    document.getElementById('create-modal').classList.remove('hidden');
+    document.getElementById('create-modal').classList.add('flex');
+    document.getElementById('group-name-input').focus();
+}
+function closeCreateModal() {
+    document.getElementById('create-modal').classList.add('hidden');
+    document.getElementById('create-modal').classList.remove('flex');
+}
+function createGroup() {
+    var name = document.getElementById('group-name-input').value.trim();
+    if (!name) return;
+    Store.createGroup(name);
+    document.getElementById('group-name-input').value = '';
+    closeCreateModal();
+    renderGroups();
+}
 
-    // Page-specific effects
-    document.querySelectorAll('.bg-surface-container').forEach(card => {
-        card.addEventListener('mouseenter', () => {
-            card.style.transform = 'translateY(-2px)';
-            card.style.boxShadow = '0 10px 30px -10px rgba(207, 189, 248, 0.1)';
-        });
-        card.addEventListener('mouseleave', () => {
-            card.style.transform = 'translateY(0)';
-            card.style.boxShadow = 'none';
-        });
-    });
+function deleteGroup(id) {
+    if (confirm('Delete this group?')) { Store.deleteGroup(id); renderGroups(); }
+}
+
+function openDetail(id) {
+    currentGroupId = id;
+    var group = Store.getGroups().find(g => g.id === id);
+    if (!group) return;
+    document.getElementById('detail-title').textContent = group.name;
+    // Members
+    var membersEl = document.getElementById('detail-members');
+    membersEl.innerHTML = group.members.map(function(m, i) {
+        return '<span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-label-sm">' +
+            escapeHtml(m) +
+            '<button onclick="removeMember(' + i + ')" class="ml-1 hover:text-rose-400">×</button></span>';
+    }).join('');
+    // Tasks
+    var tasksEl = document.getElementById('detail-tasks');
+    tasksEl.innerHTML = group.tasks.map(function(t, i) {
+        return '<div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl">' +
+            '<input type="checkbox" ' + (t.done ? 'checked' : '') + ' onchange="toggleTask(' + i + ')" class="accent-primary cursor-pointer">' +
+            '<span class="' + (t.done ? 'line-through opacity-50' : '') + ' flex-1">' + escapeHtml(t.text) + '</span>' +
+            '<button onclick="removeTask(' + i + ')" class="text-on-surface-variant hover:text-rose-400"><span class="material-symbols-outlined text-sm">close</span></button>' +
+        '</div>';
+    }).join('');
+    document.getElementById('detail-modal').classList.remove('hidden');
+    document.getElementById('detail-modal').classList.add('flex');
+}
+function closeDetailModal() {
+    document.getElementById('detail-modal').classList.add('hidden');
+    document.getElementById('detail-modal').classList.remove('flex');
+    currentGroupId = null;
+    renderGroups();
+}
+
+function addMember() {
+    var name = prompt('Member name:');
+    if (!name || !currentGroupId) return;
+    var groups = Store.getGroups();
+    var g = groups.find(gr => gr.id === currentGroupId);
+    if (g) { g.members.push(name.trim()); Store.saveGroup(g); openDetail(currentGroupId); }
+}
+
+function removeMember(idx) {
+    if (!currentGroupId) return;
+    var groups = Store.getGroups();
+    var g = groups.find(gr => gr.id === currentGroupId);
+    if (g) { g.members.splice(idx, 1); Store.saveGroup(g); openDetail(currentGroupId); }
+}
+
+function addTask() {
+    var text = prompt('Task description:');
+    if (!text || !currentGroupId) return;
+    var groups = Store.getGroups();
+    var g = groups.find(gr => gr.id === currentGroupId);
+    if (g) { g.tasks.push({ text: text.trim(), done: false }); Store.saveGroup(g); openDetail(currentGroupId); }
+}
+
+function removeTask(idx) {
+    if (!currentGroupId) return;
+    var groups = Store.getGroups();
+    var g = groups.find(gr => gr.id === currentGroupId);
+    if (g) { g.tasks.splice(idx, 1); Store.saveGroup(g); openDetail(currentGroupId); }
+}
+
+function toggleTask(idx) {
+    if (!currentGroupId) return;
+    var groups = Store.getGroups();
+    var g = groups.find(gr => gr.id === currentGroupId);
+    if (g) { g.tasks[idx].done = !g.tasks[idx].done; Store.saveGroup(g); openDetail(currentGroupId); }
+}
 </script>
 </body>
 </html>

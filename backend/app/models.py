@@ -12,6 +12,7 @@ class EventType(str, Enum):
     deadline = "deadline"
     reminder = "reminder"
     social = "social"
+    expense = "expense"
     other = "other"
 
 
@@ -22,6 +23,12 @@ class ParsedEvent(BaseModel):
         None, description="24h time string HH:MM, or null if not specified"
     )
     type: EventType = Field(..., description="Event type category")
+    amount: Optional[str] = Field(
+        None, description="Expense amount (e.g. 'RM15'), null for non-expense events"
+    )
+    category: Optional[str] = Field(
+        None, description="Expense category (food/transport/education/rent/other), null for non-expense"
+    )
 
 
 class ParseRequest(BaseModel):
@@ -34,3 +41,63 @@ class ParseResponse(BaseModel):
     events: list[ParsedEvent] = Field(
         default_factory=list, description="List of parsed events"
     )
+
+
+# --- Scholarship models ---
+
+class ScholarshipProfile(BaseModel):
+    cgpa: float = Field(..., description="Current CGPA")
+    course: str = Field(..., description="Course/program name")
+    year: int = Field(..., description="Year of study")
+    state: str = Field(..., description="State in Malaysia")
+
+
+class ScholarshipResult(BaseModel):
+    title: str
+    provider: str = ""
+    amount: str = ""
+    deadline: str = ""
+    eligibility: str = ""
+    link: str = ""
+    match_score: int = 0
+
+
+class ScholarshipResponse(BaseModel):
+    scholarships: list[ScholarshipResult] = Field(default_factory=list)
+
+
+# --- Resource models ---
+
+class ResourceRequest(BaseModel):
+    subject: str = Field(..., description="Subject name to search for")
+
+
+class ResourceResult(BaseModel):
+    title: str
+    type: str = ""  # past_paper, textbook, notes, video, other
+    source: str = ""
+    link: str = ""
+    description: str = ""
+
+
+class ResourceResponse(BaseModel):
+    resources: list[ResourceResult] = Field(default_factory=list)
+
+
+# --- Uni Calendar models ---
+
+class UniCalendarRequest(BaseModel):
+    university: str = Field("UM", description="University code: UM, USM, UKM, UTM")
+
+
+class CalendarEvent(BaseModel):
+    title: str
+    date: str = ""
+    end_date: str = ""
+    category: str = ""  # semester, exam, holiday, registration, other
+    description: str = ""
+
+
+class UniCalendarResponse(BaseModel):
+    university: str
+    events: list[CalendarEvent] = Field(default_factory=list)

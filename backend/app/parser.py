@@ -19,13 +19,13 @@ def _get_client() -> OpenAI:
     return _client
 
 SYSTEM_PROMPT = """\
-You are a university schedule parser. Extract structured event data from the user's natural language message.
+You are a university student life parser. Extract structured event and expense data from the user's natural language message.
 
 Rules:
 - Resolve relative dates (e.g. "thursday", "next friday", "tomorrow") to absolute ISO dates using the current date provided below.
 - If a time is mentioned, convert it to 24h HH:MM format. If no time is mentioned, set time to null.
 - Generate a clear, descriptive title for each event (capitalize properly).
-- Classify each event into exactly one of these types:
+- Classify each item into exactly one of these types:
   - exam: tests, quizzes, midterms, finals
   - assignment: homework, labs, reports, projects
   - meeting: FYP meetings, consultations, group meetings
@@ -33,13 +33,21 @@ Rules:
   - deadline: submission deadlines, application deadlines
   - reminder: personal reminders, gym, errands
   - social: dinners, hangouts, gatherings
+  - expense: any spending/purchase mentioned (food, transport, textbooks, rent, etc.)
   - other: anything that doesn't fit above
-- Return a JSON array of events. If no events are found, return an empty array.
+
+For expense items:
+- Set amount to the monetary value with currency (e.g. "RM15", "$20")
+- Set category to one of: food, transport, education, rent, entertainment, other
+- The date should be today's date unless a specific date is mentioned
+- Time can be null for expenses
+
+Return a JSON array of items. If no items are found, return an empty array.
 """
 
 FUNCTION_DEFINITION = {
     "name": "extract_events",
-    "description": "Extract structured events from the user's message.",
+    "description": "Extract structured events and expenses from the user's message.",
     "parameters": {
         "type": "object",
         "properties": {
@@ -50,7 +58,7 @@ FUNCTION_DEFINITION = {
                     "properties": {
                         "title": {
                             "type": "string",
-                            "description": "Clear, human-readable event title",
+                            "description": "Clear, human-readable title",
                         },
                         "date": {
                             "type": "string",
@@ -63,6 +71,14 @@ FUNCTION_DEFINITION = {
                         "type": {
                             "type": "string",
                             "enum": [e.value for e in EventType],
+                        },
+                        "amount": {
+                            "type": ["string", "null"],
+                            "description": "Monetary amount with currency for expenses, null otherwise",
+                        },
+                        "category": {
+                            "type": ["string", "null"],
+                            "description": "Expense category (food/transport/education/rent/entertainment/other), null for non-expenses",
                         },
                     },
                     "required": ["title", "date", "time", "type"],
@@ -111,7 +127,6 @@ async def parse_events(message: str) -> list[ParsedEvent]:
     events: list[ParsedEvent] = []
 
     for raw in raw_events:
-        # Normalize the "class" type since the enum uses class_ (Python keyword)
         event_type = raw.get("type", "other")
         if event_type == "class":
             event_type = "class"
@@ -122,10 +137,11 @@ async def parse_events(message: str) -> list[ParsedEvent]:
                 date=raw["date"],
                 time=raw.get("time"),
                 type=event_type,
+                amount=raw.get("amount"),
+                category=raw.get("category"),
             )
             events.append(parsed)
         except Exception:
-            # Skip malformed events gracefully
             continue
 
     return events
