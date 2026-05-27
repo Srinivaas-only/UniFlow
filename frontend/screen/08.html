@@ -3,159 +3,235 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Scholarships | UniFlow</title>
+<title>UniFlow | Scholarships</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script src="../js/components/tailwind.js"></script>
 <script>initTailwind();</script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="../css/theme.css"/>
 <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #12111A; overflow-x: hidden; }
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(158,151,179,0.25); border-radius: 10px; }
+    body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#12111A}
+    .bg-glow-violet{background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(214,196,255,0.14) 0%,transparent 65%)}
+    .custom-scrollbar::-webkit-scrollbar{width:4px}
+    .custom-scrollbar::-webkit-scrollbar-track{background:transparent}
+    .custom-scrollbar::-webkit-scrollbar-thumb{background:rgba(158,151,179,0.25);border-radius:10px}
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .fade-in-up{animation:fadeInUp 0.4s ease-out forwards;opacity:0}
+    @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+    .skeleton{background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .searching-spin{animation:spin 1.5s linear infinite}
+    @keyframes searchPulse{0%,100%{opacity:0.4}50%{opacity:1}}
+    .search-pulse{animation:searchPulse 1.5s ease-in-out infinite}
 </style>
 </head>
-<body class="bg-background min-h-screen text-on-surface">
+<body class="bg-background text-on-surface">
+<div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
+    <div class="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-glow-violet"></div>
+</div>
 <div id="sidebar-mount"></div>
 <div id="header-mount"></div>
 
-<main class="md:ml-[280px] pt-20 min-h-screen">
-    <div class="p-margin-desktop space-y-gutter">
+<main class="md:ml-[280px] pt-20 h-screen overflow-y-auto custom-scrollbar">
+    <div class="px-margin-mobile md:px-margin-desktop pr-4 pb-24 space-y-6">
         <!-- Profile Form -->
-        <div class="bg-surface-container rounded-lg p-8">
-            <div class="flex items-center gap-3 mb-6">
-                <span class="material-symbols-outlined text-primary text-3xl">school</span>
+        <div class="bg-surface-container/60 rounded-3xl p-6 border border-outline-variant/10 fade-in-up" style="animation-delay:0ms">
+            <h2 class="text-headline-sm font-bold text-primary mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined">school</span> Scholarship Finder
+            </h2>
+            <p class="text-on-surface-variant text-body-md mb-4">Powered by Bright Data — real-time web search for Malaysian scholarships matching your profile.</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
-                    <h3 class="font-headline-lg text-headline-lg">Scholarship Finder</h3>
-                    <p class="text-on-surface-variant text-label-sm">Enter your profile to find matching Malaysian scholarships.</p>
+                    <label class="text-label-sm text-on-surface-variant block mb-1">Course</label>
+                    <input id="inp-course" type="text" placeholder="e.g. Computer Science" class="w-full bg-surface-container rounded-xl px-3 py-2.5 text-on-surface border border-outline-variant/30 focus:border-primary outline-none transition-all text-sm"/>
+                </div>
+                <div>
+                    <label class="text-label-sm text-on-surface-variant block mb-1">CGPA</label>
+                    <input id="inp-cgpa" type="text" placeholder="e.g. 3.5" class="w-full bg-surface-container rounded-xl px-3 py-2.5 text-on-surface border border-outline-variant/30 focus:border-primary outline-none transition-all text-sm"/>
+                </div>
+                <div>
+                    <label class="text-label-sm text-on-surface-variant block mb-1">Year</label>
+                    <input id="inp-year" type="text" placeholder="e.g. 2" class="w-full bg-surface-container rounded-xl px-3 py-2.5 text-on-surface border border-outline-variant/30 focus:border-primary outline-none transition-all text-sm"/>
+                </div>
+                <div>
+                    <label class="text-label-sm text-on-surface-variant block mb-1">State</label>
+                    <input id="inp-state" type="text" placeholder="e.g. Selangor" class="w-full bg-surface-container rounded-xl px-3 py-2.5 text-on-surface border border-outline-variant/30 focus:border-primary outline-none transition-all text-sm"/>
                 </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div>
-                    <label class="text-label-sm text-on-surface-variant mb-1 block">CGPA</label>
-                    <input id="profile-cgpa" type="number" step="0.01" min="0" max="4" placeholder="3.50" class="w-full bg-surface-container-high text-on-surface px-4 py-3 rounded-xl border border-white/10 focus:outline-none focus:border-primary">
-                </div>
-                <div>
-                    <label class="text-label-sm text-on-surface-variant mb-1 block">Course</label>
-                    <input id="profile-course" type="text" placeholder="Computer Science" class="w-full bg-surface-container-high text-on-surface px-4 py-3 rounded-xl border border-white/10 focus:outline-none focus:border-primary">
-                </div>
-                <div>
-                    <label class="text-label-sm text-on-surface-variant mb-1 block">Year</label>
-                    <select id="profile-year" class="w-full bg-surface-container-high text-on-surface px-4 py-3 rounded-xl border border-white/10 focus:outline-none focus:border-primary">
-                        <option value="1">Year 1</option>
-                        <option value="2">Year 2</option>
-                        <option value="3" selected>Year 3</option>
-                        <option value="4">Year 4</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-label-sm text-on-surface-variant mb-1 block">State</label>
-                    <select id="profile-state" class="w-full bg-surface-container-high text-on-surface px-4 py-3 rounded-xl border border-white/10 focus:outline-none focus:border-primary">
-                        <option value="Selangor">Selangor</option>
-                        <option value="Kuala Lumpur">Kuala Lumpur</option>
-                        <option value="Johor">Johor</option>
-                        <option value="Penang">Penang</option>
-                        <option value="Perak">Perak</option>
-                        <option value="Sabah">Sabah</option>
-                        <option value="Sarawak">Sarawak</option>
-                        <option value="Negeri Sembilan">Negeri Sembilan</option>
-                        <option value="Kedah">Kedah</option>
-                        <option value="Kelantan">Kelantan</option>
-                        <option value="Terengganu">Terengganu</option>
-                        <option value="Pahang">Pahang</option>
-                        <option value="Melaka">Melaka</option>
-                        <option value="Perlis">Perlis</option>
-                    </select>
-                </div>
-                <div class="flex items-end">
-                    <button id="search-btn" onclick="searchScholarships()" class="w-full bg-primary text-on-primary px-6 py-3 rounded-xl font-bold hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2">
-                        <span class="material-symbols-outlined">search</span> Find
-                    </button>
-                </div>
+            <button onclick="searchScholarships()" id="search-btn" class="mt-4 px-6 py-3 bg-primary text-on-primary rounded-2xl font-bold hover:brightness-110 active:scale-[0.97] transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined">search</span> Search Scholarships
+            </button>
+        </div>
+
+        <!-- Searching Animation -->
+        <div id="searching-state" style="display:none" class="bg-surface-container/60 rounded-3xl p-8 border border-outline-variant/10 text-center">
+            <div class="w-12 h-12 mx-auto mb-4 relative">
+                <span class="material-symbols-outlined text-primary text-5xl searching-spin">sync</span>
+            </div>
+            <h3 class="text-headline-sm font-bold text-primary mb-2">Searching the web...</h3>
+            <p class="text-on-surface-variant text-body-md">Bright Data is querying multiple sources for scholarships matching your profile.</p>
+            <div class="mt-4 space-y-2 max-w-md mx-auto">
+                <div class="skeleton h-4 w-full"></div>
+                <div class="skeleton h-4 w-3/4"></div>
+                <div class="skeleton h-4 w-1/2"></div>
             </div>
         </div>
 
         <!-- Results -->
-        <div id="results-container" class="space-y-4">
-            <div class="flex flex-col items-center justify-center py-16 text-center">
-                <span class="material-symbols-outlined text-[48px] text-on-surface-variant/30 mb-4">school</span>
-                <p class="text-on-surface-variant">Enter your profile and click Find to discover matching scholarships.</p>
-                <p class="text-label-sm text-on-surface-variant mt-2">Powered by Bright Data SERP API</p>
+        <div id="results-section" style="display:none">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-label-lg font-bold text-on-surface" id="results-count">0 Results</h3>
+                <select id="sort-select" onchange="sortResults()" class="bg-surface-container-high rounded-xl px-3 py-2 text-label-sm text-on-surface border border-outline-variant/30 outline-none">
+                    <option value="match">Sort by Match %</option>
+                    <option value="amount">Sort by Amount</option>
+                    <option value="deadline">Sort by Deadline</option>
+                </select>
             </div>
+            <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        </div>
+
+        <!-- Saved Scholarships -->
+        <div id="saved-section">
+            <h3 class="text-label-lg font-bold text-on-surface mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">bookmark</span> Saved Scholarships
+            </h3>
+            <div id="saved-list"></div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="flex flex-col items-center justify-center py-16 text-center">
+            <div class="w-14 h-14 rounded-3xl bg-surface-container-high flex items-center justify-center mb-4">
+                <span class="material-symbols-outlined text-on-surface-variant text-3xl">school</span>
+            </div>
+            <h3 class="text-headline-sm text-on-surface-variant mb-2">Find your scholarship</h3>
+            <p class="text-on-surface-variant text-body-md max-w-sm">Enter your profile above and we'll search the web for matching scholarships using Bright Data.</p>
         </div>
     </div>
 </main>
-
 <div id="bottomnav-mount"></div>
+
 <script src="../js/components/sidebar.js"></script>
 <script src="../js/components/header.js"></script>
 <script src="../js/components/bottomNav.js"></script>
 <script src="../js/store.js"></script>
-
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    renderSidebar('08');
-    renderHeader({ title: 'Scholarships' });
-    renderBottomNav('08');
+var currentResults = [];
+function escapeHtml(t){var d=document.createElement('div');d.textContent=t;return d.innerHTML}
+
+document.addEventListener('DOMContentLoaded',function(){
+    renderSidebar('08');renderHeader({title:'Scholarships',subtitle:'Bright Data Search'});renderBottomNav('08');
+    renderSaved();
 });
 
-function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+async function searchScholarships(){
+    var course=document.getElementById('inp-course').value.trim();
+    var cgpa=document.getElementById('inp-cgpa').value.trim();
+    var year=document.getElementById('inp-year').value.trim();
+    var state=document.getElementById('inp-state').value.trim();
+    if(!course){alert('Please enter your course');return}
 
-async function searchScholarships() {
-    var cgpa = parseFloat(document.getElementById('profile-cgpa').value);
-    var course = document.getElementById('profile-course').value.trim();
-    var year = parseInt(document.getElementById('profile-year').value);
-    var state = document.getElementById('profile-state').value;
+    document.getElementById('empty-state').style.display='none';
+    document.getElementById('searching-state').style.display='block';
+    document.getElementById('results-section').style.display='none';
 
-    if (!cgpa || !course) {
-        alert('Please enter your CGPA and course.');
+    try{
+        var data=await Store.searchScholarships({course,cgpa:cgpa||'3.0',year:year||'1',state:state||'Selangor'});
+        currentResults=data.scholarships||[];
+        document.getElementById('searching-state').style.display='none';
+        renderResults();
+    }catch(err){
+        document.getElementById('searching-state').style.display='none';
+        document.getElementById('empty-state').style.display='flex';
+        alert('Search failed: '+err.message);
+    }
+}
+
+function renderResults(){
+    var section=document.getElementById('results-section');
+    var grid=document.getElementById('results-grid');
+    document.getElementById('results-count').textContent=currentResults.length+' Results';
+    section.style.display='block';
+
+    if(currentResults.length===0){
+        grid.innerHTML='<div class="col-span-2 text-center py-12 text-on-surface-variant"><p>No scholarships found. Try adjusting your profile.</p></div>';
         return;
     }
 
-    var btn = document.getElementById('search-btn');
-    var container = document.getElementById('results-container');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Searching...';
-    container.innerHTML = '<div class="flex items-center justify-center py-16"><div class="flex gap-2"><span class="w-3 h-3 bg-primary/60 rounded-full animate-bounce"></span><span class="w-3 h-3 bg-primary/60 rounded-full animate-bounce" style="animation-delay:150ms"></span><span class="w-3 h-3 bg-primary/60 rounded-full animate-bounce" style="animation-delay:300ms"></span></div></div>';
+    var html='';
+    currentResults.forEach(function(s,idx){
+        var matchColor=s.match_score>=80?'text-emerald-400':s.match_score>=60?'text-amber-400':'text-on-surface-variant';
+        var matchBg=s.match_score>=80?'bg-emerald-500/15':s.match_score>=60?'bg-amber-500/15':'bg-surface-container-high';
+        html+=
+        '<div class="fade-in-up bg-surface-container/60 rounded-2xl p-5 border border-outline-variant/10 hover:border-primary/20 transition-all" style="animation-delay:'+idx*80+'ms">'+
+            '<div class="flex items-start justify-between mb-3">'+
+                '<div class="flex-1 min-w-0 mr-3">'+
+                    '<h4 class="text-label-sm font-bold text-on-surface truncate">'+escapeHtml(s.title)+'</h4>'+
+                    (s.provider?'<span class="text-[10px] text-on-surface-variant">'+escapeHtml(s.provider)+'</span>':'')+
+                '</div>'+
+                '<span class="px-2.5 py-1 '+matchBg+' '+matchColor+' rounded-full text-[11px] font-bold flex-shrink-0">'+s.match_score+'% match</span>'+
+            '</div>'+
+            '<div class="flex flex-wrap gap-3 mb-3 text-[11px] text-on-surface-variant">'+
+                (s.amount?'<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">payments</span>'+escapeHtml(s.amount)+'</span>':'')+
+                (s.deadline?'<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span>'+escapeHtml(s.deadline)+'</span>':'')+
+            '</div>'+
+            (s.eligibility?'<p class="text-[11px] text-on-surface-variant mb-3">Eligibility: '+escapeHtml(s.eligibility)+'</p>':'')+
+            '<div class="flex items-center gap-2">'+
+                (s.link?'<a href="'+escapeHtml(s.link)+'" target="_blank" class="flex-1 py-2 bg-primary/10 text-primary rounded-xl text-label-sm font-bold text-center hover:bg-primary/20 transition-all">Apply →</a>':'')+
+                '<button onclick="saveScholarship('+idx+')" class="py-2 px-3 bg-surface-container-high text-on-surface-variant rounded-xl text-label-sm hover:text-primary transition-all"><span class="material-symbols-outlined text-lg">bookmark_add</span></button>'+
+                (s.deadline?'<button onclick="addDeadlineReminder('+idx+')" class="py-2 px-3 bg-surface-container-high text-on-surface-variant rounded-xl text-label-sm hover:text-primary transition-all" title="Add to schedule"><span class="material-symbols-outlined text-lg">calendar_add_on</span></button>':'')+
+            '</div>'+
+        '</div>';
+    });
+    grid.innerHTML=html;
+}
 
-    try {
-        var data = await Store.searchScholarships({ cgpa: cgpa, course: course, year: year, state: state });
-        var scholarships = data.scholarships || [];
+function sortResults(){
+    var sort=document.getElementById('sort-select').value;
+    if(sort==='match') currentResults.sort(function(a,b){return b.match_score-a.match_score});
+    else if(sort==='amount') currentResults.sort(function(a,b){return(parseAmount(b.amount)-parseAmount(a.amount))});
+    else if(sort==='deadline') currentResults.sort(function(a,b){return(a.deadline||'zzz').localeCompare(b.deadline||'zzz')});
+    renderResults();
+}
 
-        if (scholarships.length === 0) {
-            container.innerHTML = '<div class="flex flex-col items-center justify-center py-16 text-center"><span class="material-symbols-outlined text-[48px] text-on-surface-variant/30 mb-4">search_off</span><p class="text-on-surface-variant">No scholarships found. Try adjusting your profile.</p></div>';
-        } else {
-            container.innerHTML = '<p class="text-label-sm text-on-surface-variant mb-2">Found ' + scholarships.length + ' scholarship' + (scholarships.length !== 1 ? 's' : '') + '</p>' +
-                scholarships.map(function(s) {
-                    var scoreColor = s.match_score >= 80 ? 'text-emerald-400 bg-emerald-500/10' : s.match_score >= 60 ? 'text-primary bg-primary/10' : 'text-on-surface-variant bg-white/5';
-                    return '<div class="bg-surface-container rounded-xl p-6 border border-white/5 hover:border-primary/20 transition-all">' +
-                        '<div class="flex items-start justify-between gap-4">' +
-                            '<div class="flex-1 min-w-0">' +
-                                '<h4 class="font-body-lg font-bold mb-2">' + escapeHtml(s.title) + '</h4>' +
-                                '<div class="flex flex-wrap gap-2 mb-3">' +
-                                    (s.provider ? '<span class="px-2 py-0.5 bg-primary/10 text-primary rounded text-[10px] font-bold">' + escapeHtml(s.provider) + '</span>' : '') +
-                                    (s.amount ? '<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded text-[10px] font-bold">' + escapeHtml(s.amount) + '</span>' : '') +
-                                    (s.deadline ? '<span class="px-2 py-0.5 bg-rose-500/10 text-rose-400 rounded text-[10px] font-bold">Due: ' + escapeHtml(s.deadline) + '</span>' : '') +
-                                '</div>' +
-                                (s.eligibility ? '<p class="text-label-sm text-on-surface-variant mb-3">' + escapeHtml(s.eligibility) + '</p>' : '') +
-                                (s.link ? '<a href="' + escapeHtml(s.link) + '" target="_blank" class="text-primary text-label-sm font-bold hover:underline flex items-center gap-1"><span class="material-symbols-outlined text-sm">open_in_new</span> Apply / Details</a>' : '') +
-                            '</div>' +
-                            '<div class="flex-shrink-0 text-center">' +
-                                '<span class="px-3 py-2 ' + scoreColor + ' rounded-xl text-sm font-bold">' + s.match_score + '%</span>' +
-                                '<p class="text-[9px] text-on-surface-variant mt-1">match</p>' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>';
-                }).join('');
-        }
-    } catch (err) {
-        container.innerHTML = '<div class="flex flex-col items-center justify-center py-16 text-center"><span class="material-symbols-outlined text-[48px] text-rose-400/50 mb-4">error</span><p class="text-rose-400">' + escapeHtml(err.message) + '</p><p class="text-label-sm text-on-surface-variant mt-2">Make sure BRIGHTDATA_API_KEY is set in the backend .env</p></div>';
+function parseAmount(s){var m=s.match(/[\d,]+/);return m?parseFloat(m[0].replace(/,/g,'')):0}
+
+function saveScholarship(idx){
+    Store.saveScholarship(currentResults[idx]);
+    renderSaved();
+}
+
+function addDeadlineReminder(idx){
+    var s=currentResults[idx];
+    if(!s.deadline)return;
+    Store.addEvents([{title:'Scholarship Deadline: '+s.title,date:s.deadline,time:'11:59pm',type:'deadline'}]);
+    alert('Deadline added to your schedule!');
+}
+
+function renderSaved(){
+    var saved=Store.getSavedScholarships();
+    var list=document.getElementById('saved-list');
+    if(saved.length===0){
+        list.innerHTML='<p class="text-on-surface-variant text-body-md text-center py-6">No saved scholarships yet. Search and bookmark results above.</p>';
+        return;
     }
+    var html='';
+    saved.forEach(function(s,idx){
+        html+=
+        '<div class="flex items-center gap-3 p-3 bg-surface-container/40 rounded-2xl mb-2 hover:bg-surface-container/60 transition-all">'+
+            '<span class="material-symbols-outlined text-primary">bookmark</span>'+
+            '<div class="flex-1 min-w-0"><p class="text-label-sm font-bold truncate">'+escapeHtml(s.title)+'</p>'+
+            (s.amount?'<span class="text-[10px] text-on-surface-variant">'+escapeHtml(s.amount)+'</span>':'')+'</div>'+
+            (s.link?'<a href="'+escapeHtml(s.link)+'" target="_blank" class="text-primary text-label-sm font-bold hover:underline">Apply</a>':'')+
+            '<button onclick="removeSaved('+idx+')" class="p-1 text-on-surface-variant hover:text-rose-400 transition-colors"><span class="material-symbols-outlined text-lg">delete</span></button>'+
+        '</div>';
+    });
+    list.innerHTML=html;
+}
 
-    btn.disabled = false;
-    btn.innerHTML = '<span class="material-symbols-outlined">search</span> Find';
+function removeSaved(idx){
+    var saved=Store.getSavedScholarships();
+    if(saved[idx])Store.removeSavedScholarship(saved[idx].title);
+    renderSaved();
 }
 </script>
 </body>
