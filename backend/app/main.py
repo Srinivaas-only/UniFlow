@@ -1,8 +1,11 @@
+import logging
 import re
+import time
 import traceback
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.models import (
@@ -27,6 +30,55 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ── Logging ──
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+)
+logger = logging.getLogger("uniflow")
+
+# ── Simple in-memory rate limiter ──
+_rate_limits: dict[str, list[float]] = {}
+RATE_LIMIT_WINDOW = 60  # seconds
+RATE_LIMIT_MAX = 20     # requests per window
+
+
+def _check_rate_limit(ip: str):
+    now = time.time()
+    hits = _rate_limits.get(ip, [])
+    hits = [t for t in hits if now - t < RATE_LIMIT_WINDOW]
+    if len(hits) >= RATE_LIMIT_MAX:
+        return False
+    hits.append(now)
+    _rate_limits[ip] = hits
+    return True
+
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    ip = request.client.host if request.client else "unknown"
+    if request.url.path.startswith("/api/") and not _check_rate_limit(ip):
+        logger.warning(f"Rate limited: {ip} on {request.url.path}")
+        return JSONResponse(status_code=429, content={"detail": "Rate limit exceeded. Please wait a moment."})
+    start = time.time()
+    response = await call_next(request)
+    elapsed = time.time() - start
+    logger.info(f"{request.method} {request.url.path} -> {response.status_code} ({elapsed:.2f}s)")
+    return response
+
+
+# ──────────────────────────────────────────────
+#  GET /health
+# ──────────────────────────────────────────────
+@app.get("/health")
+async def health():
+    return {
+        "status": "ok",
+        "version": "0.2.0",
+        "deepseek_configured": bool(settings.DEEPSEEK_API_KEY),
+        "brightdata_configured": bool(settings.BRIGHTDATA_API_KEY),
+    }
 
 
 # ──────────────────────────────────────────────
