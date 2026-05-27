@@ -117,6 +117,65 @@ const Store = {
     this._set("uniEvents", events);
   },
 
+  // ── Chat History ──
+  getChatHistory() {
+    try { return this._get("chatHistory") || []; } catch { return []; }
+  },
+  addChatMessage(msg) {
+    try {
+      const history = this.getChatHistory();
+      history.push({ ...msg, ts: Date.now() });
+      // Keep last 100 messages
+      if (history.length > 100) history.splice(0, history.length - 100);
+      this._set("chatHistory", history);
+    } catch {}
+  },
+  clearChatHistory() {
+    try { this._set("chatHistory", []); } catch {}
+  },
+
+  // ── User Profile ──
+  getProfile() {
+    try { return this._get("profile") || { name: "", onboarded: false }; } catch { return { name: "", onboarded: false }; }
+  },
+  setProfile(profile) {
+    try { this._set("profile", profile); } catch {}
+  },
+
+  // ── Saved Scholarships ──
+  getSavedScholarships() {
+    try { return this._get("savedScholarships") || []; } catch { return []; }
+  },
+  saveScholarship(s) {
+    try {
+      const saved = this.getSavedScholarships();
+      if (!saved.find(x => x.title === s.title)) {
+        saved.push(s);
+        this._set("savedScholarships", saved);
+      }
+    } catch {}
+  },
+  removeSavedScholarship(title) {
+    try {
+      const saved = this.getSavedScholarships().filter(x => x.title !== title);
+      this._set("savedScholarships", saved);
+    } catch {}
+  },
+
+  // ── Saved Resources ──
+  getSavedResources() {
+    try { return this._get("savedResources") || []; } catch { return []; }
+  },
+  saveResource(r) {
+    try {
+      const saved = this.getSavedResources();
+      if (!saved.find(x => x.link === r.link)) {
+        saved.push(r);
+        this._set("savedResources", saved);
+      }
+    } catch {}
+  },
+
   // ── API Calls ──
   async parseMessage(message) {
     const res = await fetch(BACKEND_URL + "/api/parse", {

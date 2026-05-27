@@ -9,72 +9,107 @@
 <script>initTailwind();</script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="../css/theme.css"/>
 <style>
-    body {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        background-color: #12111A;
-        overflow-x: hidden;
-    }
-    .bg-glow-violet {
-        background: radial-gradient(ellipse 80% 60% at 20% 10%, rgba(214, 196, 255, 0.14) 0%, transparent 65%);
-    }
-    .bg-glow-rose {
-        background: radial-gradient(ellipse 70% 50% at 85% 75%, rgba(255, 194, 220, 0.08) 0%, transparent 60%);
-    }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #12111A; overflow-x: hidden; }
+    .bg-glow-violet { background: radial-gradient(ellipse 80% 60% at 20% 10%, rgba(214,196,255,0.14) 0%, transparent 65%); }
+    .bg-glow-rose { background: radial-gradient(ellipse 70% 50% at 85% 75%, rgba(255,194,220,0.08) 0%, transparent 60%); }
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(158, 151, 179, 0.25); border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(158,151,179,0.25); border-radius: 10px; }
     .ai-pulse { animation: pulse-glow 4s infinite ease-in-out; }
-    @keyframes pulse-glow {
-        0%, 100% { opacity: 0.5; transform: scale(1); }
-        50% { opacity: 0.85; transform: scale(1.04); }
-    }
+    @keyframes pulse-glow { 0%,100%{opacity:0.5;transform:scale(1)} 50%{opacity:0.85;transform:scale(1.04)} }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    .fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
+    @keyframes fadeCardIn { from{opacity:0;transform:scale(0.95) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
+    .fade-card-in { animation: fadeCardIn 0.35s ease-out forwards; opacity:0; }
+    @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+    .skeleton { background: linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+    .chip:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    .chip:active { transform: scale(0.97); }
+    .confirm-btn:hover { transform: scale(1.03); }
+    .confirm-btn:active { transform: scale(0.97); }
 </style>
 </head>
 <body class="bg-background text-on-surface">
-<!-- Atmospheric Background Layers -->
 <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
     <div class="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-glow-violet ai-pulse"></div>
     <div class="absolute bottom-[-10%] right-[-10%] w-[65%] h-[65%] bg-glow-rose"></div>
 </div>
 
-<!-- Shared Components -->
 <div id="sidebar-mount"></div>
 <div id="header-mount"></div>
 
-<!-- Main Content Canvas -->
+<!-- Onboarding Modal -->
+<div id="onboarding-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display:none;">
+    <div class="bg-surface-container-high rounded-3xl p-8 max-w-md w-full shadow-2xl border border-outline-variant/20 fade-in-up">
+        <div class="w-16 h-16 rounded-3xl bg-gradient-to-br from-primary via-primary-container to-secondary flex items-center justify-center shadow-lg mb-6 mx-auto">
+            <span class="material-symbols-outlined text-on-primary text-4xl" style="font-variation-settings:'FILL' 1;">auto_awesome</span>
+        </div>
+        <h2 class="text-headline-lg font-bold text-primary text-center mb-2">Welcome to UniFlow</h2>
+        <p class="text-on-surface-variant text-center mb-6">Your AI-powered university companion. I can schedule events, track expenses, find scholarships, and more.</p>
+        <div class="space-y-4">
+            <div>
+                <label class="text-label-sm text-on-surface-variant block mb-1">What's your name?</label>
+                <input id="onboard-name" type="text" placeholder="e.g. Ahmad" class="w-full bg-surface-container rounded-2xl px-4 py-3 text-on-surface border border-outline-variant/30 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"/>
+            </div>
+        </div>
+        <button onclick="completeOnboarding()" class="mt-6 w-full py-3.5 bg-primary text-on-primary rounded-2xl font-bold hover:brightness-110 active:scale-[0.98] transition-all">
+            Get Started <span class="material-symbols-outlined align-middle text-lg ml-1">arrow_forward</span>
+        </button>
+    </div>
+</div>
+
 <main class="md:ml-[280px] pt-20 h-screen flex flex-col relative">
     <div id="page-content" class="flex-1 flex flex-col min-h-0">
-        <!-- Conversation Space -->
-        <div class="flex-1 overflow-y-auto custom-scrollbar px-margin-mobile md:px-margin-desktop pr-4 space-y-8 pb-40" id="chat-scroller">
-            <!-- Empty state intro -->
-            <div id="chat-empty-state" class="flex flex-col items-center justify-center py-16 text-center max-w-2xl mx-auto">
+        <!-- Chat Scroller -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar px-margin-mobile md:px-margin-desktop pr-4 space-y-6 pb-44" id="chat-scroller">
+            <!-- Empty state intro — shown on fresh start -->
+            <div id="chat-empty-state" class="flex flex-col items-center justify-center py-12 text-center max-w-2xl mx-auto">
                 <div class="w-16 h-16 rounded-3xl bg-gradient-to-br from-primary via-primary-container to-secondary flex items-center justify-center shadow-lg mb-6 ai-pulse">
-                    <span class="material-symbols-outlined text-on-primary text-4xl" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                    <span class="material-symbols-outlined text-on-primary text-4xl" style="font-variation-settings:'FILL' 1;">auto_awesome</span>
                 </div>
                 <h1 class="font-headline-lg text-headline-lg text-primary mb-2">AI Command Hub</h1>
-                <p class="font-body-lg text-on-surface-variant">Type a message to add events, assignments, expenses, and more. Try something like <span class="text-secondary font-bold">"calc quiz thursday 2pm, OS assignment due friday"</span></p>
+                <p class="font-body-lg text-on-surface-variant mb-8" id="empty-greeting">Type a message to add events, assignments, expenses, and more.</p>
+                <!-- Onboarding suggestion chips -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg" id="onboard-chips">
+                    <button onclick="insertPrompt('calc quiz thursday 2pm, OS assignment due friday')" class="chip flex items-center gap-3 p-4 bg-surface-container-high/60 rounded-2xl text-left hover:bg-surface-container-highest transition-all border border-outline-variant/10">
+                        <span class="material-symbols-outlined text-primary">edit_calendar</span>
+                        <div><p class="text-label-sm text-on-surface font-semibold">Add my schedule</p><p class="text-[10px] text-on-surface-variant">"calc quiz thursday 2pm"</p></div>
+                    </button>
+                    <button onclick="insertPrompt('spent RM15 on lunch at cafeteria')" class="chip flex items-center gap-3 p-4 bg-surface-container-high/60 rounded-2xl text-left hover:bg-surface-container-highest transition-all border border-outline-variant/10">
+                        <span class="material-symbols-outlined text-secondary">payments</span>
+                        <div><p class="text-label-sm text-on-surface font-semibold">Track expenses</p><p class="text-[10px] text-on-surface-variant">"spent RM15 on lunch"</p></div>
+                    </button>
+                    <button onclick="insertPrompt('group meeting monday 3pm for OS project')" class="chip flex items-center gap-3 p-4 bg-surface-container-high/60 rounded-2xl text-left hover:bg-surface-container-highest transition-all border border-outline-variant/10">
+                        <span class="material-symbols-outlined text-tertiary">groups</span>
+                        <div><p class="text-label-sm text-on-surface font-semibold">Plan a meeting</p><p class="text-[10px] text-on-surface-variant">"group meeting monday 3pm"</p></div>
+                    </button>
+                    <button onclick="insertPrompt('final exam for Data Structures next wednesday 9am')" class="chip flex items-center gap-3 p-4 bg-surface-container-high/60 rounded-2xl text-left hover:bg-surface-container-highest transition-all border border-outline-variant/10">
+                        <span class="material-symbols-outlined text-rose-400">quiz</span>
+                        <div><p class="text-label-sm text-on-surface font-semibold">Log an exam</p><p class="text-[10px] text-on-surface-variant">"final exam next wednesday"</p></div>
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- Input Container -->
         <div class="absolute bottom-6 left-margin-mobile right-margin-mobile md:left-margin-desktop md:right-margin-desktop">
             <div class="max-w-5xl mx-auto">
-                <div class="flex gap-2 mb-4 overflow-x-auto pb-2 no-scrollbar">
-                    <button onclick="insertPrompt('/remind ')" class="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-full text-on-surface-variant hover:text-primary transition-all hover:bg-surface-container-highest shadow-sm">
-                        <span class="text-[11px] font-bold text-tertiary">/remind</span>
-                        <span class="text-[10px] opacity-60">Set Task</span>
+                <!-- Quick suggestion chips -->
+                <div class="flex gap-2 mb-3 overflow-x-auto pb-1 no-scrollbar">
+                    <button onclick="insertPrompt('calc quiz thursday 2pm')" class="chip flex items-center gap-2 px-3.5 py-2 bg-surface-container-high rounded-full text-on-surface-variant hover:text-primary transition-all shadow-sm border border-outline-variant/10 flex-shrink-0">
+                        <span class="text-[11px] font-bold text-primary">Add Event</span>
                     </button>
-                    <button onclick="insertPrompt('/schedule ')" class="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-full text-on-surface-variant hover:text-primary transition-all hover:bg-surface-container-highest shadow-sm">
-                        <span class="text-[11px] font-bold text-primary">/schedule</span>
-                        <span class="text-[10px] opacity-60">Add Event</span>
+                    <button onclick="insertPrompt('spent RM')" class="chip flex items-center gap-2 px-3.5 py-2 bg-surface-container-high rounded-full text-on-surface-variant hover:text-primary transition-all shadow-sm border border-outline-variant/10 flex-shrink-0">
+                        <span class="text-[11px] font-bold text-secondary">Log Spend</span>
                     </button>
-                    <button onclick="insertPrompt('spent RM')" class="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-full text-on-surface-variant hover:text-primary transition-all hover:bg-surface-container-highest shadow-sm">
-                        <span class="text-[11px] font-bold text-secondary">/expense</span>
-                        <span class="text-[10px] opacity-60">Log Spend</span>
+                    <button onclick="insertPrompt('OS assignment due friday')" class="chip flex items-center gap-2 px-3.5 py-2 bg-surface-container-high rounded-full text-on-surface-variant hover:text-primary transition-all shadow-sm border border-outline-variant/10 flex-shrink-0">
+                        <span class="text-[11px] font-bold text-tertiary">Assignment</span>
+                    </button>
+                    <button onclick="insertPrompt('meeting with study group tomorrow 4pm')" class="chip flex items-center gap-2 px-3.5 py-2 bg-surface-container-high rounded-full text-on-surface-variant hover:text-primary transition-all shadow-sm border border-outline-variant/10 flex-shrink-0">
+                        <span class="text-[11px] font-bold text-emerald-400">Meeting</span>
                     </button>
                 </div>
                 <div class="relative group">
@@ -98,10 +133,8 @@
     </div>
 </main>
 
-<!-- Shared Bottom Nav -->
 <div id="bottomnav-mount"></div>
 
-<!-- Shared Component Scripts -->
 <script src="../js/components/sidebar.js"></script>
 <script src="../js/components/header.js"></script>
 <script src="../js/components/bottomNav.js"></script>
@@ -113,54 +146,94 @@ document.addEventListener('DOMContentLoaded', function() {
     renderSidebar('09');
     renderHeader({ title: 'Command Center', subtitle: 'AI Engine Online' });
     renderBottomNav('09');
+
+    // Check onboarding
+    var profile = Store.getProfile();
+    if (!profile.onboarded) {
+        document.getElementById('onboarding-modal').style.display = 'flex';
+    }
+
+    // Restore chat history
+    var history = Store.getChatHistory();
+    if (history.length > 0) {
+        document.getElementById('chat-empty-state').style.display = 'none';
+        history.forEach(function(msg) {
+            if (msg.role === 'user') {
+                appendUserBubble(msg.text, false);
+            } else if (msg.role === 'ai-events') {
+                renderEventCards(msg.events, false);
+            } else if (msg.role === 'ai-text') {
+                appendAITextBubble(msg.text, false);
+            } else if (msg.role === 'ai-error') {
+                appendErrorBubble(msg.text, false);
+            }
+        });
+        setTimeout(scrollToBottom, 100);
+    } else {
+        // Set personalized greeting
+        var name = profile.name;
+        if (name) {
+            var hour = new Date().getHours();
+            var greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+            document.getElementById('empty-greeting').textContent = greet + ', ' + name + '! Type a message to add events, track expenses, and more.';
+        }
+    }
 });
 
+// ── Onboarding ──
+function completeOnboarding() {
+    var name = document.getElementById('onboard-name').value.trim() || 'Student';
+    Store.setProfile({ name: name, onboarded: true });
+    document.getElementById('onboarding-modal').style.display = 'none';
+    var hour = new Date().getHours();
+    var greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    var el = document.getElementById('empty-greeting');
+    if (el) el.textContent = greet + ', ' + name + '! Type a message to add events, track expenses, and more.';
+}
+
 // ── Event type config ──
-const EVENT_CONFIG = {
-    exam:       { icon: 'quiz',           color: 'text-rose-400',     bg: 'bg-rose-500/15' },
-    assignment: { icon: 'assignment',      color: 'text-blue-400',     bg: 'bg-blue-500/15' },
-    meeting:    { icon: 'groups',          color: 'text-emerald-400',  bg: 'bg-emerald-500/15' },
-    class:      { icon: 'school',          color: 'text-amber-400',    bg: 'bg-amber-500/15' },
-    deadline:   { icon: 'alarm',           color: 'text-red-400',      bg: 'bg-red-500/15' },
-    reminder:   { icon: 'notifications',   color: 'text-cyan-400',     bg: 'bg-cyan-500/15' },
-    social:     { icon: 'celebration',     color: 'text-pink-400',     bg: 'bg-pink-500/15' },
-    expense:    { icon: 'payments',        color: 'text-green-400',    bg: 'bg-green-500/15' },
-    other:      { icon: 'event',           color: 'text-gray-400',     bg: 'bg-gray-500/15' },
+var EVENT_CONFIG = {
+    exam:       { icon:'quiz',         color:'text-rose-400',    bg:'bg-rose-500/15' },
+    assignment: { icon:'assignment',   color:'text-blue-400',    bg:'bg-blue-500/15' },
+    meeting:    { icon:'groups',       color:'text-emerald-400', bg:'bg-emerald-500/15' },
+    class:      { icon:'school',       color:'text-amber-400',   bg:'bg-amber-500/15' },
+    deadline:   { icon:'alarm',        color:'text-red-400',     bg:'bg-red-500/15' },
+    reminder:   { icon:'notifications',color:'text-cyan-400',    bg:'bg-cyan-500/15' },
+    social:     { icon:'celebration',  color:'text-pink-400',    bg:'bg-pink-500/15' },
+    expense:    { icon:'payments',     color:'text-green-400',   bg:'bg-green-500/15' },
+    other:      { icon:'event',        color:'text-gray-400',    bg:'bg-gray-500/15' },
 };
 
 function escapeHtml(text) {
-    const div = document.createElement('div');
+    var div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
-
 function getTimeLabel() {
-    return new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    return new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', hour12:true });
 }
-
 function scrollToBottom() {
-    chatScroller.scrollTop = chatScroller.scrollHeight;
+    var el = document.getElementById('chat-scroller');
+    el.scrollTop = el.scrollHeight;
 }
 
 function insertPrompt(text) {
+    var input = document.getElementById('main-input');
     input.value = text;
     input.focus();
 }
 
-const chatScroller = document.getElementById('chat-scroller');
-const input = document.getElementById('main-input');
-
-// ── Hide empty state on first message ──
+// ── Hide empty state ──
 function hideEmptyState() {
-    const el = document.getElementById('chat-empty-state');
-    if (el) el.remove();
+    var el = document.getElementById('chat-empty-state');
+    if (el) el.style.display = 'none';
 }
 
-// ── Append user message bubble ──
-function appendUserBubble(text) {
+// ── Append user bubble ──
+function appendUserBubble(text, saveHistory) {
     hideEmptyState();
-    const bubble = document.createElement('div');
-    bubble.className = 'flex items-start gap-4 max-w-4xl ml-auto flex-row-reverse';
+    var bubble = document.createElement('div');
+    bubble.className = 'flex items-start gap-4 max-w-4xl ml-auto flex-row-reverse fade-in-up';
     bubble.innerHTML =
         '<div class="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center flex-shrink-0">' +
             '<span class="material-symbols-outlined text-primary text-xl">person</span>' +
@@ -169,19 +242,18 @@ function appendUserBubble(text) {
             '<div class="bg-surface-container-high/80 p-5 rounded-3xl shadow-lg inline-block text-left">' +
                 '<p class="font-body-md text-primary">' + escapeHtml(text) + '</p>' +
             '</div>' +
-            '<div class="mt-1 flex justify-end">' +
-                '<span class="text-[10px] text-on-surface-variant mr-2">' + getTimeLabel() + ' • Sent</span>' +
-            '</div>' +
+            '<div class="mt-1 flex justify-end"><span class="text-[10px] text-on-surface-variant mr-2">' + getTimeLabel() + '</span></div>' +
         '</div>';
-    chatScroller.appendChild(bubble);
+    document.getElementById('chat-scroller').appendChild(bubble);
     scrollToBottom();
+    if (saveHistory !== false) Store.addChatMessage({ role:'user', text:text });
 }
 
 // ── AI loading bubble ──
-let aiLoadingBubble = null;
+var aiLoadingBubble = null;
 function appendAILoadingBubble() {
-    const bubble = document.createElement('div');
-    bubble.className = 'flex items-start gap-4 max-w-4xl';
+    var bubble = document.createElement('div');
+    bubble.className = 'flex items-start gap-4 max-w-4xl fade-in-up';
     bubble.id = 'ai-loading-bubble';
     bubble.innerHTML =
         '<div class="w-10 h-10 rounded-2xl bg-surface-container-high flex items-center justify-center flex-shrink-0 shadow-md">' +
@@ -191,36 +263,39 @@ function appendAILoadingBubble() {
             '<div class="bg-surface-container p-6 rounded-3xl shadow-lg">' +
                 '<div class="flex items-center gap-3">' +
                     '<div class="flex gap-1.5">' +
-                        '<span class="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce" style="animation-delay: 0ms"></span>' +
-                        '<span class="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce" style="animation-delay: 150ms"></span>' +
-                        '<span class="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce" style="animation-delay: 300ms"></span>' +
+                        '<span class="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce" style="animation-delay:0ms"></span>' +
+                        '<span class="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce" style="animation-delay:150ms"></span>' +
+                        '<span class="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce" style="animation-delay:300ms"></span>' +
                     '</div>' +
                     '<span class="text-label-sm text-on-surface-variant">UniFlow is thinking…</span>' +
                 '</div>' +
+                '<div class="mt-3 space-y-2">' +
+                    '<div class="skeleton h-3 w-3/4"></div>' +
+                    '<div class="skeleton h-3 w-1/2"></div>' +
+                '</div>' +
             '</div>' +
         '</div>';
-    chatScroller.appendChild(bubble);
+    document.getElementById('chat-scroller').appendChild(bubble);
     aiLoadingBubble = bubble;
     scrollToBottom();
 }
-
 function removeAILoadingBubble() {
     if (aiLoadingBubble) { aiLoadingBubble.remove(); aiLoadingBubble = null; }
 }
 
-// ── Render parsed events as UI cards ──
-function renderEventCards(events) {
-    let cardsHtml = '';
-    events.forEach(function(evt) {
+// ── Render parsed events as CONFIRMATION cards ──
+function renderEventCards(events, saveHistory) {
+    var cardsHtml = '';
+    events.forEach(function(evt, idx) {
         var cfg = EVENT_CONFIG[evt.type] || EVENT_CONFIG.other;
         var dateObj = new Date(evt.date + 'T00:00:00');
-        var dateStr = !isNaN(dateObj) ? dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : evt.date;
+        var dateStr = !isNaN(dateObj) ? dateObj.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }) : evt.date;
         var timeDisplay = evt.time || 'No time set';
+        var delay = idx * 100;
 
-        // Expense card variant
         if (evt.type === 'expense') {
             cardsHtml +=
-                '<div class="bg-surface-container-low rounded-2xl p-4 shadow-sm flex items-center gap-4">' +
+                '<div class="fade-card-in bg-surface-container-low rounded-2xl p-4 shadow-sm flex items-center gap-4" style="animation-delay:' + delay + 'ms">' +
                     '<div class="p-2.5 ' + cfg.bg + ' rounded-2xl flex-shrink-0">' +
                         '<span class="material-symbols-outlined ' + cfg.color + '">' + cfg.icon + '</span>' +
                     '</div>' +
@@ -234,7 +309,7 @@ function renderEventCards(events) {
         }
 
         cardsHtml +=
-            '<div class="bg-surface-container-low rounded-2xl p-4 shadow-sm flex items-center gap-4 hover:bg-surface-container-lowest transition-all">' +
+            '<div class="fade-card-in bg-surface-container-low rounded-2xl p-4 shadow-sm flex items-center gap-4 hover:bg-surface-container-lowest transition-all group" style="animation-delay:' + delay + 'ms">' +
                 '<div class="p-2.5 ' + cfg.bg + ' rounded-2xl flex-shrink-0">' +
                     '<span class="material-symbols-outlined ' + cfg.color + '">' + cfg.icon + '</span>' +
                 '</div>' +
@@ -242,10 +317,10 @@ function renderEventCards(events) {
                     '<p class="text-label-sm text-on-surface font-bold truncate">' + escapeHtml(evt.title) + '</p>' +
                     '<div class="flex items-center gap-3 mt-1">' +
                         '<span class="text-[11px] text-on-surface-variant flex items-center gap-1">' +
-                            '<span class="material-symbols-outlined text-[14px]">calendar_today</span> ' + dateStr +
+                            '<span class="material-symbols-outlined text-[14px]">calendar_today</span>' + dateStr +
                         '</span>' +
                         '<span class="text-[11px] text-on-surface-variant flex items-center gap-1">' +
-                            '<span class="material-symbols-outlined text-[14px]">schedule</span> ' + timeDisplay +
+                            '<span class="material-symbols-outlined text-[14px]">schedule</span>' + timeDisplay +
                         '</span>' +
                     '</div>' +
                 '</div>' +
@@ -253,8 +328,16 @@ function renderEventCards(events) {
             '</div>';
     });
 
+    // Build the parsed events count
+    var nonExpense = events.filter(function(e) { return e.type !== 'expense'; }).length;
+    var expenseCount = events.length - nonExpense;
+    var summaryParts = [];
+    if (nonExpense > 0) summaryParts.push(nonExpense + ' event' + (nonExpense > 1 ? 's' : ''));
+    if (expenseCount > 0) summaryParts.push(expenseCount + ' expense' + (expenseCount > 1 ? 's' : ''));
+    var summaryStr = summaryParts.join(' and ');
+
     var wrapper = document.createElement('div');
-    wrapper.className = 'flex items-start gap-4 max-w-4xl';
+    wrapper.className = 'flex items-start gap-4 max-w-4xl fade-in-up';
     wrapper.innerHTML =
         '<div class="w-10 h-10 rounded-2xl bg-surface-container-high flex items-center justify-center flex-shrink-0 shadow-md">' +
             '<span class="material-symbols-outlined text-primary text-xl">auto_awesome</span>' +
@@ -262,21 +345,75 @@ function renderEventCards(events) {
         '<div class="flex-1 space-y-4">' +
             '<div class="bg-surface-container p-6 rounded-3xl shadow-lg space-y-4">' +
                 '<div class="flex items-center justify-between">' +
-                    '<span class="text-label-sm font-bold text-secondary">Parsed ' + events.length + ' Item' + (events.length !== 1 ? 's' : '') + '</span>' +
+                    '<span class="text-label-sm font-bold text-secondary">Detected ' + summaryStr + '</span>' +
                     '<span class="material-symbols-outlined text-primary text-xl">check_circle</span>' +
                 '</div>' +
-                '<div class="space-y-3">' + cardsHtml + '</div>' +
+                '<div class="space-y-3" id="confirm-cards-' + Date.now() + '">' + cardsHtml + '</div>' +
+                '<div class="flex items-center gap-3 pt-2 border-t border-outline-variant/10">' +
+                    '<button onclick="confirmSave(this)" class="confirm-btn flex-1 py-2.5 bg-primary text-on-primary rounded-2xl font-bold text-label-sm hover:brightness-110 active:scale-[0.97] transition-all">' +
+                        '<span class="material-symbols-outlined text-sm align-middle mr-1">check</span> Save All' +
+                    '</button>' +
+                    '<button onclick="dismissCards(this)" class="confirm-btn flex-1 py-2.5 bg-surface-container-high text-on-surface-variant rounded-2xl font-bold text-label-sm hover:bg-surface-container-highest active:scale-[0.97] transition-all">' +
+                        '<span class="material-symbols-outlined text-sm align-middle mr-1">close</span> Dismiss' +
+                    '</button>' +
+                '</div>' +
             '</div>' +
-            '<span class="text-[10px] text-on-surface-variant ml-2">' + getTimeLabel() + ' • UniFlow Intelligence</span>' +
+            '<span class="text-[10px] text-on-surface-variant ml-2">' + getTimeLabel() + ' · UniFlow Intelligence</span>' +
         '</div>';
-    chatScroller.appendChild(wrapper);
+
+    // Store events data on the wrapper for later save
+    wrapper._pendingEvents = events;
+    document.getElementById('chat-scroller').appendChild(wrapper);
     scrollToBottom();
+    if (saveHistory !== false) Store.addChatMessage({ role:'ai-events', events:events });
+}
+
+// ── Confirm save ──
+function confirmSave(btn) {
+    var wrapper = btn.closest('.flex.items-start.gap-4.max-w-4xl');
+    if (wrapper && wrapper._pendingEvents) {
+        Store.addEvents(wrapper._pendingEvents);
+        wrapper._pendingEvents = null;
+    }
+    // Replace buttons with "Saved!" badge
+    var btnContainer = btn.parentElement;
+    btnContainer.innerHTML = '<div class="flex items-center gap-2 text-primary"><span class="material-symbols-outlined text-lg">check_circle</span><span class="text-label-sm font-bold">Saved to your schedule!</span></div>';
+}
+
+// ── Dismiss cards ──
+function dismissCards(btn) {
+    var wrapper = btn.closest('.flex.items-start.gap-4.max-w-4xl');
+    if (wrapper) {
+        wrapper.style.transition = 'opacity 0.3s, transform 0.3s';
+        wrapper.style.opacity = '0';
+        wrapper.style.transform = 'scale(0.95)';
+        setTimeout(function() { wrapper.remove(); }, 300);
+    }
+}
+
+// ── Append AI text bubble ──
+function appendAITextBubble(text, saveHistory) {
+    var bubble = document.createElement('div');
+    bubble.className = 'flex items-start gap-4 max-w-4xl fade-in-up';
+    bubble.innerHTML =
+        '<div class="w-10 h-10 rounded-2xl bg-surface-container-high flex items-center justify-center flex-shrink-0 shadow-md">' +
+            '<span class="material-symbols-outlined text-primary text-xl">smart_toy</span>' +
+        '</div>' +
+        '<div class="flex-1">' +
+            '<div class="bg-surface-container p-6 rounded-3xl shadow-lg">' +
+                '<p class="font-body-md text-on-surface">' + text + '</p>' +
+            '</div>' +
+            '<span class="text-[10px] text-on-surface-variant ml-2">' + getTimeLabel() + ' · UniFlow Intelligence</span>' +
+        '</div>';
+    document.getElementById('chat-scroller').appendChild(bubble);
+    scrollToBottom();
+    if (saveHistory !== false) Store.addChatMessage({ role:'ai-text', text:text });
 }
 
 // ── Append AI error bubble ──
-function appendErrorBubble(msg) {
+function appendErrorBubble(msg, saveHistory) {
     var bubble = document.createElement('div');
-    bubble.className = 'flex items-start gap-4 max-w-4xl';
+    bubble.className = 'flex items-start gap-4 max-w-4xl fade-in-up';
     bubble.innerHTML =
         '<div class="w-10 h-10 rounded-2xl bg-surface-container-high flex items-center justify-center flex-shrink-0 shadow-md">' +
             '<span class="material-symbols-outlined text-rose-400 text-xl">error</span>' +
@@ -284,19 +421,33 @@ function appendErrorBubble(msg) {
         '<div class="flex-1">' +
             '<div class="bg-surface-container p-6 rounded-3xl shadow-lg border border-rose-500/20">' +
                 '<p class="font-body-md text-rose-400">' + escapeHtml(msg) + '</p>' +
-                '<p class="text-[11px] text-on-surface-variant mt-2">Make sure the backend is running at localhost:8000.</p>' +
+                '<button onclick="retryLastMessage()" class="mt-3 px-4 py-2 bg-rose-500/10 text-rose-400 rounded-xl text-label-sm font-bold hover:bg-rose-500/20 transition-all">' +
+                    '<span class="material-symbols-outlined text-sm align-middle mr-1">refresh</span> Retry' +
+                '</button>' +
             '</div>' +
-            '<span class="text-[10px] text-on-surface-variant ml-2">' + getTimeLabel() + ' • Error</span>' +
+            '<span class="text-[10px] text-on-surface-variant ml-2">' + getTimeLabel() + ' · Error</span>' +
         '</div>';
-    chatScroller.appendChild(bubble);
+    document.getElementById('chat-scroller').appendChild(bubble);
     scrollToBottom();
+    if (saveHistory !== false) Store.addChatMessage({ role:'ai-error', text:msg });
+}
+
+// ── Retry last message ──
+var lastMessage = '';
+function retryLastMessage() {
+    if (lastMessage) {
+        document.getElementById('main-input').value = lastMessage;
+        sendMessage();
+    }
 }
 
 // ── Core: send message ──
 async function sendMessage() {
+    var input = document.getElementById('main-input');
     var text = input.value.trim();
     if (!text) return;
 
+    lastMessage = text;
     appendUserBubble(text);
     input.value = '';
     input.style.height = 'auto';
@@ -309,38 +460,26 @@ async function sendMessage() {
         removeAILoadingBubble();
 
         if (data.events && data.events.length > 0) {
-            // Save to localStorage
-            Store.addEvents(data.events);
             renderEventCards(data.events);
         } else {
-            hideEmptyState();
-            var noEventBubble = document.createElement('div');
-            noEventBubble.className = 'flex items-start gap-4 max-w-4xl';
-            noEventBubble.innerHTML =
-                '<div class="w-10 h-10 rounded-2xl bg-surface-container-high flex items-center justify-center flex-shrink-0 shadow-md">' +
-                    '<span class="material-symbols-outlined text-primary text-xl">smart_toy</span>' +
-                '</div>' +
-                '<div class="flex-1">' +
-                    '<div class="bg-surface-container p-6 rounded-3xl shadow-lg">' +
-                        '<p class="font-body-md text-on-surface">I couldn\'t detect any events in your message. Try something like <span class="text-secondary font-bold">"calculus quiz Thursday 2pm"</span> or <span class="text-secondary font-bold">"spent RM15 lunch"</span>.</p>' +
-                    '</div>' +
-                    '<span class="text-[10px] text-on-surface-variant ml-2">' + getTimeLabel() + ' • UniFlow Intelligence</span>' +
-                '</div>';
-            chatScroller.appendChild(noEventBubble);
-            scrollToBottom();
+            var profile = Store.getProfile();
+            var name = profile.name ? ', ' + profile.name : '';
+            appendAITextBubble(
+                'I couldn\'t detect any events in your message' + name + '. Try something like <span class="text-secondary font-bold">"calculus quiz Thursday 2pm"</span> or <span class="text-secondary font-bold">"spent RM15 on lunch"</span>.'
+            );
         }
     } catch (error) {
         removeAILoadingBubble();
-        appendErrorBubble(error.message);
+        appendErrorBubble(error.message || 'Something went wrong. Make sure the backend is running.');
     }
 }
 
-// ── Wire up send button + Enter key ──
+// ── Wire up ──
 document.getElementById('send-btn').addEventListener('click', sendMessage);
-input.addEventListener('keydown', function(e) {
+document.getElementById('main-input').addEventListener('keydown', function(e) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
-input.addEventListener('input', function() {
+document.getElementById('main-input').addEventListener('input', function() {
     this.style.height = 'auto';
     this.style.height = (this.scrollHeight) + 'px';
 });
