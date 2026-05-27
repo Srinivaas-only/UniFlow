@@ -1,0 +1,268 @@
+﻿<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>UniFlow - Resources Vault</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="../js/components/tailwind.js"></script>
+<script>initTailwind();</script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/theme.css"/>
+<style>
+    body {
+        background-color: #13121b;
+        color: #e5e0ee;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .glass-card {
+        background: #1c1a24;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+</style>
+</head>
+<body class="font-body text-on-surface antialiased overflow-x-hidden">
+
+<!-- Shared Components -->
+<div id="sidebar-mount"></div>
+<div id="header-mount"></div>
+
+<!-- Main Content -->
+<main class="md:ml-[280px] pt-20 pb-16 px-margin-mobile md:px-margin-desktop min-h-screen">
+    <div id="loading-overlay" class="flex flex-col items-center justify-center min-h-[60vh] py-20"></div>
+    <div id="page-content">
+        <div class="max-w-6xl mx-auto space-y-12">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+                <div class="space-y-2">
+                    <h1 class="text-5xl font-extrabold tracking-tighter text-on-surface leading-tight">Subject Repository</h1>
+                    <p class="text-on-surface-variant max-w-xl">Centralize your academic journey. Filter and access your learning materials across all current modules.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex bg-surface-container-high p-1 rounded-full border border-white/5">
+                        <button class="px-6 py-2 rounded-full bg-primary text-on-primary text-xs font-bold transition-all">All</button>
+                        <button class="px-6 py-2 rounded-full text-on-surface-variant text-xs font-bold hover:text-on-surface transition-all">Semester 1</button>
+                        <button class="px-6 py-2 rounded-full text-on-surface-variant text-xs font-bold hover:text-on-surface transition-all">Semester 2</button>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <button class="px-5 py-2.5 rounded-full glass-card border border-white/10 text-xs font-bold flex items-center gap-2 hover:border-primary/30 transition-all">
+                    <span class="material-symbols-outlined text-primary text-[18px]">picture_as_pdf</span>
+                    PDFs (142)
+                </button>
+                <button class="px-5 py-2.5 rounded-full glass-card border border-white/10 text-xs font-bold flex items-center gap-2 hover:border-secondary/30 transition-all">
+                    <span class="material-symbols-outlined text-secondary text-[18px]">video_library</span>
+                    Videos (24)
+                </button>
+                <button class="px-5 py-2.5 rounded-full glass-card border border-white/10 text-xs font-bold flex items-center gap-2 hover:border-tertiary/30 transition-all">
+                    <span class="material-symbols-outlined text-tertiary text-[18px]">description</span>
+                    Documents (56)
+                </button>
+                <button class="px-5 py-2.5 rounded-full glass-card border border-white/10 text-xs font-bold flex items-center gap-2 hover:border-on-surface-variant/30 transition-all">
+                    <span class="material-symbols-outlined text-on-surface-variant text-[18px]">slideshow</span>
+                    Slides (18)
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <a class="group glass-card p-1 rounded-card hover:bg-surface-container transition-all block border border-white/5" href="04.html">
+                    <div class="p-8 space-y-8">
+                        <div class="flex justify-between items-start">
+                            <div class="w-16 h-16 rounded-[1.5rem] bg-primary-container/10 text-primary-container flex items-center justify-center ring-1 ring-primary-container/20">
+                                <span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">account_tree</span>
+                            </div>
+                            <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">arrow_forward</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-primary tracking-[0.2em] uppercase">Semester 1 &bull; CS201</span>
+                            <h3 class="text-2xl font-extrabold text-on-surface mt-1">Data Structures</h3>
+                            <p class="text-sm text-on-surface-variant mt-2 leading-relaxed">Advanced algorithms, complexity analysis, and recursive data architecture.</p>
+                        </div>
+                        <div class="flex items-center gap-6 pt-2 border-t border-white/5">
+                            <div class="flex items-center gap-2 text-xs font-bold text-on-surface-variant">
+                                <span class="material-symbols-outlined text-[16px]">folder</span> 128 Files
+                            </div>
+                            <div class="flex items-center gap-2 text-xs font-bold text-on-surface-variant">
+                                <span class="material-symbols-outlined text-[16px]">history</span> 2m ago
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <a class="group glass-card p-1 rounded-card hover:bg-surface-container transition-all block border border-white/5" href="#">
+                    <div class="p-8 space-y-8">
+                        <div class="flex justify-between items-start">
+                            <div class="w-16 h-16 rounded-[1.5rem] bg-secondary-container/10 text-secondary-container flex items-center justify-center ring-1 ring-secondary-container/20">
+                                <span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">insights</span>
+                            </div>
+                            <span class="material-symbols-outlined text-on-surface-variant group-hover:text-secondary transition-colors">arrow_forward</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-secondary tracking-[0.2em] uppercase">Semester 1 &bull; ECO102</span>
+                            <h3 class="text-2xl font-extrabold text-on-surface mt-1">Macroeconomics</h3>
+                            <p class="text-sm text-on-surface-variant mt-2 leading-relaxed">National income, inflation, and monetary policies in global markets.</p>
+                        </div>
+                        <div class="flex items-center gap-6 pt-2 border-t border-white/5">
+                            <div class="flex items-center gap-2 text-xs font-bold text-on-surface-variant">
+                                <span class="material-symbols-outlined text-[16px]">folder</span> 84 Files
+                            </div>
+                            <div class="flex items-center gap-2 text-xs font-bold text-on-surface-variant">
+                                <span class="material-symbols-outlined text-[16px]">history</span> 1h ago
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <a class="group glass-card p-1 rounded-card hover:bg-surface-container transition-all block border border-white/5" href="#">
+                    <div class="p-8 space-y-8">
+                        <div class="flex justify-between items-start">
+                            <div class="w-16 h-16 rounded-[1.5rem] bg-tertiary-container/10 text-tertiary-container flex items-center justify-center ring-1 ring-tertiary-container/20">
+                                <span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">biotech</span>
+                            </div>
+                            <span class="material-symbols-outlined text-on-surface-variant group-hover:text-tertiary transition-colors">arrow_forward</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-tertiary tracking-[0.2em] uppercase">Semester 1 &bull; BIO305</span>
+                            <h3 class="text-2xl font-extrabold text-on-surface mt-1">Biochemistry</h3>
+                            <p class="text-sm text-on-surface-variant mt-2 leading-relaxed">Molecular biology and metabolic pathways in eukaryotic organisms.</p>
+                        </div>
+                        <div class="flex items-center gap-6 pt-2 border-t border-white/5">
+                            <div class="flex items-center gap-2 text-xs font-bold text-on-surface-variant">
+                                <span class="material-symbols-outlined text-[16px]">folder</span> 156 Files
+                            </div>
+                            <div class="flex items-center gap-2 text-xs font-bold text-on-surface-variant">
+                                <span class="material-symbols-outlined text-[16px]">history</span> 4h ago
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <a class="group glass-card p-1 rounded-card hover:bg-surface-container transition-all block border border-white/5" href="#">
+                    <div class="p-8 space-y-8">
+                        <div class="flex justify-between items-start">
+                            <div class="w-16 h-16 rounded-[1.5rem] bg-on-surface-variant/10 text-on-surface-variant flex items-center justify-center ring-1 ring-white/5">
+                                <span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">public</span>
+                            </div>
+                            <span class="material-symbols-outlined text-on-surface-variant group-hover:text-white transition-colors">arrow_forward</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-on-surface-variant/60 tracking-[0.2em] uppercase">Semester 1 &bull; HIS110</span>
+                            <h3 class="text-2xl font-extrabold text-on-surface mt-1">World History</h3>
+                            <p class="text-sm text-on-surface-variant mt-2 leading-relaxed">Comparative study of ancient civilizations and post-industrial societies.</p>
+                        </div>
+                        <div class="flex items-center gap-6 pt-2 border-t border-white/5">
+                            <div class="flex items-center gap-2 text-xs font-bold text-on-surface-variant">
+                                <span class="material-symbols-outlined text-[16px]">folder</span> 92 Files
+                            </div>
+                            <div class="flex items-center gap-2 text-xs font-bold text-on-surface-variant">
+                                <span class="material-symbols-outlined text-[16px]">history</span> 2d ago
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="glass-card p-10 rounded-card border border-white/5 space-y-8">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-2xl font-bold text-on-surface">Vault Activity</h3>
+                        <p class="text-sm text-on-surface-variant">Recent interactions across all subjects</p>
+                    </div>
+                    <button class="px-5 py-2 rounded-full border border-white/10 text-xs font-bold hover:bg-white/5 transition-colors">All Files</button>
+                </div>
+                <div class="divide-y divide-white/5">
+                    <div class="flex items-center justify-between py-5 group cursor-pointer">
+                        <div class="flex items-center gap-5">
+                            <div class="w-14 h-14 rounded-2xl bg-error/10 text-error flex items-center justify-center">
+                                <span class="material-symbols-outlined text-[32px]">picture_as_pdf</span>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-on-surface group-hover:text-primary transition-colors">Keynesian_Theory_Notes.pdf</h4>
+                                <p class="text-xs text-on-surface-variant mt-1">Macroeconomics &bull; Modified 1h ago &bull; 3.1 MB</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                            <button class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">download</span></button>
+                            <button class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">star</span></button>
+                            <button class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">more_vert</span></button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between py-5 group cursor-pointer">
+                        <div class="flex items-center gap-5">
+                            <div class="w-14 h-14 rounded-2xl bg-secondary/10 text-secondary flex items-center justify-center">
+                                <span class="material-symbols-outlined text-[32px]">video_library</span>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-on-surface group-hover:text-secondary transition-colors">Protein_Synthesis_Seminar.mp4</h4>
+                                <p class="text-xs text-on-surface-variant mt-1">Biochemistry &bull; Modified 5h ago &bull; 218 MB</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                            <button class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">download</span></button>
+                            <button class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">star</span></button>
+                            <button class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">more_vert</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Shared Bottom Nav -->
+<div id="bottomnav-mount"></div>
+
+<!-- Shared Component Scripts -->
+<script src="../js/components/sidebar.js"></script>
+<script src="../js/components/header.js"></script>
+<script src="../js/components/bottomNav.js"></script>
+<script src="../js/components/loading.js"></script>
+
+<!-- Page Init -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        renderSidebar('03');
+        renderHeader({ title: 'Resources Vault' });
+        renderBottomNav('03');
+        initLoading('Loading Resources...');
+        initPage();
+    });
+
+    function fetchPageData() {
+        return new Promise((resolve) => {
+            setTimeout(() => resolve({
+                totalFiles: 460,
+                fileTypes: { pdfs: 142, videos: 24, documents: 56, slides: 18 },
+                subjects: [
+                    { name: "Data Structures", code: "CS201", semester: 1, files: 128, lastSync: "2m ago" },
+                    { name: "Macroeconomics", code: "ECO102", semester: 1, files: 84, lastSync: "1h ago" },
+                    { name: "Biochemistry", code: "BIO305", semester: 1, files: 156, lastSync: "4h ago" },
+                    { name: "World History", code: "HIS110", semester: 1, files: 92, lastSync: "2d ago" }
+                ]
+            }), 1000);
+        });
+    }
+
+    async function initPage() {
+        try {
+            const data = await fetchPageData();
+            hideLoading();
+        } catch (error) {
+            console.error('Failed to load page:', error);
+            var overlay = document.getElementById('loading-overlay');
+            if (overlay) overlay.innerHTML = '<p class="text-error font-bold">Failed to load. Please refresh.</p>';
+        }
+    }
+
+    // Page-specific effects
+    document.addEventListener('DOMContentLoaded', () => {
+        const cards = document.querySelectorAll('.glass-card, .rounded-card');
+        cards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', x + 'px');
+                card.style.setProperty('--mouse-y', y + 'px');
+            });
+        });
+    });
+</script>
+</body>
+</html>

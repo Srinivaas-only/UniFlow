@@ -1,0 +1,304 @@
+﻿<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Budget | UniFlow</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="../js/components/tailwind.js"></script>
+<script>initTailwind();</script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/theme.css"/>
+<style>
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #12111A;
+        color: #e5e0ee;
+        overflow-x: hidden;
+    }
+    .bg-glow {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden;
+    }
+    .glow-circle { position: absolute; filter: blur(120px); border-radius: 50%; opacity: 0.15; }
+    .glow-1 { width: 600px; height: 600px; background: #cfbdf8; top: -200px; right: -100px; }
+    .glow-2 { width: 500px; height: 500px; background: #96cdf2; bottom: -100px; left: -100px; }
+</style>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+
+<div class="bg-glow">
+    <div class="glow-circle glow-1"></div>
+    <div class="glow-circle glow-2"></div>
+</div>
+
+<!-- Shared Components -->
+<div id="sidebar-mount"></div>
+<div id="header-mount"></div>
+
+<!-- Main Content Area -->
+<main class="md:ml-[280px] pt-20 min-h-screen flex flex-col">
+    <div id="loading-overlay" class="p-margin-desktop pt-20"></div>
+    <div id="page-content">
+        <div class="p-margin-desktop space-y-gutter">
+            <!-- Header Section -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-gutter">
+                <div>
+                    <h2 class="text-[32px] font-extrabold tracking-tight text-primary leading-tight">Financial Hub</h2>
+                    <p class="text-on-surface-variant max-w-lg">Keep your academic journey sustainable. Review your monthly allocation and track every expense with AI-powered categorization.</p>
+                </div>
+                <div class="flex gap-4">
+                    <button class="px-6 py-3 rounded-xl bg-surface-container-highest border border-white/10 text-on-surface font-semibold flex items-center gap-2 hover:bg-white/5 transition-all">
+                        <span class="material-symbols-outlined">download</span> Report
+                    </button>
+                    <button class="px-6 py-3 rounded-xl bg-secondary text-on-secondary font-bold flex items-center gap-2 shadow-lg shadow-secondary/10 hover:scale-105 transition-transform">
+                        <span class="material-symbols-outlined">add</span> Log Expense
+                    </button>
+                </div>
+            </div>
+            <!-- Bento Grid Financial Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter">
+                <!-- Main Balance Card -->
+                <div class="md:col-span-2 bg-surface-container rounded-lg p-8 border border-white/5 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <span class="material-symbols-outlined text-[120px]" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+                    </div>
+                    <div class="relative z-10">
+                        <p class="text-on-surface-variant font-medium mb-1">Total Remaining Budget</p>
+                        <h3 class="text-5xl font-extrabold text-primary mb-6">$1,248.50</h3>
+                        <div class="flex gap-8">
+                            <div>
+                                <p class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Income</p>
+                                <p class="text-xl font-bold text-secondary">+$2,400.00</p>
+                            </div>
+                            <div class="w-px h-10 bg-white/10 self-center"></div>
+                            <div>
+                                <p class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Expenses</p>
+                                <p class="text-xl font-bold text-tertiary">-$1,151.50</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-10 bg-surface-variant/50 h-2 rounded-full overflow-hidden">
+                        <div class="bg-gradient-to-r from-secondary to-primary h-full w-[52%] rounded-full shadow-[0_0_15px_rgba(150,205,242,0.5)]"></div>
+                    </div>
+                    <div class="mt-2 flex justify-between text-xs text-on-surface-variant/70">
+                        <span>52% of monthly limit used</span>
+                        <span>14 days left in period</span>
+                    </div>
+                </div>
+                <!-- Warning Card -->
+                <div class="bg-error-container/20 rounded-lg p-6 border border-error/20 flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <div class="p-2 bg-error-container rounded-lg text-on-error-container">
+                            <span class="material-symbols-outlined">warning</span>
+                        </div>
+                        <span class="text-xs font-bold text-error uppercase">Action Needed</span>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-bold text-on-background mt-4">Dining Limit Reached</h4>
+                        <p class="text-sm text-on-surface-variant mt-1">You've spent 95% of your food allowance this week. Consider switching to meal prep.</p>
+                    </div>
+                    <button class="mt-4 w-full py-2 bg-error text-on-error rounded-lg text-sm font-bold hover:brightness-110">Review Meals</button>
+                </div>
+                <!-- Quick Insight Card -->
+                <div class="bg-surface-container rounded-lg p-6 border border-white/5 flex flex-col">
+                    <p class="text-label-sm text-on-surface-variant uppercase tracking-widest text-[10px] mb-4">AI Spending Insight</p>
+                    <p class="text-on-surface leading-relaxed italic">"Your subscription costs are 15% higher than average. You have 2 unused streaming services."</p>
+                    <div class="mt-auto pt-4 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center">
+                            <span class="material-symbols-outlined text-sm">auto_fix_high</span>
+                        </div>
+                        <span class="text-xs font-semibold text-primary">Optimize Now</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Detailed Analysis Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+                <!-- Category Breakdown -->
+                <div class="lg:col-span-2 bg-surface-container rounded-lg border border-white/5 overflow-hidden">
+                    <div class="px-8 py-6 border-b border-white/5 flex justify-between items-center">
+                        <h3 class="font-bold text-lg">Spending Breakdown</h3>
+                        <select class="bg-surface-variant/50 border-none rounded-lg text-sm focus:ring-1 focus:ring-primary">
+                            <option>This Month</option>
+                            <option>Last Month</option>
+                        </select>
+                    </div>
+                    <div class="p-8">
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined">home</span></div>
+                                        <span class="font-bold">Rent & Utilities</span>
+                                    </div>
+                                    <span class="font-bold">$850.00</span>
+                                </div>
+                                <div class="h-1.5 w-full bg-surface-variant rounded-full"><div class="h-full bg-primary rounded-full w-[65%]"></div></div>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary"><span class="material-symbols-outlined">restaurant</span></div>
+                                        <span class="font-bold">Dining & Groceries</span>
+                                    </div>
+                                    <span class="font-bold">$420.00</span>
+                                </div>
+                                <div class="h-1.5 w-full bg-surface-variant rounded-full"><div class="h-full bg-secondary rounded-full w-[88%]"></div></div>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary"><span class="material-symbols-outlined">menu_book</span></div>
+                                        <span class="font-bold">Education & Supplies</span>
+                                    </div>
+                                    <span class="font-bold">$125.00</span>
+                                </div>
+                                <div class="h-1.5 w-full bg-surface-variant rounded-full"><div class="h-full bg-tertiary rounded-full w-[30%]"></div></div>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-xl bg-surface-tint/10 flex items-center justify-center text-surface-tint"><span class="material-symbols-outlined">celebration</span></div>
+                                        <span class="font-bold">Social & Fun</span>
+                                    </div>
+                                    <span class="font-bold">$85.00</span>
+                                </div>
+                                <div class="h-1.5 w-full bg-surface-variant rounded-full"><div class="h-full bg-surface-tint rounded-full w-[15%]"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Recent Transactions -->
+                <div class="bg-surface-container-high rounded-lg border border-white/5 flex flex-col">
+                    <div class="px-6 py-6 border-b border-white/5">
+                        <h3 class="font-bold text-lg">Recent Ledger</h3>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-2">
+                        <div class="space-y-1">
+                            <div class="flex items-center justify-between p-4 rounded-xl hover:bg-white/5 transition-colors cursor-pointer group">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-full bg-surface-variant flex items-center justify-center overflow-hidden">
+                                        <img alt="Starbucks" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxhjZAHyEqA6vBsM-8HJJ7-uRlpySPWWs4w5VPtDlS3AqCW2RAotVJr7AGK4t2xGsx75FbgPzBWYKx10BDKbM2PSPMc3FDHGbVDea6YczcafpLqTGGCyawZwK76oFMSWH6nvNgW6VBLZRpWYgkP9ll0on-UA33oLoGAdTjvVf8BIWF6puX0DbJX1s-zfMp8UH8fmqVRoog-rjC6d0WvFn8wHS61qEVAOoTbwTCbr2K84jrgrmt1b8iiJeZxoh0D9lLz3mVIDaUfmBV"/>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-on-surface">Campus Coffee</p>
+                                        <p class="text-xs text-on-surface-variant">Today, 10:42 AM</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-bold text-tertiary">-$6.45</p>
+                                    <p class="text-[10px] text-on-surface-variant">Dining</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-4 rounded-xl hover:bg-white/5 transition-colors cursor-pointer group">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-full bg-surface-variant flex items-center justify-center overflow-hidden">
+                                        <img alt="Canvas" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIk-gxynxiT5zh5TRmqQuYp5g8eqh-WkV8_PTMY8hcarg-usXFJkVNQ2pOSk6t-Z0nKK95glNWeLX7oKnInOj6R1zcPLr33drS84VgjLMzLQh9uUi4kHa6kaIUiHHhl3FUibjdrdX5gxmlO_71TRG5b3AwUgaeqpc9Cy0GBy5XUKrELuZrrOL_1OARpHjyzuOluGYGAvqNsSM8nVwEFPfkVYfOuVTBC12e7SwjnkOY56ulYpCWtTCSARO4ohA_3WxGIQ-Po3nGWkWm"/>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-on-surface">Adobe Creative</p>
+                                        <p class="text-xs text-on-surface-variant">Yesterday</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-bold text-tertiary">-$19.99</p>
+                                    <p class="text-[10px] text-on-surface-variant">Software</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-4 rounded-xl hover:bg-white/5 transition-colors cursor-pointer group">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-full bg-surface-variant flex items-center justify-center overflow-hidden">
+                                        <img alt="Scholarship" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmvvta7AWZytgaZShefag9_2KTpKiMELIX0qOQNQ07jEQr8psPmNSoYKb-K5ocEpOnKUZI1BmZjLK05XVtRpIpkmzGqCSdD77tgPixyu66eo8wDYiRW1vW90YVUIBD1Sa08nmGljaMltMM6OfJWUdH3C4AS1LqCdLtghLK8C-O32w0YJeyfYwTk99DEXQQruEQ0jwzI384q_-aJxkz5M0SBc-_-FSV3n0O5Nw3Yc3mpT1_ybm8YzVMH0wKvU0I6g4iudIrMPbViaOk"/>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-on-surface">Merit Stipend</p>
+                                        <p class="text-xs text-on-surface-variant">Aug 12, 2023</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-bold text-secondary">+$500.00</p>
+                                    <p class="text-[10px] text-on-surface-variant">Income</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-4 rounded-xl hover:bg-white/5 transition-colors cursor-pointer group">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-full bg-surface-variant flex items-center justify-center overflow-hidden">
+                                        <img alt="Amazon" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsSJ5Z69wRCajvOBKBlMnchu_kRFR0PwzrL4IiP9NCMtF25fF4DFOCYaGcQKsU8Jedl31rk_0MFVHH1yXCML05AUO84wg1ateL96eXMT6KaPh76Ewpe6c3ggUra02t4ijV1a4cltSxspu2EMhLqgcHP-zckkIbyBJGLNnhgBKbE9Js-3LeGGQH0rU4F2jAk4YKEM5JMWiTIT3qnCB4S_RhaxP2ICVH28EtNwMpHDv8tOY1LIicku4IDz-gFsg496I147a2IKWc3aZi"/>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-on-surface">Textbook Rental</p>
+                                        <p class="text-xs text-on-surface-variant">Aug 10, 2023</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-bold text-tertiary">-$45.20</p>
+                                    <p class="text-[10px] text-on-surface-variant">Education</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="m-6 p-3 rounded-xl bg-surface-variant/30 text-primary-container text-xs font-bold uppercase tracking-widest hover:bg-white/5 transition-colors">View All Activities</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Shared Bottom Nav -->
+<div id="bottomnav-mount"></div>
+
+<!-- Shared Component Scripts -->
+<script src="../js/components/sidebar.js"></script>
+<script src="../js/components/header.js"></script>
+<script src="../js/components/bottomNav.js"></script>
+<script src="../js/components/loading.js"></script>
+
+<!-- Page Init -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        renderSidebar('07');
+        renderHeader({ title: 'Budget' });
+        renderBottomNav('07');
+        initLoading('Loading Budget...');
+        initPage();
+    });
+
+    function fetchPageData() {
+        return new Promise((resolve) => {
+            setTimeout(() => resolve({
+                overview: { totalBudget: 4200, spent: 2847, remaining: 1353, currency: "MYR" },
+                categories: [
+                    { name: "Tuition & Fees", allocated: 1800, spent: 1800, icon: "school", color: "primary" },
+                    { name: "Books & Supplies", allocated: 600, spent: 420, icon: "menu_book", color: "secondary" },
+                    { name: "Transport", allocated: 400, spent: 310, icon: "directions_bus", color: "tertiary" },
+                    { name: "Food & Dining", allocated: 800, spent: 587, icon: "restaurant", color: "error" }
+                ],
+                monthlyTrend: "down"
+            }), 1000);
+        });
+    }
+
+    async function initPage() {
+        try {
+            const data = await fetchPageData();
+            hideLoading();
+        } catch (error) {
+            console.error('Failed to load page:', error);
+            var overlay = document.getElementById('loading-overlay');
+            if (overlay) overlay.innerHTML = '<p class="text-error font-bold">Failed to load. Please refresh.</p>';
+        }
+    }
+
+    // Page-specific effects
+    document.querySelectorAll('.bg-surface-container').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-4px)';
+            card.style.transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0)';
+        });
+    });
+</script>
+</body>
+</html>

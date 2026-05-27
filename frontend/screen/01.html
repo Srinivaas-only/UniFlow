@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>UniFlow | The Hub</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="../js/components/tailwind.js"></script>
+    <script>initTailwind();</script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="../css/theme.css"/>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #12111A;
+            overflow-x: hidden;
+        }
+        .glass-card {
+            background: rgba(26, 24, 37, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(85, 79, 104, 0.2);
+        }
+        .bg-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.15;
+        }
+    </style>
+</head>
+<body class="text-on-background">
+
+<!-- Background Glows (page-specific) -->
+<div class="bg-glow top-[-100px] left-[-100px] bg-primary"></div>
+<div class="bg-glow bottom-[-100px] right-[-100px] bg-secondary"></div>
+
+<!-- Shared Components -->
+<div id="sidebar-mount"></div>
+<div id="header-mount"></div>
+
+<!-- Main Content -->
+<main class="md:ml-[280px] pt-12 min-h-screen relative">
+    <div id="loading-overlay" class="p-margin-desktop pt-20"></div>
+    <div id="page-content" class="p-margin-desktop pt-20">
+        <div class="mb-10">
+            <h2 class="font-display-lg text-display-lg text-primary mb-2" data-field="greeting">Good morning, Adam.</h2>
+            <p class="font-body-lg text-body-lg text-on-surface-variant" data-field="greeting-summary">You have 3 lectures today and one assignment due by midnight.</p>
+        </div>
+        <div class="grid grid-cols-12 gap-gutter">
+            <div class="col-span-12 lg:col-span-8 glass-card rounded-lg p-8 flex flex-col gap-6">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-secondary" data-icon="calendar_today">calendar_today</span>
+                        <h3 class="font-headline-lg text-headline-lg">Today's Schedule</h3>
+                    </div>
+                    <span class="text-label-sm text-secondary cursor-pointer hover:underline">View Week</span>
+                </div>
+                <div class="space-y-4" data-field="schedule">
+                    <div class="flex items-center gap-6 p-4 rounded-xl bg-surface-container hover:bg-surface-variant/40 transition-colors group">
+                        <div class="text-center min-w-[60px]">
+                            <p class="text-label-sm font-bold text-primary">09:00</p>
+                            <p class="text-[10px] text-on-surface-variant">AM</p>
+                        </div>
+                        <div class="h-10 w-[2px] bg-primary/30 group-hover:bg-primary transition-colors"></div>
+                        <div class="flex-1">
+                            <h4 class="font-body-md font-bold">Advanced Neuroanatomy</h4>
+                            <p class="text-label-sm text-on-surface-variant">Lecture Hall B &bull; Prof. Richardson</p>
+                        </div>
+                        <div class="flex -space-x-2">
+                            <div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-[10px] border-2 border-surface">JD</div>
+                            <div class="w-8 h-8 rounded-full bg-tertiary-container flex items-center justify-center text-[10px] border-2 border-surface">SK</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-6 p-4 rounded-xl bg-surface-container hover:bg-surface-variant/40 transition-colors group">
+                        <div class="text-center min-w-[60px]">
+                            <p class="text-label-sm font-bold text-primary">11:30</p>
+                            <p class="text-[10px] text-on-surface-variant">AM</p>
+                        </div>
+                        <div class="h-10 w-[2px] bg-primary/30 group-hover:bg-primary transition-colors"></div>
+                        <div class="flex-1">
+                            <h4 class="font-body-md font-bold">Clinical Ethics Seminar</h4>
+                            <p class="text-label-sm text-on-surface-variant">Room 402 &bull; Zoom Hybrid</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-full bg-secondary/10 text-secondary text-[10px] font-bold border border-secondary/20">HYBRID</span>
+                    </div>
+                    <div class="flex items-center gap-6 p-4 rounded-xl bg-surface-container hover:bg-surface-variant/40 transition-colors group">
+                        <div class="text-center min-w-[60px]">
+                            <p class="text-label-sm font-bold text-primary">02:00</p>
+                            <p class="text-[10px] text-on-surface-variant">PM</p>
+                        </div>
+                        <div class="h-10 w-[2px] bg-primary/30 group-hover:bg-primary transition-colors"></div>
+                        <div class="flex-1">
+                            <h4 class="font-body-md font-bold">Lab: Molecular Biology</h4>
+                            <p class="text-label-sm text-on-surface-variant">Main Science Block &bull; G-Block</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-span-12 lg:col-span-4 glass-card rounded-lg p-8 flex flex-col">
+                <div class="flex items-center justify-between mb-8">
+                    <h3 class="font-headline-lg text-headline-lg">Tasks</h3>
+                    <span class="material-symbols-outlined text-on-surface-variant" data-icon="more_vert">more_vert</span>
+                </div>
+                <div class="space-y-6 flex-1" data-field="tasks">
+                    <div class="relative pl-6 border-l-2 border-error">
+                        <div class="absolute -left-[5px] top-0 w-2 h-2 rounded-full bg-error"></div>
+                        <p class="text-[10px] text-error font-bold uppercase tracking-widest mb-1">Due Today</p>
+                        <h4 class="font-body-md font-bold">Bio-Chemistry Report</h4>
+                        <p class="text-label-sm text-on-surface-variant">Submit PDF via Portal</p>
+                    </div>
+                    <div class="relative pl-6 border-l-2 border-primary">
+                        <p class="text-[10px] text-primary font-bold uppercase tracking-widest mb-1">In 2 Days</p>
+                        <h4 class="font-body-md font-bold">Pharmacology Quiz</h4>
+                        <p class="text-label-sm text-on-surface-variant">Chapters 4-9 Review</p>
+                    </div>
+                    <div class="relative pl-6 border-l-2 border-secondary">
+                        <p class="text-[10px] text-secondary font-bold uppercase tracking-widest mb-1">Next Week</p>
+                        <h4 class="font-body-md font-bold">Group Presentation</h4>
+                        <p class="text-label-sm text-on-surface-variant">Topic: Cardiac Health</p>
+                    </div>
+                </div>
+                <button class="mt-8 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-colors font-label-sm">
+                    Add New Task
+                </button>
+            </div>
+            <div class="col-span-12 lg:col-span-5 glass-card rounded-lg p-8">
+                <div class="flex items-center justify-between mb-8">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-primary" data-icon="account_balance_wallet">account_balance_wallet</span>
+                        <h3 class="font-headline-lg text-headline-lg">Budget</h3>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-label-sm text-on-surface-variant">Remaining</p>
+                        <p class="text-xl font-bold text-primary" data-field="budget-remaining">$1,240.50</p>
+                    </div>
+                </div>
+                <div class="space-y-4" data-field="budget-bars">
+                    <div>
+                        <div class="flex justify-between text-label-sm mb-2">
+                            <span class="text-on-surface-variant">Groceries & Living</span>
+                            <span class="text-on-surface">$340 / $500</span>
+                        </div>
+                        <div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+                            <div class="h-full bg-primary rounded-full" style="width: 68%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-label-sm mb-2">
+                            <span class="text-on-surface-variant">Entertainment</span>
+                            <span class="text-on-surface">$120 / $150</span>
+                        </div>
+                        <div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+                            <div class="h-full bg-secondary rounded-full" style="width: 80%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-span-12 lg:col-span-7 glass-card rounded-lg p-8 relative overflow-hidden group">
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-tertiary" data-icon="auto_awesome">auto_awesome</span>
+                            <h3 class="font-headline-lg text-headline-lg">Scholarship Matches</h3>
+                        </div>
+                        <span class="px-3 py-1 rounded-full bg-tertiary/20 text-tertiary text-label-sm">3 New Found</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" data-field="scholarships">
+                        <div class="p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-tertiary/30 transition-all cursor-pointer">
+                            <h4 class="font-bold mb-1">Global Medical Grant</h4>
+                            <p class="text-label-sm text-on-surface-variant mb-3">Up to $5,000 yearly</p>
+                            <div class="flex items-center gap-2 text-[10px] font-bold text-tertiary">
+                                <span class="material-symbols-outlined text-sm" data-icon="bolt">bolt</span>
+                                98% MATCH
+                            </div>
+                        </div>
+                        <div class="p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-tertiary/30 transition-all cursor-pointer">
+                            <h4 class="font-bold mb-1">Innovation in STEM</h4>
+                            <p class="text-label-sm text-on-surface-variant mb-3">Full Tuition Coverage</p>
+                            <div class="flex items-center gap-2 text-[10px] font-bold text-tertiary">
+                                <span class="material-symbols-outlined text-sm" data-icon="bolt">bolt</span>
+                                85% MATCH
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-tertiary/10 blur-3xl rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Shared Bottom Nav -->
+<div id="bottomnav-mount"></div>
+
+<!-- Shared Component Scripts -->
+<script src="../js/components/sidebar.js"></script>
+<script src="../js/components/header.js"></script>
+<script src="../js/components/bottomNav.js"></script>
+<script src="../js/components/loading.js"></script>
+
+<!-- Page Init -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        renderSidebar('01');
+        renderHeader({});
+        renderBottomNav('01');
+        initLoading('Loading your dashboard...');
+        initDashboard();
+    });
+
+    // ============================================================
+    // MOCK DATA - Simulates FastAPI /api/dashboard response
+    // ============================================================
+    const MOCK_DATA = {
+        user: {
+            name: "Adam William",
+            major: "Medical Sciences",
+            tier: "High Achiever",
+            avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuAeHEu9otQhM_u1D7Z3ah7IsgHoGsVpfTcLZoCde-J3-RSR5UrdnuyRs3lEmbaTmEKJtO_D9CWz86HjRwtfI-9w8OOUAhmdfeZOh4R3p_YTZkBf7Wk4GVreiVOU0xxs4-WMPEAlYpldjBtgC1lDDqDkzezCFsEVVzHJ8E9EbYmq0M33hBMDtip5A_Hlvl0xiSJH5hISoIu2U8epNIBySCQudTX0i-iSatxU-CA67opf8AaoNJDTriuWS8Mb4_hoN9V4vU1C6BNbM5-c"
+        },
+        greeting: {
+            text: "Good morning, Adam.",
+            summary: "You have 3 lectures today and one assignment due by midnight."
+        },
+        schedule: [
+            { time: "09:00", period: "AM", title: "Advanced Neuroanatomy", location: "Lecture Hall B \u2022 Prof. Richardson", avatars: ["JD", "SK"] },
+            { time: "11:30", period: "AM", title: "Clinical Ethics Seminar", location: "Room 402 \u2022 Zoom Hybrid", badge: "HYBRID" },
+            { time: "02:00", period: "PM", title: "Lab: Molecular Biology", location: "Main Science Block \u2022 G-Block" }
+        ],
+        tasks: [
+            { priority: "error", label: "Due Today", title: "Bio-Chemistry Report", detail: "Submit PDF via Portal", dot: true },
+            { priority: "primary", label: "In 2 Days", title: "Pharmacology Quiz", detail: "Chapters 4-9 Review" },
+            { priority: "secondary", label: "Next Week", title: "Group Presentation", detail: "Topic: Cardiac Health" }
+        ],
+        budget: {
+            remaining: "$1,240.50",
+            categories: [
+                { name: "Groceries & Living", spent: 340, total: 500, color: "bg-primary" },
+                { name: "Entertainment", spent: 120, total: 150, color: "bg-secondary" }
+            ]
+        },
+        scholarships: [
+            { title: "Global Medical Grant", amount: "Up to $5,000 yearly", match: 98 },
+            { title: "Innovation in STEM", amount: "Full Tuition Coverage", match: 85 }
+        ]
+    };
+
+    // ============================================================
+    // FETCH SIMULATION
+    // ============================================================
+    function fetchDashboardData() {
+        return new Promise((resolve) => {
+            setTimeout(() => resolve(MOCK_DATA), 1000);
+        });
+    }
+
+    // ============================================================
+    // UI POPULATION
+    // ============================================================
+    function populateUI(data) {
+        const greetEl = document.querySelector('[data-field="greeting"]');
+        const summaryEl = document.querySelector('[data-field="greeting-summary"]');
+        if (greetEl) greetEl.textContent = data.greeting.text;
+        if (summaryEl) summaryEl.textContent = data.greeting.summary;
+
+        const scheduleContainer = document.querySelector('[data-field="schedule"]');
+        if (scheduleContainer) {
+            scheduleContainer.innerHTML = data.schedule.map(item => {
+                let extras = '';
+                if (item.avatars) {
+                    extras = '<div class="flex -space-x-2">' +
+                        item.avatars.map(a => '<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-[10px] border-2 border-surface">' + a + '</div>').join('') +
+                        '</div>';
+                }
+                if (item.badge) {
+                    extras = '<span class="px-3 py-1 rounded-full bg-secondary/10 text-secondary text-[10px] font-bold border border-secondary/20">' + item.badge + '</span>';
+                }
+                return '<div class="flex items-center gap-6 p-4 rounded-xl bg-surface-container hover:bg-surface-variant/40 transition-colors group">' +
+                    '<div class="text-center min-w-[60px]">' +
+                        '<p class="text-label-sm font-bold text-primary">' + item.time + '</p>' +
+                        '<p class="text-[10px] text-on-surface-variant">' + item.period + '</p>' +
+                    '</div>' +
+                    '<div class="h-10 w-[2px] bg-primary/30 group-hover:bg-primary transition-colors"></div>' +
+                    '<div class="flex-1">' +
+                        '<h4 class="font-body-md font-bold">' + item.title + '</h4>' +
+                        '<p class="text-label-sm text-on-surface-variant">' + item.location + '</p>' +
+                    '</div>' + extras +
+                '</div>';
+            }).join('');
+        }
+
+        const tasksContainer = document.querySelector('[data-field="tasks"]');
+        if (tasksContainer) {
+            tasksContainer.innerHTML = data.tasks.map(task => {
+                const dotHtml = task.dot ? '<div class="absolute -left-[5px] top-0 w-2 h-2 rounded-full bg-' + task.priority + '"></div>' : '';
+                return '<div class="relative pl-6 border-l-2 border-' + task.priority + '">' +
+                    dotHtml +
+                    '<p class="text-[10px] text-' + task.priority + ' font-bold uppercase tracking-widest mb-1">' + task.label + '</p>' +
+                    '<h4 class="font-body-md font-bold">' + task.title + '</h4>' +
+                    '<p class="text-label-sm text-on-surface-variant">' + task.detail + '</p>' +
+                '</div>';
+            }).join('');
+        }
+
+        const budgetRemaining = document.querySelector('[data-field="budget-remaining"]');
+        if (budgetRemaining) budgetRemaining.textContent = data.budget.remaining;
+
+        const budgetContainer = document.querySelector('[data-field="budget-bars"]');
+        if (budgetContainer) {
+            budgetContainer.innerHTML = data.budget.categories.map(cat => {
+                const pct = Math.round((cat.spent / cat.total) * 100);
+                return '<div>' +
+                    '<div class="flex justify-between text-label-sm mb-2">' +
+                        '<span class="text-on-surface-variant">' + cat.name + '</span>' +
+                        '<span class="text-on-surface">$' + cat.spent + ' / $' + cat.total + '</span>' +
+                    '</div>' +
+                    '<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">' +
+                        '<div class="h-full ' + cat.color + ' rounded-full" style="width: ' + pct + '%;"></div>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }
+
+        const scholarshipContainer = document.querySelector('[data-field="scholarships"]');
+        if (scholarshipContainer) {
+            scholarshipContainer.innerHTML = data.scholarships.map(s => {
+                return '<div class="p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-tertiary/30 transition-all cursor-pointer">' +
+                    '<h4 class="font-bold mb-1">' + s.title + '</h4>' +
+                    '<p class="text-label-sm text-on-surface-variant mb-3">' + s.amount + '</p>' +
+                    '<div class="flex items-center gap-2 text-[10px] font-bold text-tertiary">' +
+                        '<span class="material-symbols-outlined text-sm" data-icon="bolt">bolt</span>' +
+                        s.match + '% MATCH' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }
+    }
+
+    // ============================================================
+    // LOADING CONTROLLER
+    // ============================================================
+    async function initDashboard() {
+        try {
+            const data = await fetchDashboardData();
+            populateUI(data);
+            hideLoading();
+        } catch (error) {
+            console.error('Failed to load dashboard:', error);
+            var overlay = document.getElementById('loading-overlay');
+            if (overlay) overlay.innerHTML = '<p class="text-error font-bold">Failed to load dashboard. Please refresh.</p>';
+        }
+    }
+
+    // ============================================================
+    // PAGE-SPECIFIC EFFECTS
+    // ============================================================
+    document.addEventListener('mousemove', (e) => {
+        const glows = document.querySelectorAll('.bg-glow');
+        const x = e.clientX / window.innerWidth;
+        const y = e.clientY / window.innerHeight;
+        glows.forEach((glow, index) => {
+            const speed = (index + 1) * 20;
+            glow.style.transform = 'translate(' + (x * speed) + 'px, ' + (y * speed) + 'px)';
+        });
+    });
+
+    document.querySelectorAll('.glass-card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.borderColor = 'rgba(207, 189, 248, 0.4)';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.borderColor = 'rgba(85, 79, 104, 0.2)';
+        });
+    });
+</script>
+</body>
+</html>

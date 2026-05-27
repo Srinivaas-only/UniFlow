@@ -1,0 +1,293 @@
+﻿<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>UniFlow - Data Structures Vault</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="../js/components/tailwind.js"></script>
+<script>initTailwind();</script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/theme.css"/>
+<style>
+    body {
+        background-color: #13121b;
+        color: #e5e0ee;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .glass-card {
+        background: #1c1a24;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+</style>
+</head>
+<body class="font-body text-on-surface antialiased overflow-x-hidden">
+
+<!-- Shared Components -->
+<div id="sidebar-mount"></div>
+<div id="header-mount"></div>
+
+<!-- Main Content -->
+<main class="md:ml-[280px] pt-20 pb-16 px-margin-mobile md:px-margin-desktop min-h-screen">
+    <div id="loading-overlay" class="flex flex-col items-center justify-center min-h-[60vh] py-20"></div>
+    <div id="page-content">
+        <div class="max-w-6xl mx-auto space-y-10">
+            <!-- Breadcrumb / Back -->
+            <a class="flex items-center gap-2 text-on-surface-variant hover:text-on-surface transition-colors px-1 group" href="03.html">
+                <span class="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                <span class="text-sm font-semibold">Back to Vault</span>
+            </a>
+            <!-- Subject Header -->
+            <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+                <div class="flex items-start gap-8">
+                    <div class="w-20 h-20 rounded-[2rem] bg-primary-container/10 flex items-center justify-center text-primary-container ring-1 ring-primary-container/20">
+                        <span class="material-symbols-outlined text-[40px]" style="font-variation-settings: 'FILL' 1;">account_tree</span>
+                    </div>
+                    <div>
+                        <span class="inline-block px-4 py-1 rounded-full bg-primary-container/10 text-primary-container text-xs font-bold mb-3 uppercase tracking-wider">Semester 1</span>
+                        <h1 class="text-5xl font-extrabold tracking-tighter text-on-surface leading-tight mb-2">Data Structures</h1>
+                        <div class="flex items-center gap-4 text-on-surface-variant">
+                            <span class="flex items-center gap-1.5 text-sm">
+                                <span class="material-symbols-outlined text-[18px]">location_on</span> Engineering Block, Room 402
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button class="px-6 py-3 rounded-full bg-surface-container-high border border-white/5 text-on-surface text-sm font-bold flex items-center gap-2 hover:bg-surface-container-highest transition-colors">
+                        <span class="material-symbols-outlined text-[20px]">share</span>
+                        Share Module
+                    </button>
+                    <button class="px-6 py-3 rounded-full bg-primary text-on-primary text-sm font-bold flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all">
+                        <span class="material-symbols-outlined text-[20px]">add</span>
+                        Add Resource
+                    </button>
+                </div>
+            </div>
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 p-1 bg-surface-container-low rounded-card border border-white/5">
+                <div class="p-8 space-y-1">
+                    <p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-[0.2em]">Total Resources</p>
+                    <p class="text-2xl font-extrabold text-on-surface">128 Files</p>
+                </div>
+                <div class="p-8 space-y-1">
+                    <p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-[0.2em]">Storage Used</p>
+                    <p class="text-2xl font-extrabold text-on-surface">4.2 GB</p>
+                </div>
+                <div class="p-8 space-y-1">
+                    <p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-[0.2em]">Last Sync</p>
+                    <p class="text-2xl font-extrabold text-secondary">2 mins ago</p>
+                </div>
+                <div class="p-8 space-y-2">
+                    <p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-[0.2em]">Completion</p>
+                    <div class="flex items-center gap-4">
+                        <p class="text-2xl font-extrabold text-on-surface">87%</p>
+                        <div class="flex-1 h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                            <div class="h-full bg-primary rounded-full" style="width: 87%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Content Split -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                <!-- Left Column: Categories -->
+                <div class="lg:col-span-8 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="glass-card p-8 rounded-card group hover:bg-surface-container transition-all cursor-pointer border border-white/5">
+                            <div class="flex justify-between items-start mb-10">
+                                <div class="w-12 h-12 rounded-2xl bg-tertiary-container/20 text-tertiary-container flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-[28px]">description</span>
+                                </div>
+                                <span class="material-symbols-outlined text-on-surface-variant group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform">north_east</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-on-surface mb-1">Lecture Notes</h3>
+                            <p class="text-sm text-on-surface-variant">42 documents &bull; Updated yesterday</p>
+                        </div>
+                        <div class="glass-card p-8 rounded-card group hover:bg-surface-container transition-all cursor-pointer border border-white/5">
+                            <div class="flex justify-between items-start mb-10">
+                                <div class="w-12 h-12 rounded-2xl bg-secondary-container/20 text-secondary-container flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-[28px]">terminal</span>
+                                </div>
+                                <span class="material-symbols-outlined text-on-surface-variant group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform">north_east</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-on-surface mb-1">Lab Manuals</h3>
+                            <p class="text-sm text-on-surface-variant">18 files &bull; 3 pending labs</p>
+                        </div>
+                        <div class="glass-card p-8 rounded-card group hover:bg-surface-container transition-all cursor-pointer border border-white/5">
+                            <div class="flex justify-between items-start mb-10">
+                                <div class="w-12 h-12 rounded-2xl bg-primary-container/20 text-primary-container flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-[28px]">play_circle</span>
+                                </div>
+                                <span class="material-symbols-outlined text-on-surface-variant group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform">north_east</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-on-surface mb-1">Video Recordings</h3>
+                            <p class="text-sm text-on-surface-variant">12 videos &bull; 24.5 total hours</p>
+                        </div>
+                        <div class="glass-card p-8 rounded-card group hover:bg-surface-container transition-all cursor-pointer border border-white/5">
+                            <div class="flex justify-between items-start mb-10">
+                                <div class="w-12 h-12 rounded-2xl bg-on-surface-variant/10 text-on-surface-variant flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-[28px]">history_edu</span>
+                                </div>
+                                <span class="material-symbols-outlined text-on-surface-variant group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform">north_east</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-on-surface mb-1">Past Papers</h3>
+                            <p class="text-sm text-on-surface-variant">5 years available &bull; Annotated</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Right Column: Quick Actions & AI -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="bg-surface-container-low p-8 rounded-card border border-white/5 space-y-6">
+                        <p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-[0.2em]">Quick Actions</p>
+                        <div class="space-y-2">
+                            <button class="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors text-left group">
+                                <span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">upload_file</span>
+                                <span class="text-sm font-semibold">Upload New Resource</span>
+                            </button>
+                            <button class="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors text-left group">
+                                <span class="material-symbols-outlined text-secondary group-hover:scale-110 transition-transform">psychology</span>
+                                <span class="text-sm font-semibold">Generate Flashcards (AI)</span>
+                            </button>
+                            <button class="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors text-left group">
+                                <span class="material-symbols-outlined text-tertiary group-hover:scale-110 transition-transform">summarize</span>
+                                <span class="text-sm font-semibold">Summarize Folder</span>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- AI Study Insight -->
+                    <div class="relative bg-gradient-to-br from-primary-container/10 to-secondary-container/10 p-8 rounded-card border border-white/10 overflow-hidden group">
+                        <div class="relative z-10 space-y-4">
+                            <div class="flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest">
+                                <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                                AI Study Insight
+                            </div>
+                            <p class="text-base text-on-surface font-medium italic leading-relaxed">
+                                "You spend the most time on 'Graph Algorithms'. Consider reviewing 'B-Trees' before the upcoming quiz."
+                            </p>
+                            <button class="flex items-center gap-2 text-primary text-sm font-bold hover:gap-3 transition-all">
+                                Open Study Plan <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                            </button>
+                        </div>
+                        <span class="material-symbols-outlined absolute -bottom-8 -right-8 text-[160px] text-white/5 pointer-events-none group-hover:rotate-12 transition-transform duration-700" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                    </div>
+                </div>
+                <!-- Recent Resources (Full Width below content split) -->
+                <div class="lg:col-span-12 glass-card p-10 rounded-card border border-white/5 space-y-8">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-2xl font-bold text-on-surface">Recent Resources</h3>
+                            <p class="text-sm text-on-surface-variant">Files you accessed in the last 48 hours</p>
+                        </div>
+                        <button class="px-5 py-2 rounded-full border border-white/10 text-xs font-bold hover:bg-white/5 transition-colors">View All Files</button>
+                    </div>
+                    <div class="divide-y divide-white/5">
+                        <div class="flex items-center justify-between py-5 group cursor-pointer">
+                            <div class="flex items-center gap-5">
+                                <div class="w-14 h-14 rounded-2xl bg-error/10 text-error flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-[32px]">picture_as_pdf</span>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-on-surface group-hover:text-primary transition-colors">Heaps & Priority Queues.pdf</h4>
+                                    <p class="text-xs text-on-surface-variant mt-1">Modified 4h ago &bull; 2.4 MB &bull; Lecture Notes</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                                <button class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">download</span></button>
+                                <button class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">star</span></button>
+                                <button class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">more_vert</span></button>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between py-5 group cursor-pointer">
+                            <div class="flex items-center gap-5">
+                                <div class="w-14 h-14 rounded-2xl bg-secondary/10 text-secondary flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-[32px]">video_library</span>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-on-surface group-hover:text-secondary transition-colors">Graph Traversal Algorithms.mp4</h4>
+                                    <p class="text-xs text-on-surface-variant mt-1">Modified 1d ago &bull; 142 MB &bull; Video Recordings</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                                <button class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">download</span></button>
+                                <button class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">star</span></button>
+                                <button class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">more_vert</span></button>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between py-5 group cursor-pointer">
+                            <div class="flex items-center gap-5">
+                                <div class="w-14 h-14 rounded-2xl bg-tertiary/10 text-tertiary flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-[32px]">code</span>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-on-surface group-hover:text-tertiary transition-colors">Balanced_Search_Trees.cpp</h4>
+                                    <p class="text-xs text-on-surface-variant mt-1">Modified 2d ago &bull; 14 KB &bull; Lab Manuals</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                                <button class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">download</span></button>
+                                <button class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">star</span></button>
+                                <button class="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">more_vert</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Shared Bottom Nav -->
+<div id="bottomnav-mount"></div>
+
+<!-- Shared Component Scripts -->
+<script src="../js/components/sidebar.js"></script>
+<script src="../js/components/header.js"></script>
+<script src="../js/components/bottomNav.js"></script>
+<script src="../js/components/loading.js"></script>
+
+<!-- Page Init -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        renderSidebar('03');
+        renderHeader({ title: 'Data Structures', subtitle: 'CS201 • Resources' });
+        renderBottomNav('03');
+        initLoading('Loading Data Structures...');
+        initPage();
+    });
+
+    function fetchPageData() {
+        return new Promise((resolve) => {
+            setTimeout(() => resolve({
+                subject: { name: "Data Structures", code: "CS201", semester: "Semester 1", location: "Engineering Block, Room 402" },
+                stats: { totalResources: "128 Files", storageUsed: "4.2 GB", lastSync: "2 mins ago", completion: 87 },
+                aiInsight: "You spend the most time on 'Graph Algorithms'. Consider reviewing 'B-Trees' before the upcoming quiz."
+            }), 1000);
+        });
+    }
+
+    async function initPage() {
+        try {
+            const data = await fetchPageData();
+            hideLoading();
+        } catch (error) {
+            console.error('Failed to load page:', error);
+            var overlay = document.getElementById('loading-overlay');
+            if (overlay) overlay.innerHTML = '<p class="text-error font-bold">Failed to load. Please refresh.</p>';
+        }
+    }
+
+    // Page-specific effects
+    document.addEventListener('DOMContentLoaded', () => {
+        const cards = document.querySelectorAll('.glass-card, .rounded-card');
+        cards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                card.style.setProperty('--mouse-x', (e.clientX - rect.left) + 'px');
+                card.style.setProperty('--mouse-y', (e.clientY - rect.top) + 'px');
+            });
+        });
+    });
+</script>
+</body>
+</html>

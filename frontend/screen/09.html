@@ -1,0 +1,470 @@
+﻿<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>UniFlow | AI Command Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="tailwind.js"></script>
+<script>initTailwind();</script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="theme.css"/>
+<style>
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #12111A;
+        overflow-x: hidden;
+    }
+    .bg-glow-violet {
+        background: radial-gradient(ellipse 80% 60% at 20% 10%, rgba(214, 196, 255, 0.14) 0%, transparent 65%);
+    }
+    .bg-glow-rose {
+        background: radial-gradient(ellipse 70% 50% at 85% 75%, rgba(255, 194, 220, 0.08) 0%, transparent 60%);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(158, 151, 179, 0.25);
+        border-radius: 10px;
+    }
+    .ai-pulse {
+        animation: pulse-glow 4s infinite ease-in-out;
+    }
+    @keyframes pulse-glow {
+        0%, 100% { opacity: 0.5; transform: scale(1); }
+        50% { opacity: 0.85; transform: scale(1.04); }
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Atmospheric Background Layers -->
+<div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
+    <div class="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-glow-violet ai-pulse"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[65%] h-[65%] bg-glow-rose"></div>
+</div>
+
+<!-- Shared Components -->
+<div id="sidebar-mount"></div>
+<div id="header-mount"></div>
+
+<!-- Main Content Canvas - Fixed height chat layout -->
+<main class="md:ml-[280px] pt-20 h-screen flex flex-col relative">
+    <div id="loading-overlay" class="flex flex-col items-center justify-center min-h-[60vh] py-20"></div>
+    <div id="page-content" class="flex-1 flex flex-col min-h-0">
+        <!-- Conversation Space - scrollable -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar px-margin-mobile md:px-margin-desktop pr-4 space-y-8 pb-40" id="chat-scroller">
+            <!-- AI Intro Greeting -->
+            <div class="flex flex-col items-center justify-center py-12 text-center max-w-2xl mx-auto">
+                <div class="w-16 h-16 rounded-3xl bg-gradient-to-br from-primary via-primary-container to-secondary flex items-center justify-center shadow-lg mb-6 ai-pulse">
+                    <span class="material-symbols-outlined text-on-primary text-4xl" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                </div>
+                <h1 class="font-headline-lg text-headline-lg text-primary mb-2">Good afternoon, Adam.</h1>
+                <p class="font-body-lg text-on-surface-variant">I've indexed your Chemistry lab notes and prepared a summary for tomorrow's assignment. How can I assist your workflow today?</p>
+            </div>
+            <!-- AI Message Bubble (Cognitive Widget) -->
+            <div class="flex items-start gap-4 max-w-4xl">
+                <div class="w-10 h-10 rounded-2xl bg-surface-container-high flex items-center justify-center flex-shrink-0 shadow-md">
+                    <span class="material-symbols-outlined text-primary text-xl">smart_toy</span>
+                </div>
+                <div class="flex-1 space-y-4">
+                    <div class="bg-surface-container p-6 rounded-3xl shadow-lg">
+                        <p class="font-body-md text-on-surface mb-4">I've detected a potential conflict in your <span class="text-secondary font-bold">Group Projects</span> schedule. The "Quantum Ethics" meeting overlaps with your "Advanced Calculus" seminar on Wednesday.</p>
+                        <!-- Cognitive Widget: Calendar Resolution -->
+                        <div class="bg-surface-container-low rounded-3xl p-4 shadow-sm flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="p-2.5 bg-secondary/15 rounded-2xl">
+                                    <span class="material-symbols-outlined text-secondary">event_busy</span>
+                                </div>
+                                <div>
+                                    <p class="text-label-sm text-on-surface">Conflict Resolution Available</p>
+                                    <p class="text-[11px] text-on-surface-variant">Suggest rescheduling Group Project to 4:00 PM?</p>
+                                </div>
+                            </div>
+                            <button class="px-5 py-2.5 bg-primary text-on-primary rounded-full font-label-sm shadow-sm hover:scale-105 transition-all active:scale-95">Resolve</button>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-on-surface-variant ml-2">2:14 PM • UniFlow Intelligence</span>
+                </div>
+            </div>
+            <!-- User Message Bubble -->
+            <div class="flex items-start gap-4 max-w-4xl ml-auto flex-row-reverse">
+                <div class="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-primary text-xl">person</span>
+                </div>
+                <div class="flex-1 text-right">
+                    <div class="bg-surface-container-high/80 p-5 rounded-3xl shadow-lg inline-block text-left">
+                        <p class="font-body-md text-primary">/analyze thermodynamics_lab_report.pdf --focus="entropy-calculations"</p>
+                    </div>
+                    <div class="mt-1 flex justify-end">
+                        <span class="text-[10px] text-on-surface-variant mr-2">2:15 PM • Read</span>
+                    </div>
+                </div>
+            </div>
+            <!-- AI Cognitive Widget: Analysis Loading -->
+            <div class="flex items-start gap-4 max-w-4xl">
+                <div class="w-10 h-10 rounded-2xl bg-surface-container-high flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <span class="material-symbols-outlined text-primary text-xl">analytics</span>
+                </div>
+                <div class="flex-1">
+                    <div class="bg-surface-container p-6 rounded-3xl shadow-lg space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-label-sm font-bold text-secondary">Analyzing Thermodynamics Lab...</span>
+                            <span class="text-[10px] text-on-surface-variant">78% Complete</span>
+                        </div>
+                        <div class="h-2 w-full bg-surface-container-lowest rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-secondary-container to-secondary w-[78%] rounded-full animate-pulse"></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 pt-2">
+                            <div class="bg-surface-container-low p-3 rounded-2xl shadow-sm flex items-center gap-2">
+                                <span class="material-symbols-outlined text-tertiary text-sm">check_circle</span>
+                                <span class="text-[11px] text-on-surface-variant">OCR Extraction</span>
+                            </div>
+                            <div class="bg-surface-container-low p-3 rounded-2xl shadow-sm flex items-center gap-2">
+                                <span class="material-symbols-outlined text-secondary text-sm animate-spin">refresh</span>
+                                <span class="text-[11px] text-on-surface-variant">Validating Formulas</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Intelligent Input Container - fixed at bottom -->
+        <div class="absolute bottom-6 left-margin-mobile right-margin-mobile md:left-margin-desktop md:right-margin-desktop">
+            <div class="max-w-5xl mx-auto">
+                <!-- Slash Commands Quick Bar -->
+                <div class="flex gap-2 mb-4 overflow-x-auto pb-2 no-scrollbar">
+                    <button class="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-full text-on-surface-variant hover:text-primary transition-all hover:bg-surface-container-highest shadow-sm">
+                        <span class="text-[11px] font-bold text-primary">/analyze</span>
+                        <span class="text-[10px] opacity-60">Study Files</span>
+                    </button>
+                    <button class="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-full text-on-surface-variant hover:text-primary transition-all hover:bg-surface-container-highest shadow-sm">
+                        <span class="text-[11px] font-bold text-secondary">/draft</span>
+                        <span class="text-[10px] opacity-60">Write Outline</span>
+                    </button>
+                    <button class="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-full text-on-surface-variant hover:text-primary transition-all hover:bg-surface-container-highest shadow-sm">
+                        <span class="text-[11px] font-bold text-tertiary">/remind</span>
+                        <span class="text-[10px] opacity-60">Set Task</span>
+                    </button>
+                    <button class="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-full text-on-surface-variant hover:text-primary transition-all hover:bg-surface-container-highest shadow-sm">
+                        <span class="text-[11px] font-bold text-on-surface">/search</span>
+                        <span class="text-[10px] opacity-60">Global Hub</span>
+                    </button>
+                </div>
+                <!-- Main Input Area -->
+                <div class="relative group">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-primary/25 via-primary-container/20 to-secondary/25 rounded-3xl blur-md opacity-60 group-focus-within:opacity-100 transition duration-500"></div>
+                    <div class="relative bg-surface-container-low/95 backdrop-blur-lg rounded-3xl p-2 flex items-end gap-3 shadow-lg">
+                        <button class="p-3 text-on-surface-variant hover:text-primary transition-colors flex-shrink-0">
+                            <span class="material-symbols-outlined">add_circle</span>
+                        </button>
+                        <div class="flex-1 pb-1">
+                            <textarea class="w-full bg-transparent border-none focus:ring-0 text-body-md py-2 px-1 max-h-40 resize-none custom-scrollbar placeholder:text-on-surface-variant/50" id="main-input" placeholder="Type a command or ask UniFlow..." rows="1"></textarea>
+                        </div>
+                        <div class="flex items-center gap-2 pb-1 pr-1">
+                            <button class="p-2 text-on-surface-variant hover:text-secondary transition-colors">
+                                <span class="material-symbols-outlined">mic</span>
+                            </button>
+                            <button id="send-btn" class="w-12 h-12 rounded-full bg-primary text-on-primary flex items-center justify-center hover:scale-105 transition-all active:scale-95 shadow-md">
+                                <span class="material-symbols-outlined">arrow_upward</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Shared Bottom Nav -->
+<div id="bottomnav-mount"></div>
+
+<!-- Shared Component Scripts -->
+<script src="sidebar.js"></script>
+<script src="header.js"></script>
+<script src="bottomNav.js"></script>
+<script src="loading.js"></script>
+
+<!-- Page Init -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        renderSidebar('09');
+        renderHeader({ title: 'Command Center', subtitle: 'AI Engine Online' });
+        renderBottomNav('09');
+        initLoading('Loading AI Command...');
+        initPage();
+    });
+
+    function fetchPageData() {
+        return new Promise((resolve) => {
+            setTimeout(() => resolve({
+                chatHistory: [
+                    { role: "user", message: "Summarize my assignments due this week", time: "2:30 PM" },
+                    { role: "ai", message: "You have 5 assignments due this week:\n\n1. **Mid-Century Modern Analysis Paper** — Overdue (yesterday)\n2. **Integration of Complex Surfaces** — Due tomorrow at 2 PM\n3. **Zoning Reform Proposal** — Due Oct 28\n\nWould you like me to help prioritize these?", time: "2:30 PM" },
+                    { role: "user", message: "Yes, which should I focus on first?", time: "2:31 PM" },
+                    { role: "ai", message: "Focus on **Integration of Complex Surfaces** first — it's due tomorrow and you're at 45% progress. After that, tackle the overdue paper since it's already 95% complete.", time: "2:31 PM" }
+                ],
+                suggestedPrompts: [
+                    { icon: "summarize", text: "Summarize my lecture notes for Biochemistry" },
+                    { icon: "calculate", text: "Calculate my GPA for this semester" },
+                    { icon: "event", text: "Find free slots in my schedule this week" },
+                    { icon: "psychology", text: "Generate flashcards for Data Structures exam" }
+                ],
+                capabilities: {
+                    scheduleAnalysis: true,
+                    resourceSearch: true,
+                    gradeCalculation: true,
+                    studyPlanning: true
+                }
+            }), 50);
+        });
+    }
+
+    async function initPage() {
+        try {
+            const data = await fetchPageData();
+            hideLoading();
+        } catch (error) {
+            console.error('Failed to load page:', error);
+            var overlay = document.getElementById('loading-overlay');
+            if (overlay) overlay.innerHTML = '<p class="text-error font-bold">Failed to load. Please refresh.</p>';
+        }
+    }
+
+    // Page-specific scripts
+    const textarea = document.getElementById('main-input');
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    const chatScroller = document.getElementById('chat-scroller');
+    function scrollToBottom() {
+        chatScroller.scrollTop = chatScroller.scrollHeight;
+    }
+    window.onload = scrollToBottom;
+
+    const input = document.getElementById('main-input');
+    input.addEventListener('keyup', (e) => {
+        if (e.key === '/') {
+            // Potential slash command menu logic
+        }
+    });
+
+    // ═══════════════════════════════════════════════════════════════
+    //  AI Backend Integration — POST to /api/parse & render events
+    // ═══════════════════════════════════════════════════════════════
+
+    const EVENT_CONFIG = {
+        exam:       { icon: 'quiz',           color: 'text-rose-400',     bg: 'bg-rose-500/15' },
+        assignment: { icon: 'assignment',      color: 'text-blue-400',     bg: 'bg-blue-500/15' },
+        meeting:    { icon: 'groups',          color: 'text-emerald-400',  bg: 'bg-emerald-500/15' },
+        class:      { icon: 'school',          color: 'text-amber-400',    bg: 'bg-amber-500/15' },
+        deadline:   { icon: 'alarm',           color: 'text-red-400',      bg: 'bg-red-500/15' },
+        reminder:   { icon: 'notifications',   color: 'text-cyan-400',     bg: 'bg-cyan-500/15' },
+        social:     { icon: 'celebration',     color: 'text-pink-400',     bg: 'bg-pink-500/15' },
+        other:      { icon: 'event',           color: 'text-gray-400',     bg: 'bg-gray-500/15' },
+    };
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function getTimeLabel() {
+        return new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    }
+
+    // ── Append user message bubble ──
+    function appendUserBubble(text) {
+        const bubble = document.createElement('div');
+        bubble.className = 'flex items-start gap-4 max-w-4xl ml-auto flex-row-reverse';
+        bubble.innerHTML =
+            '<div class="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center flex-shrink-0">' +
+                '<span class="material-symbols-outlined text-primary text-xl">person</span>' +
+            '</div>' +
+            '<div class="flex-1 text-right">' +
+                '<div class="bg-surface-container-high/80 p-5 rounded-3xl shadow-lg inline-block text-left">' +
+                    '<p class="font-body-md text-primary">' + escapeHtml(text) + '</p>' +
+                '</div>' +
+                '<div class="mt-1 flex justify-end">' +
+                    '<span class="text-[10px] text-on-surface-variant mr-2">' + getTimeLabel() + ' • Sent</span>' +
+                '</div>' +
+            '</div>';
+        chatScroller.appendChild(bubble);
+        scrollToBottom();
+    }
+
+    // ── AI loading bubble (animated dots) ──
+    let aiLoadingBubble = null;
+
+    function appendAILoadingBubble() {
+        const bubble = document.createElement('div');
+        bubble.className = 'flex items-start gap-4 max-w-4xl';
+        bubble.id = 'ai-loading-bubble';
+        bubble.innerHTML =
+            '<div class="w-10 h-10 rounded-2xl bg-surface-container-high flex items-center justify-center flex-shrink-0 shadow-md">' +
+                '<span class="material-symbols-outlined text-primary text-xl">smart_toy</span>' +
+            '</div>' +
+            '<div class="flex-1">' +
+                '<div class="bg-surface-container p-6 rounded-3xl shadow-lg">' +
+                    '<div class="flex items-center gap-3">' +
+                        '<div class="flex gap-1.5">' +
+                            '<span class="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce" style="animation-delay: 0ms"></span>' +
+                            '<span class="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce" style="animation-delay: 150ms"></span>' +
+                            '<span class="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce" style="animation-delay: 300ms"></span>' +
+                        '</div>' +
+                        '<span class="text-label-sm text-on-surface-variant">UniFlow is thinking…</span>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        chatScroller.appendChild(bubble);
+        aiLoadingBubble = bubble;
+        scrollToBottom();
+    }
+
+    function removeAILoadingBubble() {
+        if (aiLoadingBubble) {
+            aiLoadingBubble.remove();
+            aiLoadingBubble = null;
+        }
+    }
+
+    // ── Render parsed events as UI cards ──
+    function renderEventCards(events) {
+        let cardsHtml = '';
+        events.forEach(function(evt) {
+            var cfg = EVENT_CONFIG[evt.type] || EVENT_CONFIG.other;
+            var dateObj = new Date(evt.date + 'T00:00:00');
+            var dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            var timeDisplay = evt.time || 'No time set';
+
+            cardsHtml +=
+                '<div class="bg-surface-container-low rounded-2xl p-4 shadow-sm flex items-center gap-4 hover:bg-surface-container-lowest transition-all">' +
+                    '<div class="p-2.5 ' + cfg.bg + ' rounded-2xl flex-shrink-0">' +
+                        '<span class="material-symbols-outlined ' + cfg.color + '">' + cfg.icon + '</span>' +
+                    '</div>' +
+                    '<div class="flex-1 min-w-0">' +
+                        '<p class="text-label-sm text-on-surface font-bold truncate">' + escapeHtml(evt.title) + '</p>' +
+                        '<div class="flex items-center gap-3 mt-1">' +
+                            '<span class="text-[11px] text-on-surface-variant flex items-center gap-1">' +
+                                '<span class="material-symbols-outlined text-[14px]">calendar_today</span> ' + dateStr +
+                            '</span>' +
+                            '<span class="text-[11px] text-on-surface-variant flex items-center gap-1">' +
+                                '<span class="material-symbols-outlined text-[14px]">schedule</span> ' + timeDisplay +
+                            '</span>' +
+                        '</div>' +
+                    '</div>' +
+                    '<span class="px-3 py-1 ' + cfg.bg + ' ' + cfg.color + ' rounded-full text-[10px] font-bold uppercase tracking-wide flex-shrink-0">' + evt.type + '</span>' +
+                '</div>';
+        });
+
+        var wrapper = document.createElement('div');
+        wrapper.className = 'flex items-start gap-4 max-w-4xl';
+        wrapper.innerHTML =
+            '<div class="w-10 h-10 rounded-2xl bg-surface-container-high flex items-center justify-center flex-shrink-0 shadow-md">' +
+                '<span class="material-symbols-outlined text-primary text-xl">auto_awesome</span>' +
+            '</div>' +
+            '<div class="flex-1 space-y-4">' +
+                '<div class="bg-surface-container p-6 rounded-3xl shadow-lg space-y-4">' +
+                    '<div class="flex items-center justify-between">' +
+                        '<span class="text-label-sm font-bold text-secondary">Parsed ' + events.length + ' Event' + (events.length !== 1 ? 's' : '') + '</span>' +
+                        '<span class="material-symbols-outlined text-primary text-xl">check_circle</span>' +
+                    '</div>' +
+                    '<div class="space-y-3">' + cardsHtml + '</div>' +
+                '</div>' +
+                '<span class="text-[10px] text-on-surface-variant ml-2">' + getTimeLabel() + ' • UniFlow Intelligence</span>' +
+            '</div>';
+        chatScroller.appendChild(wrapper);
+        scrollToBottom();
+    }
+
+    // ── Core: send message to FastAPI backend ──
+    async function sendMessage() {
+        var text = input.value.trim();
+        if (!text) return;
+
+        // Show user bubble & clear input
+        appendUserBubble(text);
+        input.value = '';
+        input.style.height = 'auto';
+        scrollToBottom();
+
+        // Show loading animation
+        appendAILoadingBubble();
+
+        try {
+            var response = await fetch('http://localhost:8000/api/parse', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+
+            if (!response.ok) {
+                var errData = await response.json().catch(function() { return null; });
+                throw new Error((errData && errData.detail) || ('Server error: ' + response.status));
+            }
+
+            var data = await response.json();
+            removeAILoadingBubble();
+
+            if (data.events && data.events.length > 0) {
+                renderEventCards(data.events);
+            } else {
+                // No events detected — show helpful message
+                var noEventBubble = document.createElement('div');
+                noEventBubble.className = 'flex items-start gap-4 max-w-4xl';
+                noEventBubble.innerHTML =
+                    '<div class="w-10 h-10 rounded-2xl bg-surface-container-high flex items-center justify-center flex-shrink-0 shadow-md">' +
+                        '<span class="material-symbols-outlined text-primary text-xl">smart_toy</span>' +
+                    '</div>' +
+                    '<div class="flex-1">' +
+                        '<div class="bg-surface-container p-6 rounded-3xl shadow-lg">' +
+                            '<p class="font-body-md text-on-surface">I couldn\'t detect any events in your message. Try something like <span class="text-secondary font-bold">"calculus quiz Thursday 2pm"</span> or <span class="text-secondary font-bold">"meeting with prof next Monday at 10am"</span>.</p>' +
+                        '</div>' +
+                        '<span class="text-[10px] text-on-surface-variant ml-2">' + getTimeLabel() + ' • UniFlow Intelligence</span>' +
+                    '</div>';
+                chatScroller.appendChild(noEventBubble);
+                scrollToBottom();
+            }
+        } catch (error) {
+            removeAILoadingBubble();
+
+            var errorBubble = document.createElement('div');
+            errorBubble.className = 'flex items-start gap-4 max-w-4xl';
+            errorBubble.innerHTML =
+                '<div class="w-10 h-10 rounded-2xl bg-surface-container-high flex items-center justify-center flex-shrink-0 shadow-md">' +
+                    '<span class="material-symbols-outlined text-rose-400 text-xl">error</span>' +
+                '</div>' +
+                '<div class="flex-1">' +
+                    '<div class="bg-surface-container p-6 rounded-3xl shadow-lg border border-rose-500/20">' +
+                        '<p class="font-body-md text-rose-400">Something went wrong: ' + escapeHtml(error.message) + '</p>' +
+                        '<p class="text-[11px] text-on-surface-variant mt-2">Make sure the backend is running at localhost:8000.</p>' +
+                    '</div>' +
+                    '<span class="text-[10px] text-on-surface-variant ml-2">' + getTimeLabel() + ' • Error</span>' +
+                '</div>';
+            chatScroller.appendChild(errorBubble);
+            scrollToBottom();
+        }
+    }
+
+    // ── Wire up send button + Enter key ──
+    document.getElementById('send-btn').addEventListener('click', sendMessage);
+
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+</script>
+</body>
+</html>
