@@ -245,12 +245,9 @@
             });
     });
 
-    // If already logged in, redirect to dashboard
-    firebaseAuth.onAuthStateChanged(function(user) {
-        if (user) {
-            window.location.href = './01.html';
-        }
-    });
+    // Note: No onAuthStateChanged redirect here — the signup flow
+    // handles redirect manually AFTER Firestore write completes.
+    // An auto-redirect here would race with the Firestore write.
 })();
 </script>
 </body>
