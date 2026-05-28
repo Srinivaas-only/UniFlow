@@ -1,4 +1,4 @@
-<![CDATA[<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -6,13 +6,20 @@
 <link rel="icon" type="image/svg+xml" href="../favicon.svg"/>
 <title>UniFlow | Sign Up</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script src="../js/tailwind.js"></script>
+<script src="../js/components/tailwind.js"></script>
 <script>initTailwind();</script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <link href="../theme.css" rel="stylesheet"/>
+<!-- Firebase SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="../js/firebase.js"></script>
 <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #12111a; }
+    .shake { animation: shake 0.4s ease-in-out; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
 </style>
 </head>
 <body>
@@ -28,6 +35,9 @@
             <h1 class="text-[26px] font-bold" style="color: #f1eff5;">UniFlow</h1>
             <p class="text-sm mt-1" style="color: #948f99;">Create your account</p>
         </div>
+
+        <!-- Error message (hidden by default) -->
+        <div id="signup-error" class="hidden mb-4 p-3 rounded-lg text-sm text-center" style="background: rgba(239,68,68,0.15); color: #f87171;"></div>
 
         <!-- Email Input -->
         <div class="mb-4">
@@ -51,7 +61,7 @@
                     type="password"
                     id="signup-password"
                     name="password"
-                    placeholder="Create a password"
+                    placeholder="Create a password (min 6 characters)"
                     autocomplete="new-password"
                     class="w-full px-4 py-3 pr-16 rounded-lg text-sm outline-none focus:ring-2"
                     style="background: #12111a; color: #f1eff5; border: 1px solid #35343e; --tw-ring-color: #3b82f6;"
@@ -103,6 +113,18 @@
     var nameInput = document.getElementById('signup-name');
     var toggleBtn = document.getElementById('toggle-password');
     var signupBtn = document.getElementById('signup-btn');
+    var errorBox = document.getElementById('signup-error');
+
+    function showError(msg) {
+        errorBox.textContent = msg;
+        errorBox.classList.remove('hidden');
+        errorBox.classList.add('shake');
+        setTimeout(function() { errorBox.classList.remove('shake'); }, 400);
+    }
+
+    function hideError() {
+        errorBox.classList.add('hidden');
+    }
 
     // Validate all fields and toggle button state
     function validateFields() {
@@ -123,7 +145,7 @@
         }
     }
 
-    // Listen for input changes on all fields
+    // Listen for input changes
     emailInput.addEventListener('input', validateFields);
     passwordInput.addEventListener('input', validateFields);
     nameInput.addEventListener('input', validateFields);
@@ -139,32 +161,97 @@
         }
     });
 
-    // Enter key triggers Sign Up button click (only if not disabled)
+    // Enter key triggers Sign Up
     function onEnter(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
-            if (!signupBtn.disabled) {
-                signupBtn.click();
-            }
+            if (!signupBtn.disabled) signupBtn.click();
         }
     }
-
     emailInput.addEventListener('keydown', onEnter);
     passwordInput.addEventListener('keydown', onEnter);
     nameInput.addEventListener('keydown', onEnter);
 
-    // Sign Up button handler — redirect to 01.html
+    // Sign Up with Firebase Auth
     signupBtn.addEventListener('click', function() {
         if (signupBtn.disabled) return;
-        console.log('Sign Up clicked', {
-            email: emailInput.value,
-            password: passwordInput.value,
-            name: nameInput.value
-        });
-        window.location.href = './01.html';
+        hideError();
+
+        var email = emailInput.value.trim();
+        var password = passwordInput.value;
+        var displayName = nameInput.value.trim();
+
+        // Basic validation
+        if (password.length < 6) {
+            showError('Password must be at least 6 characters.');
+            return;
+        }
+
+        // Show loading state
+        signupBtn.disabled = true;
+        signupBtn.textContent = 'Creating account...';
+        signupBtn.style.opacity = '0.7';
+
+        firebaseAuth.createUserWithEmailAndPassword(email, password)
+            .then(function(userCredential) {
+                // Update display name in Firebase Auth
+                return userCredential.user.updateProfile({
+                    displayName: displayName
+                }).then(function() {
+                    // Save profile to Firestore
+                    return firebaseDb.collection('users').doc(userCredential.user.uid).set({
+                        name: displayName,
+                        email: email,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }).then(function() {
+                    // Also save to localStorage for the header/store
+                    try {
+                        var profile = { name: displayName, onboarded: false };
+                        localStorage.setItem('uniflow_profile', JSON.stringify(profile));
+                    } catch(e) {}
+
+                    // Redirect to dashboard
+                    window.location.href = './01.html';
+                });
+            })
+            .catch(function(error) {
+                var msg = 'Sign up failed. ';
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        msg = 'This email is already registered. Try logging in instead.';
+                        break;
+                    case 'auth/invalid-email':
+                        msg = 'Please enter a valid email address.';
+                        break;
+                    case 'auth/weak-password':
+                        msg = 'Password is too weak. Use at least 6 characters.';
+                        break;
+                    case 'auth/too-many-requests':
+                        msg = 'Too many attempts. Please try again later.';
+                        break;
+                    case 'auth/network-request-failed':
+                        msg = 'Network error. Please check your internet connection.';
+                        break;
+                    default:
+                        msg = error.message || 'Something went wrong. Please try again.';
+                }
+                showError(msg);
+
+                // Reset button
+                signupBtn.disabled = false;
+                signupBtn.textContent = 'Sign Up';
+                signupBtn.style.opacity = '1';
+            });
+    });
+
+    // If already logged in, redirect to dashboard
+    firebaseAuth.onAuthStateChanged(function(user) {
+        if (user) {
+            window.location.href = './01.html';
+        }
     });
 })();
 </script>
 </body>
 </html>
-]]>

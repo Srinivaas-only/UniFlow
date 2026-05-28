@@ -1,18 +1,25 @@
-<![CDATA[<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<link rel="icon" type="image/svg+xml" href="./favicon.svg"/>
+<link rel="icon" type="image/svg+xml" href="../favicon.svg"/>
 <title>UniFlow | Log In</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script src="./js/tailwind.js"></script>
+<script src="../js/components/tailwind.js"></script>
 <script>initTailwind();</script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<link href="./theme.css" rel="stylesheet"/>
+<link href="../theme.css" rel="stylesheet"/>
+<!-- Firebase SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="../js/firebase.js"></script>
 <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #12111a; }
+    .shake { animation: shake 0.4s ease-in-out; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
 </style>
 </head>
 <body>
@@ -29,15 +36,18 @@
             <p class="text-sm mt-1" style="color: #948f99;">Log In To Continue</p>
         </div>
 
-        <!-- Email / Username Input -->
+        <!-- Error message (hidden by default) -->
+        <div id="login-error" class="hidden mb-4 p-3 rounded-lg text-sm text-center" style="background: rgba(239,68,68,0.15); color: #f87171;"></div>
+
+        <!-- Email Input -->
         <div class="mb-4">
-            <label for="login-email" class="block text-xs font-semibold mb-1.5" style="color: #f1eff5;">Email / Username</label>
+            <label for="login-email" class="block text-xs font-semibold mb-1.5" style="color: #f1eff5;">Email</label>
             <input
-                type="text"
+                type="email"
                 id="login-email"
                 name="email"
-                placeholder="Enter your email or username"
-                autocomplete="username"
+                placeholder="Enter your email"
+                autocomplete="email"
                 class="w-full px-4 py-3 rounded-lg text-sm outline-none focus:ring-2"
                 style="background: #12111a; color: #f1eff5; border: 1px solid #35343e; --tw-ring-color: #3b82f6;"
             />
@@ -88,6 +98,18 @@
     var passwordInput = document.getElementById('login-password');
     var toggleBtn = document.getElementById('toggle-password');
     var loginBtn = document.getElementById('login-btn');
+    var errorBox = document.getElementById('login-error');
+
+    function showError(msg) {
+        errorBox.textContent = msg;
+        errorBox.classList.remove('hidden');
+        errorBox.classList.add('shake');
+        setTimeout(function() { errorBox.classList.remove('shake'); }, 400);
+    }
+
+    function hideError() {
+        errorBox.classList.add('hidden');
+    }
 
     // Validate all fields and toggle button state
     function validateFields() {
@@ -107,7 +129,7 @@
         }
     }
 
-    // Listen for input changes on all fields
+    // Listen for input changes
     emailInput.addEventListener('input', validateFields);
     passwordInput.addEventListener('input', validateFields);
 
@@ -122,30 +144,82 @@
         }
     });
 
-    // Enter key triggers Log In button click (only if not disabled)
+    // Enter key triggers Log In
     function onEnter(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
-            if (!loginBtn.disabled) {
-                loginBtn.click();
-            }
+            if (!loginBtn.disabled) loginBtn.click();
         }
     }
-
     emailInput.addEventListener('keydown', onEnter);
     passwordInput.addEventListener('keydown', onEnter);
 
-    // Log In button handler (placeholder)
+    // Log In with Firebase Auth
     loginBtn.addEventListener('click', function() {
         if (loginBtn.disabled) return;
-        // Add login logic here
-        console.log('Log In clicked', {
-            email: emailInput.value,
-            password: passwordInput.value
-        });
+        hideError();
+
+        var email = emailInput.value.trim();
+        var password = passwordInput.value;
+
+        // Show loading state
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Logging in...';
+        loginBtn.style.opacity = '0.7';
+
+        firebaseAuth.signInWithEmailAndPassword(email, password)
+            .then(function(userCredential) {
+                // Save display name to Store for header
+                var user = userCredential.user;
+                if (user.displayName) {
+                    try {
+                        var profile = JSON.parse(localStorage.getItem('uniflow_profile') || '{}');
+                        profile.name = user.displayName;
+                        localStorage.setItem('uniflow_profile', JSON.stringify(profile));
+                    } catch(e) {}
+                }
+                // Redirect to dashboard
+                window.location.href = './01.html';
+            })
+            .catch(function(error) {
+                // Show user-friendly error
+                var msg = 'Login failed. ';
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                        msg = 'No account found with this email.';
+                        break;
+                    case 'auth/wrong-password':
+                    case 'auth/invalid-credential':
+                        msg = 'Incorrect email or password.';
+                        break;
+                    case 'auth/invalid-email':
+                        msg = 'Please enter a valid email address.';
+                        break;
+                    case 'auth/too-many-requests':
+                        msg = 'Too many attempts. Please try again later.';
+                        break;
+                    case 'auth/user-disabled':
+                        msg = 'This account has been disabled.';
+                        break;
+                    default:
+                        msg = error.message || 'Something went wrong. Please try again.';
+                }
+                showError(msg);
+
+                // Reset button
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Log In';
+                loginBtn.style.opacity = '1';
+            });
+    });
+
+    // If already logged in, redirect to dashboard
+    firebaseAuth.onAuthStateChanged(function(user) {
+        if (user) {
+            window.location.href = './01.html';
+        }
     });
 })();
 </script>
 </body>
 </html>
-]]>

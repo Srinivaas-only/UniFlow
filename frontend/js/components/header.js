@@ -6,6 +6,18 @@ function renderHeader(options) {
     var title = options.title || '';
     var subtitle = options.subtitle || '';
 
+    // Get user name from Firebase or localStorage
+    var userName = 'Student';
+    try {
+        var user = firebaseAuth.currentUser;
+        if (user && user.displayName) {
+            userName = user.displayName;
+        } else {
+            var profile = JSON.parse(localStorage.getItem('uniflow_profile') || '{}');
+            if (profile.name) userName = profile.name;
+        }
+    } catch(e) {}
+
     var leftContent = title
         ? '<div class="flex flex-col">' +
             '<h2 class="font-headline-lg text-headline-lg font-bold tracking-tighter text-primary">' + title + '</h2>' +
@@ -30,17 +42,17 @@ function renderHeader(options) {
                 '</div>' +
                 '<div class="flex items-center gap-3 pl-4 border-l border-white/10">' +
                     '<div class="text-right hidden sm:block">' +
-                        '<p class="font-label-sm text-label-sm text-on-surface font-bold">Adam William</p>' +
-                        '<p class="text-[10px] text-primary uppercase tracking-widest">Medical Sciences</p>' +
+                        '<p class="font-label-sm text-label-sm text-on-surface font-bold">' + userName + '</p>' +
+                        '<p class="text-[10px] text-primary uppercase tracking-widest">UniFlow Student</p>' +
                     '</div>' +
                     '<button id="profile-btn" class="cursor-pointer bg-transparent border-none p-0 outline-none">' +
-                        '<img alt="Adam William profile" class="w-10 h-10 rounded-full border-2 border-primary/20" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAeHEu9otQhM_u1D7Z3ah7IsgHoGsVpfTcLZoCde-J3-RSR5UrdnuyRs3lEmbaTmEKJtO_D9CWz86HjRwtfI-9w8OOUAhmdfeZOh4R3p_YTZkBf7Wk4GVreiVOU0xxs4-WMPEAlYpldjBtgC1lDDqDkzezCFsEVVzHJ8E9EbYmq0M33hBMDtip5A_Hlvl0xiSJH5hISoIu2U8epNIBySCQudTX0i-iSatxU-CA67opf8AaoNJDTriuWS8Mb4_hoN9V4vU1C6BNbM5-c"/>' +
+                        '<img alt="' + userName + ' profile" class="w-10 h-10 rounded-full border-2 border-primary/20" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAeHEu9otQhM_u1D7Z3ah7IsgHoGsVpfTcLZoCde-J3-RSR5UrdnuyRs3lEmbaTmEKJtO_D9CWz86HjRwtfI-9w8OOUAhmdfeZOh4R3p_YTZkBf7Wk4GVreiVOU0xxs4-WMPEAlYpldjBtgC1lDDqDkzezCFsEVVzHJ8E9EbYmq0M33hBMDtip5A_Hlvl0xiSJH5hISoIu2U8epNIBySCQudTX0i-iSatxU-CA67opf8AaoNJDTriuWS8Mb4_hoN9V4vU1C6BNbM5-c"/>' +
                     '</button>' +
                 '</div>' +
             '</div>' +
         '</header>' +
         '<div id="profile-dropdown" class="hidden fixed z-50 w-48 rounded-xl shadow-2xl border border-white/10 py-1" style="background: #1a1825;">' +
-            '<button class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors cursor-pointer bg-transparent border-none" style="color: #f1eff5;" onmouseover="this.style.background=\'rgba(255,255,255,0.05)\'" onmouseout="this.style.background=\'transparent\'">' +
+            '<button id="logout-btn" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors cursor-pointer bg-transparent border-none" style="color: #f1eff5;" onmouseover="this.style.background=\'rgba(255,255,255,0.05)\'" onmouseout="this.style.background=\'transparent\'">' +
                 '<span class="material-symbols-outlined text-base" style="color: #948f99;">logout</span>' +
                 'Log out' +
             '</button>' +
@@ -51,6 +63,7 @@ function renderHeader(options) {
     // ── Profile dropdown toggle ──
     var profileBtn = document.getElementById('profile-btn');
     var profileDropdown = document.getElementById('profile-dropdown');
+    var logoutBtn = document.getElementById('logout-btn');
 
     profileBtn.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -65,6 +78,20 @@ function renderHeader(options) {
     document.addEventListener('click', function(e) {
         if (e.target !== profileBtn && !profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
             profileDropdown.classList.add('hidden');
+        }
+    });
+
+    // ── Log out handler ──
+    logoutBtn.addEventListener('click', function() {
+        // Use Firebase logout if available, otherwise just clear and redirect
+        if (typeof firebaseAuth !== 'undefined') {
+            firebaseAuth.signOut().then(function() {
+                window.location.href = './login.html';
+            }).catch(function() {
+                window.location.href = './login.html';
+            });
+        } else {
+            window.location.href = './login.html';
         }
     });
 }
