@@ -1,6 +1,7 @@
 /**
- * UniFlow Data Store — localStorage wrapper
+ * UniFlow Data Store — localStorage + Firestore sync
  * All screens read/write through this module.
+ * localStorage is the fast primary store; Firestore syncs in the background.
  */
 // Auto-detect backend URL: use same host on port 8080, or override via localStorage
 const BACKEND_URL = localStorage.getItem("uniflow_backend_url") || 
@@ -18,6 +19,47 @@ const Store = {
   },
   _set(key, val) {
     localStorage.setItem("uniflow_" + key, JSON.stringify(val));
+    this._syncToFirestore(key, val);
+  },
+
+  // ── Firestore Background Sync ──
+  _syncToFirestore(key, val) {
+    try {
+      if (typeof firebaseDb === 'undefined' || !firebaseDb) return;
+      var user = firebaseAuth.currentUser;
+      if (!user) return;
+      var data = {};
+      data[key] = val;
+      data['updatedAt'] = firebase.firestore.FieldValue.serverTimestamp();
+      firebaseDb.collection('users').doc(user.uid).set(data, { merge: true })
+        .catch(function(e) { console.warn('Firestore sync failed for', key, e); });
+    } catch(e) { /* fail silently */ }
+  },
+
+  /**
+   * Load all user data from Firestore into localStorage.
+   * Called after login/signup before redirecting to dashboard.
+   * Firestore is the source of truth — it overwrites localStorage.
+   */
+  async loadFromFirestore() {
+    try {
+      if (typeof firebaseDb === 'undefined' || !firebaseDb) return;
+      var user = firebaseAuth.currentUser;
+      if (!user) return;
+      var doc = await firebaseDb.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        var data = doc.data();
+        var keys = ['events', 'groups', 'budgetLimit', 'uniEvents',
+                     'savedScholarships', 'savedResources', 'profile', 'chatHistory'];
+        keys.forEach(function(k) {
+          if (data[k] !== undefined) {
+            localStorage.setItem('uniflow_' + k, JSON.stringify(data[k]));
+          }
+        });
+      }
+    } catch(e) {
+      console.warn('Failed to load from Firestore', e);
+    }
   },
 
   // ── Events ──

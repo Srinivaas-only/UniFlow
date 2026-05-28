@@ -2,6 +2,18 @@
 // Usage: renderHeader({ title: 'Page Title', subtitle: 'Optional subtitle' })
 // Right side (notifications + profile) is always the same
 
+// ── Auth Guard ──
+// Redirect to login if not authenticated (runs on all dashboard pages)
+(function() {
+    if (typeof firebaseAuth !== 'undefined') {
+        firebaseAuth.onAuthStateChanged(function(user) {
+            if (!user) {
+                window.location.href = './login.html';
+            }
+        });
+    }
+})();
+
 function renderHeader(options) {
     var title = options.title || '';
     var subtitle = options.subtitle || '';

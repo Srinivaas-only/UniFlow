@@ -16,6 +16,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="../js/firebase.js"></script>
+<script src="../js/store.js"></script>
 <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #12111a; }
     .shake { animation: shake 0.4s ease-in-out; }
@@ -178,7 +179,10 @@
                         localStorage.setItem('uniflow_profile', JSON.stringify(profile));
                     } catch(e) {}
                 }
-                // Redirect to dashboard
+                // Load user data from Firestore, then redirect to dashboard
+                return Store.loadFromFirestore();
+            })
+            .then(function() {
                 window.location.href = './01.html';
             })
             .catch(function(error) {
@@ -213,10 +217,12 @@
             });
     });
 
-    // If already logged in, redirect to dashboard
+    // If already logged in, load data then redirect to dashboard
     firebaseAuth.onAuthStateChanged(function(user) {
         if (user) {
-            window.location.href = './01.html';
+            Store.loadFromFirestore().then(function() {
+                window.location.href = './01.html';
+            });
         }
     });
 })();
