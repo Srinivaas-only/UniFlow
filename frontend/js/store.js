@@ -46,6 +46,16 @@ const Store = {
       if (typeof firebaseDb === 'undefined' || !firebaseDb) return;
       var user = firebaseAuth.currentUser;
       if (!user) return;
+
+      // Clear stale data from previous user first
+      var keysToRemove = [];
+      for (var i = 0; i < localStorage.length; i++) {
+        if (localStorage.key(i).startsWith('uniflow_')) {
+          keysToRemove.push(localStorage.key(i));
+        }
+      }
+      keysToRemove.forEach(function(k) { localStorage.removeItem(k); });
+
       var doc = await firebaseDb.collection('users').doc(user.uid).get();
       if (doc.exists) {
         var data = doc.data();

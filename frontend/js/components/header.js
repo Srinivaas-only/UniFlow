@@ -95,7 +95,15 @@ function renderHeader(options) {
 
     // ── Log out handler ──
     logoutBtn.addEventListener('click', function() {
-        // Use Firebase logout if available, otherwise just clear and redirect
+        // Clear all uniflow data from localStorage
+        var keysToRemove = [];
+        for (var i = 0; i < localStorage.length; i++) {
+            if (localStorage.key(i).startsWith('uniflow_')) {
+                keysToRemove.push(localStorage.key(i));
+            }
+        }
+        keysToRemove.forEach(function(k) { localStorage.removeItem(k); });
+        // Use Firebase logout if available, otherwise just redirect
         if (typeof firebaseAuth !== 'undefined') {
             firebaseAuth.signOut().then(function() {
                 window.location.href = './login.html';
