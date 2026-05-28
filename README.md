@@ -6,21 +6,24 @@
 
 ```
 UniFlow/
-├── backend/           # FastAPI + DeepSeek + Bright Data
+├── backend/           # FastAPI + OpenAI-compatible LLM + Bright Data
 │   ├── app/
 │   │   ├── main.py        # API endpoints (/api/parse, /api/scholarships, /api/resources)
-│   │   ├── parser.py      # DeepSeek-powered NLP parser
+│   │   ├── parser.py      # LLM-powered NLP parser
 │   │   ├── brightdata.py  # Bright Data web scraper
 │   │   ├── models.py      # Pydantic schemas
 │   │   └── config.py      # Settings
 │   ├── requirements.txt
-│   └── .env
-├── frontend/          # Static HTML + Tailwind CSS
+│   └── .env               # API keys (not committed)
+├── frontend/          # Static HTML + Tailwind CSS + Firebase SDK
 │   ├── index.html          # Landing page + onboarding
 │   ├── js/
-│   │   ├── store.js        # localStorage + API client
-│   │   └── components/     # Shared UI (sidebar, header, bottomNav, tailwind)
+│   │   ├── firebase.js    # Firebase config (public, shared across team)
+│   │   ├── store.js       # localStorage + Firestore sync + API client
+│   │   └── components/    # Shared UI (sidebar, header, bottomNav, tailwind)
 │   └── screen/
+│       ├── login.html      # Login page
+│       ├── signup.html     # Signup page
 │       ├── 01.html         # Hub Dashboard
 │       ├── 02.html         # Schedule Calendar
 │       ├── 03.html         # Study Resources (Bright Data)
@@ -30,45 +33,56 @@ UniFlow/
 │       ├── 07.html         # Budget Tracker
 │       ├── 08.html         # Scholarship Finder (Bright Data)
 │       └── 09.html         # AI Command Hub (Chat)
+├── firestore.rules        # Firestore security rules (reference copy)
 ```
 
 ## Quick Start
 
-### Backend
+### 1. Firebase Setup (one-time, project owner)
+
+```bash
+# 1. Create a Firebase project at https://console.firebase.google.com
+# 2. Enable Authentication → Email/Password sign-in method
+# 3. Create Firestore Database (start in test mode, then apply rules)
+# 4. Copy your Firebase config to frontend/js/firebase.js
+# 5. Apply security rules: Firestore → Rules tab → paste contents of firestore.rules
+```
+
+> **Note:** This is done once by whoever sets up the project. Teammates just `git pull` and the Firebase config is already there. Firebase API keys are public-safe — security comes from Firestore rules.
+
+### 2. Backend
 
 ```bash
 cd backend
 
-# 1. Create virtual environment
-python -m venv venv
-venv\Scripts\activate    # Windows
-# source venv/bin/activate  # macOS/Linux
-
-# 2. Install dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-# 3. Set up environment variables
+# Set up environment variables
 cp .env.example .env
-# Edit .env — add your DEEPSEEK_API_KEY and BRIGHTDATA_API_KEY
+# Edit .env — add your API keys (Groq, DeepSeek, or any OpenAI-compatible provider)
 
-# 4. Run the server
-uvicorn app.main:app --reload --port 8080
+# Run the server
+python -m uvicorn app.main:app --reload --port 8080
 ```
 
-### Frontend
+### 3. Frontend
 
-Open `frontend/index.html` in a browser, or serve with any static server:
+Open `frontend/screen/login.html` in a browser, or serve with any static server:
 
 ```bash
 cd frontend
 python -m http.server 3000
-# Visit http://localhost:3000
+# Visit http://localhost:3000/screen/login.html
 ```
 
 ## Features
 
+### 🔐 Authentication & Cloud Sync
+Firebase Auth for login/signup. Firestore cloud sync — data follows the user across devices and sessions. Auth guards protect all dashboard pages. Each user's data is isolated with Firestore security rules.
+
 ### 🤖 AI Command Hub (Screen 09)
-Type naturally: *"calc quiz thursday 2pm, OS assignment due friday, spent RM15 on lunch"* — DeepSeek parses events, expenses, and reminders simultaneously.
+Type naturally: *"calc quiz thursday 2pm, OS assignment due friday, spent RM15 on lunch"* — LLM parses events, expenses, and reminders simultaneously.
 
 ### 📅 Smart Schedule (Screen 02)
 Weekly calendar grid with time slots, color-coded events by type, month view toggle, overlap detection, and event modal with edit/delete.
@@ -133,17 +147,18 @@ Create groups, manage members, assign tasks, track completion progress.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DEEPSEEK_API_KEY` | Yes | DeepSeek API key |
-| `DEEPSEEK_BASE_URL` | No | DeepSeek API base URL (default: https://api.deepseek.com) |
-| `DEEPSEEK_MODEL` | No | Model name (default: deepseek-chat) |
-| `BRIGHTDATA_API_KEY` | No | Bright Data API key |
+| `DEEPSEEK_API_KEY` | Yes | API key (works with Groq, DeepSeek, or any OpenAI-compatible provider) |
+| `DEEPSEEK_BASE_URL` | No | API base URL (default: https://api.deepseek.com, use https://api.groq.com/openai/v1 for Groq) |
+| `DEEPSEEK_MODEL` | No | Model name (default: deepseek-chat, use llama-3.3-70b-versatile for Groq) |
+| `BRIGHTDATA_API_KEY` | No | Bright Data API key for scholarship/resource search |
 
 ## Tech Stack
 
-- **Backend:** FastAPI, DeepSeek Chat (OpenAI-compatible), Bright Data
+- **Backend:** FastAPI, OpenAI-compatible LLM (Groq / DeepSeek / etc.), Bright Data
 - **Frontend:** Tailwind CSS, Material Symbols, vanilla JS
-- **Storage:** localStorage (client), in-memory cache (server)
-- **LLM:** DeepSeek Chat (OpenAI-compatible) for NLP parsing
+- **Cloud Services:** Firebase Auth (authentication), Firestore (database)
+- **Storage:** localStorage (client) + Firestore (cloud sync), in-memory cache (server — planned)
+- **LLM:** OpenAI-compatible API for NLP parsing
 - **Web Data:** Bright Data for real-time scholarship/resource search
 
 ## License
