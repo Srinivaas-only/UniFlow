@@ -14,6 +14,16 @@
     }
 })();
 
+// ── Dynamically load notifications.js (if Store is available) ──
+(function() {
+    if (typeof UniNotifications === 'undefined') {
+        var s = document.createElement('script');
+        s.src = '../js/components/notifications.js';
+        s.async = false;
+        document.currentScript.parentNode.insertBefore(s, document.currentScript.nextSibling);
+    }
+})();
+
 function renderHeader(options) {
     var title = options.title || '';
     var subtitle = options.subtitle || '';
@@ -59,8 +69,10 @@ function renderHeader(options) {
             '</div>' +
             '<div class="flex items-center gap-gutter">' +
                 '<div class="flex items-center gap-4">' +
-                    '<span title="Coming soon" class="material-symbols-outlined text-on-surface-variant cursor-not-allowed opacity-50" data-icon="notifications">notifications</span>' +
-                    '<span title="Coming soon" class="material-symbols-outlined text-on-surface-variant cursor-not-allowed opacity-50 hidden sm:block" data-icon="monitoring">monitoring</span>' +
+                    '<button id="notif-btn" class="relative p-2 text-on-surface-variant hover:bg-white/5 rounded-full transition-colors" title="Notifications">' +
+                        '<span class="material-symbols-outlined">notifications</span>' +
+                        '<span id="notif-badge" style="display:none;position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:#f87171;font-size:10px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;">0</span>' +
+                    '</button>' +
                 '</div>' +
                 '<div class="flex items-center gap-3 pl-4 border-l border-white/10">' +
                     '<div class="text-right hidden sm:block">' +
@@ -82,9 +94,103 @@ function renderHeader(options) {
                 '<span class="material-symbols-outlined text-base" style="color: #948f99;">logout</span>' +
                 'Log out' +
             '</button>' +
-        '</div>';
+        '</div>' +
+        '<div id="notif-dropdown" class="hidden fixed z-50 w-80 rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style="background:#1a1825;"></div>';
 
     document.getElementById('header-mount').innerHTML = headerHTML;
+
+    // ── Notification Center ──
+    if (typeof UniNotifications !== 'undefined') {
+        var notifBtn = document.getElementById('notif-btn');
+        var notifDropdown = document.getElementById('notif-dropdown');
+        var currentNotifs = [];
+
+        function refreshNotifications() {
+            currentNotifs = UniNotifications.generate();
+            if (notifDropdown && !notifDropdown.classList.contains('hidden')) {
+                notifDropdown.innerHTML = UniNotifications.renderDropdown(currentNotifs);
+                bindNotifEvents();
+            }
+            /* Update badge */
+            var badge = document.getElementById('notif-badge');
+            if (badge) {
+                var read = UniNotifications.getReadIds();
+                var unread = currentNotifs.filter(function(n) { return read.indexOf(n.id) === -1; }).length;
+                if (unread > 0) {
+                    badge.textContent = unread > 9 ? '9+' : unread;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+
+        function bindNotifEvents() {
+            /* Mark all read button */
+            var markAllBtn = document.getElementById('notif-mark-all');
+            if (markAllBtn) {
+                markAllBtn.onclick = function() {
+                    UniNotifications.markAllRead(currentNotifs);
+                    refreshNotifications();
+                };
+            }
+            /* Click individual notification */
+            var items = notifDropdown.querySelectorAll('.notif-item');
+            items.forEach(function(el) {
+                el.onclick = function() {
+                    var id = el.getAttribute('data-id');
+                    var page = el.getAttribute('data-page');
+                    UniNotifications.markAsRead(id);
+                    notifDropdown.classList.add('hidden');
+                    window.location.href = './' + page;
+                };
+            });
+        }
+
+        /* Initial badge count */
+        currentNotifs = UniNotifications.generate();
+        var badge = document.getElementById('notif-badge');
+        if (badge) {
+            var read = UniNotifications.getReadIds();
+            var unread = currentNotifs.filter(function(n) { return read.indexOf(n.id) === -1; }).length;
+            if (unread > 0) {
+                badge.textContent = unread > 9 ? '9+' : unread;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        notifBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            /* Close profile dropdown if open */
+            var pd = document.getElementById('profile-dropdown');
+            if (pd) pd.classList.add('hidden');
+
+            /* Toggle notification dropdown */
+            if (notifDropdown.classList.contains('hidden')) {
+                currentNotifs = UniNotifications.generate();
+                notifDropdown.innerHTML = UniNotifications.renderDropdown(currentNotifs);
+                var rect = notifBtn.getBoundingClientRect();
+                notifDropdown.style.top = (rect.bottom + 8) + 'px';
+                notifDropdown.style.right = (window.innerWidth - rect.right) + 'px';
+                notifDropdown.classList.remove('hidden');
+                bindNotifEvents();
+            } else {
+                notifDropdown.classList.add('hidden');
+            }
+        });
+
+        /* Close notif dropdown when clicking outside */
+        document.addEventListener('click', function(e) {
+            if (!notifDropdown.contains(e.target) && e.target !== notifBtn && !notifBtn.contains(e.target)) {
+                notifDropdown.classList.add('hidden');
+            }
+        });
+
+        /* Auto-refresh every 5 minutes */
+        setInterval(refreshNotifications, 300000);
+    }
 
     // ── Profile dropdown toggle ──
     var profileBtn = document.getElementById('profile-btn');
