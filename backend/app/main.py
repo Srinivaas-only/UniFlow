@@ -573,3 +573,230 @@ def _classify_event(text: str) -> str:
     if "semester" in t or "semester" in t or "session" in t:
         return "semester"
     return "other"
+
+
+# ──────────────────────────────────────────────
+#  POST /api/spectrum-import — Chrome extension
+# ──────────────────────────────────────────────
+@app.post("/api/spectrum-import")
+async def spectrum_import(request: Request):
+    """Accept scraped Moodle data from the Chrome extension,
+    use Groq LLM to structure it into events + resources."""
+    try:
+        data = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body")
+
+    import_type = data.get("type", "")
+    items = data.get("items", [])
+
+    if not items:
+        return {
+            "events": [],
+            "resources": [],
+            "imported_count": 0,
+            "source": "spectrum.um.edu.my",
+            "message": "No items to import",
+        }
+
+    logger.info(f"Spectrum import: type={import_type}, items={len(items)}")
+
+    # Separate events from resources immediately
+    resource_items = []
+    event_items = []
+
+    course_name = data.get("course_name", "")
+
+    for item in items:
+        raw_type = item.get("type", item.get("raw_type", ""))
+        name = item.get("name", item.get("title", ""))
+
+        # Resources and URLs are not time-bound → store as resources
+        if raw_type in ("resource", "url"):
+            resource_items.append({
+                "title": name,
+                "url": item.get("url", ""),
+                "type": raw_type,
+                "course": course_name,
+            })
+        else:
+            event_items.append(item)
+
+    # Use LLM to parse event items into structured events
+    structured_events = []
+    if event_items and settings.DEEPSEEK_API_KEY:
+        structured_events = await _llm_parse_spectrum_events(event_items, import_type)
+
+    # If LLM failed, do basic regex-based parsing as fallback
+    if not structured_events and event_items:
+        structured_events = _basic_parse_spectrum_events(event_items)
+
+    imported_count = len(structured_events) + len(resource_items)
+    message_parts = []
+    if structured_events:
+        message_parts.append(f"{len(structured_events)} events")
+    if resource_items:
+        message_parts.append(f"{len(resource_items)} resources")
+    message = f"Imported {' and '.join(message_parts)} from Spectrum"
+
+    logger.info(f"Spectrum import complete: {message}")
+
+    return {
+        "events": structured_events,
+        "resources": resource_items,
+        "imported_count": imported_count,
+        "source": "spectrum.um.edu.my",
+        "message": message,
+    }
+
+
+async def _llm_parse_spectrum_events(items: list, import_type: str) -> list[dict]:
+    """Use Groq LLM to convert raw Moodle items into structured events."""
+    from openai import OpenAI
+
+    client = OpenAI(
+        api_key=settings.DEEPSEEK_API_KEY,
+        base_url=settings.DEEPSEEK_BASE_URL,
+    )
+
+    # Prepare items for LLM
+    items_text = json.dumps(items, indent=2)
+    # Truncate if too long
+    if len(items_text) > 4000:
+        items_text = items_text[:4000] + "\n... (truncated)"
+
+    today = time.strftime("%Y-%m-%d")
+    prompt = (
+        f"Convert these Moodle items into structured calendar events for a student schedule.\n"
+        f"Today's date: {today}\n"
+        f"Import type: {import_type}\n\n"
+        f"Items:\n{items_text}\n\n"
+        f"For each item:\n"
+        f"- Extract a clean title (remove 'is due' suffixes, 'Due Date' prefixes)\n"
+        f"- Parse date_text or timestamp into ISO date YYYY-MM-DD\n"
+        f"- Parse time if available (HH:MM 24h format, or null)\n"
+        f"- Classify type:\n"
+        f"  'assign' → 'assignment'\n"
+        f"  'quiz' → 'exam'\n"
+        f"  'forum' → 'reminder'\n"
+        f"  items with 'due'/'submission' in title → 'deadline'\n"
+        f"  'event' → 'other'\n"
+        f"- Keep the source_url\n\n"
+        f"Return ONLY a JSON array of objects:\n"
+        f'[{{"title": "...", "date": "YYYY-MM-DD", "time": "HH:MM or null", '
+        f'"type": "assignment|exam|deadline|reminder|class|other", "source_url": "..."}}]\n'
+        f"If you cannot parse a date, use null. Do NOT invent dates."
+    )
+
+    try:
+        resp = client.chat.completions.create(
+            model=settings.DEEPSEEK_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a calendar data parser. Return ONLY valid JSON array, no markdown fences."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.1,
+        )
+        content = resp.choices[0].message.content.strip()
+        if content.startswith("```"):
+            content = re.sub(r'^```\w*\n?', '', content)
+            content = re.sub(r'\n?```$', '', content)
+
+        parsed = json.loads(content)
+        events = []
+        for item in parsed:
+            if isinstance(item, dict) and item.get("title"):
+                events.append({
+                    "title": item["title"],
+                    "date": item.get("date") or "",
+                    "time": item.get("time"),
+                    "type": item.get("type", "other"),
+                    "source_url": item.get("source_url", ""),
+                    "source": "spectrum",
+                })
+        return events
+    except Exception as e:
+        logger.error(f"Spectrum LLM parse failed: {e}")
+        return []
+
+
+def _basic_parse_spectrum_events(items: list) -> list[dict]:
+    """Regex fallback: parse dates from Moodle items without LLM."""
+    events = []
+    for item in items:
+        title = item.get("name", item.get("title", ""))
+        if not title:
+            continue
+
+        # Clean title
+        clean_title = re.sub(r'\s+is due$', '', title, flags=re.IGNORECASE)
+        clean_title = re.sub(r'^Due Date\s+', '', clean_title, flags=re.IGNORECASE)
+
+        # Parse date from date_text or timestamp
+        date_str = ""
+        date_text = item.get("date_text", "")
+        timestamp = item.get("timestamp")
+
+        if timestamp:
+            try:
+                from datetime import datetime
+                dt = datetime.fromtimestamp(int(timestamp))
+                date_str = dt.strftime("%Y-%m-%d")
+            except Exception:
+                pass
+
+        if not date_str and date_text:
+            # Try common Moodle date formats
+            date_patterns = [
+                r'(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})',
+                r'(\d{1,2}/\d{1,2}/\d{4})',
+                r'(\d{4}-\d{2}-\d{2})',
+            ]
+            months = {
+                'january': '01', 'february': '02', 'march': '03', 'april': '04',
+                'may': '05', 'june': '06', 'july': '07', 'august': '08',
+                'september': '09', 'october': '10', 'november': '11', 'december': '12'
+            }
+            for pat in date_patterns:
+                m = re.search(pat, date_text, re.IGNORECASE)
+                if m:
+                    try:
+                        groups = m.groups()
+                        if len(groups) == 3 and groups[1].lower() in months:
+                            day = groups[0].zfill(2)
+                            month = months[groups[1].lower()]
+                            year = groups[2]
+                            date_str = f"{year}-{month}-{day}"
+                        elif '/' in groups[0]:
+                            parts = groups[0].split('/')
+                            date_str = f"{parts[2]}-{parts[1].zfill(2)}-{parts[0].zfill(2)}"
+                        else:
+                            date_str = groups[0]
+                    except Exception:
+                        continue
+                    break
+
+        # Classify type
+        raw_type = item.get("type", item.get("raw_type", "other"))
+        type_map = {
+            "assign": "assignment",
+            "quiz": "exam",
+            "forum": "reminder",
+        }
+        event_type = type_map.get(raw_type, "other")
+
+        # Check for due/submission keywords
+        title_lower = clean_title.lower()
+        if "due" in title_lower or "submission" in title_lower:
+            event_type = "deadline"
+
+        events.append({
+            "title": clean_title,
+            "date": date_str,
+            "time": None,
+            "type": event_type,
+            "source_url": item.get("url", ""),
+            "source": "spectrum",
+        })
+
+    return events

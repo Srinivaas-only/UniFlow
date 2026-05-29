@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>UniFlow — Spectrum Importer</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  width: 360px;
+  min-height: 280px;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background: #12111A;
+  color: #F1EFF5;
+  overflow: hidden;
+}
+.header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.header-icon {
+  width: 36px; height: 36px; border-radius: 12px;
+  background: linear-gradient(135deg, #D6C4FF, #A3DAFF);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 18px; color: #12111A;
+}
+.header h1 { font-size: 16px; font-weight: 700; color: #D6C4FF; }
+.header p { font-size: 11px; color: #948f99; margin-top: 1px; }
+
+.content { padding: 16px 20px; }
+
+.status-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  margin-bottom: 14px;
+}
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #4ade80; flex-shrink: 0;
+}
+.status-dot.inactive { background: #948f99; }
+.status-dot.detecting { background: #fbbf24; animation: pulse 1.5s infinite; }
+.status-label { font-size: 12px; color: #D0CBE1; font-weight: 600; }
+
+@keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+.import-btn {
+  width: 100%; padding: 12px 16px;
+  background: #D6C4FF; color: #12111A;
+  border: none; border-radius: 16px;
+  font-family: inherit; font-size: 14px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.2s;
+}
+.import-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.import-btn:active { transform: scale(0.97); }
+.import-btn:disabled {
+  background: rgba(214,196,255,0.15); color: #948f99; cursor: not-allowed; transform: none;
+}
+
+.result-area {
+  margin-top: 14px; min-height: 48px;
+  padding: 12px 14px; border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  font-size: 12px; line-height: 1.5;
+}
+.result-area.success { background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.2); }
+.result-area.error { background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2); }
+.result-area .count { font-size: 20px; font-weight: 800; color: #D6C4FF; }
+.result-area .label { font-size: 11px; color: #948f99; }
+
+.spinner {
+  display: inline-block; width: 16px; height: 16px;
+  border: 2px solid rgba(18,17,26,0.3); border-top-color: #12111A;
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.footer {
+  padding: 10px 20px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  font-size: 10px; color: #554F68; text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">U</div>
+  <div>
+    <h1>UniFlow Importer</h1>
+    <p>Spectrum (UM Moodle) → UniFlow</p>
+  </div>
+</div>
+
+<div class="content">
+  <div class="status-row">
+    <div class="status-dot detecting" id="status-dot"></div>
+    <span class="status-label" id="status-label">Detecting page...</span>
+  </div>
+
+  <button class="import-btn" id="import-btn" disabled>
+    <span class="material-symbols-outlined" style="font-size:18px">cloud_download</span>
+    <span id="btn-text">Navigate to a Spectrum page</span>
+  </button>
+
+  <div class="result-area" id="result-area" style="display:none"></div>
+</div>
+
+<div class="footer">
+  Make sure you're logged into Spectrum · Backend: localhost:8000
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>
