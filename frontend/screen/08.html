@@ -42,7 +42,7 @@
             <h2 class="text-headline-sm font-bold text-primary mb-4 flex items-center gap-2">
                 <span class="material-symbols-outlined">school</span> Scholarship Finder
             </h2>
-            <p class="text-on-surface-variant text-body-md mb-4">Powered by Bright Data — real-time web search for Malaysian scholarships matching your profile.</p>
+            <p class="text-on-surface-variant text-body-md mb-4">Powered by Bright Data ï¿½ real-time web search for Malaysian scholarships matching your profile.</p>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
                     <label class="text-label-sm text-on-surface-variant block mb-1">Course</label>
@@ -139,6 +139,8 @@ async function searchScholarships(){
     var state=document.getElementById('inp-state').value.trim();
     if(!course){showModal({title:'Missing Field',message:'Please enter your course to search for scholarships.',type:'warning',showCancel:false,confirmText:'Got it'});return}
 
+    var btn=document.getElementById('search-btn');
+    btn.disabled=true;
     document.getElementById('empty-state').style.display='none';
     document.getElementById('searching-state').style.display='block';
     document.getElementById('results-section').style.display='none';
@@ -151,7 +153,9 @@ async function searchScholarships(){
     }catch(err){
         document.getElementById('searching-state').style.display='none';
         document.getElementById('empty-state').style.display='flex';
-        showModal({title:'Search Failed',message:err.message||'Something went wrong while searching. Please try again.',type:'error',showCancel:false,confirmText:'OK'});
+        showModal({title:'Search Failed',message:err.message||'Something went wrong while searching. Please try again.',type:'error',showCancel:true,confirmText:'Try Again',cancelText:'Dismiss',onConfirm:function(){searchScholarships();}});
+    }finally{
+        btn.disabled=false;
     }
 }
 

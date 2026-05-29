@@ -1,7 +1,10 @@
+import asyncio
+import json
 import logging
 import re
 import time
 import traceback
+from concurrent.futures import ThreadPoolExecutor
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,7 +18,7 @@ from app.models import (
     UniCalendarRequest, UniCalendarResponse, CalendarEvent,
 )
 from app.parser import parse_events
-from app.brightdata import serp_search, web_unlock
+from app.brightdata import search_serp, web_unlock
 
 app = FastAPI(
     title="UniFlow Parser API",
@@ -105,6 +108,9 @@ async def parse(request: ParseRequest) -> ParseResponse:
 # ──────────────────────────────────────────────
 #  POST /api/scholarships — Bright Data search
 # ──────────────────────────────────────────────
+_executor = ThreadPoolExecutor(max_workers=4)
+
+
 @app.post("/api/scholarships", response_model=ScholarshipResponse)
 async def scholarships(profile: ScholarshipProfile) -> ScholarshipResponse:
     """Search for Malaysian scholarships using Bright Data SERP API."""
@@ -115,14 +121,22 @@ async def scholarships(profile: ScholarshipProfile) -> ScholarshipResponse:
         )
     try:
         queries = [
-            f"Malaysia student scholarships 2026 CGPA {profile.cgpa} {profile.course} site:gov.my OR site:edu.my",
-            f"JPA scholarship 2026 {profile.state} CGPA {profile.cgpa}",
-            f"MARA scholarship 2026 bumiputera {profile.course}",
-            f"Yayasan scholarship 2026 Malaysia {profile.course} year {profile.year}",
+            f"Malaysia scholarship 2026 {profile.course}",
+            f"JPA scholarship 2026 undergraduate {profile.course}",
+            "MARA scholarship 2026 application",
+            f"Yayasan scholarship Malaysia 2026 {profile.course}",
         ]
+
+        # Run 4 SERP queries in parallel via thread pool
+        loop = asyncio.get_event_loop()
+        search_tasks = [
+            loop.run_in_executor(_executor, search_serp, q)
+            for q in queries
+        ]
+        search_results = await asyncio.gather(*search_tasks)
+
         all_results = []
-        for q in queries:
-            results = serp_search(q, num_results=5)
+        for results in search_results:
             for r in results:
                 title = r.get("title", "")
                 link = r.get("link", "")
@@ -140,14 +154,15 @@ async def scholarships(profile: ScholarshipProfile) -> ScholarshipResponse:
                     match_score=score,
                 ))
 
-        # Deduplicate by title, keep highest score
+        # Deduplicate by URL, keep highest score
         seen = {}
         for r in all_results:
-            key = r.title.lower().strip()
+            key = r.link or r.title.lower().strip()
             if key not in seen or r.match_score > seen[key].match_score:
                 seen[key] = r
 
         ranked = sorted(seen.values(), key=lambda x: x.match_score, reverse=True)[:10]
+        logger.info(f"Scholarship search returned {len(ranked)} results for course={profile.course}")
         return ScholarshipResponse(scholarships=ranked)
     except Exception as e:
         traceback.print_exc()
@@ -155,18 +170,34 @@ async def scholarships(profile: ScholarshipProfile) -> ScholarshipResponse:
 
 
 def _match_score(profile: ScholarshipProfile, text: str) -> int:
-    score = 50
+    """Calculate match score (0-100) per spec:
+    course keyword (+30), state (+20), year level (+15),
+    CGPA-related keywords (+10), recency (+25)."""
+    score = 0
     t = text.lower()
-    if str(profile.cgpa) in t:
-        score += 20
-    if profile.course.lower() in t:
-        score += 15
-    if str(profile.year) in t:
-        score += 5
+    # Course keyword match (+30)
+    course_words = [w for w in profile.course.lower().split() if len(w) > 3]
+    if any(w in t for w in course_words):
+        score += 30
+    # State match (+20)
     if profile.state.lower() in t:
-        score += 5
-    if "scholarship" in t or "biasiswa" in t:
-        score += 5
+        score += 20
+    # Year level match (+15)
+    year_labels = {
+        1: ["first year", "year 1", "1st year", "freshman"],
+        2: ["second year", "year 2", "2nd year", "sophomore"],
+        3: ["third year", "year 3", "3rd year", "junior"],
+        4: ["fourth year", "year 4", "4th year", "senior", "final year"],
+    }
+    year_terms = year_labels.get(profile.year, [])
+    if str(profile.year) in t or any(y in t for y in year_terms):
+        score += 15
+    # CGPA-related keywords (+10)
+    if str(profile.cgpa) in t or "cgpa" in t or "gpa" in t:
+        score += 10
+    # Recency — mentions 2025 or 2026 (+25)
+    if "2026" in t or "2025" in t:
+        score += 25
     return min(score, 100)
 
 
@@ -209,25 +240,35 @@ async def resources(req: ResourceRequest) -> ResourceResponse:
         )
     try:
         subject = req.subject.strip()
-        queries = [
-            f'"{subject}" past year exam paper site:edu.my',
-            f'"{subject}" lecture notes textbook PDF Malaysia university',
-            f'"{subject}" tutorial playlist YouTube',
-            f'"{subject}" study guide notes free',
+        # 4 category-specific queries as per spec
+        category_queries = [
+            (f'"{subject}" past year exam paper university Malaysia', "past_paper"),
+            (f'"{subject}" lecture notes pdf', "notes"),
+            (f'"{subject}" textbook pdf free', "textbook"),
+            (f'"{subject}" tutorial site:youtube.com', "video"),
         ]
+
+        # Run all 4 SERP queries in parallel
+        loop = asyncio.get_event_loop()
+        search_tasks = [
+            loop.run_in_executor(_executor, search_serp, q)
+            for q, _ in category_queries
+        ]
+        search_results = await asyncio.gather(*search_tasks)
+
         all_results = []
-        for q in queries:
-            results = serp_search(q, num_results=5)
-            for r in results:
+        for (query, category), results in zip(category_queries, search_results):
+            for r in results[:5]:  # Top 5 from each category
                 title = r.get("title", "")
                 link = r.get("link", "")
                 snippet = r.get("snippet", "")
+                source_domain = r.get("source_domain", "")
                 if not title:
                     continue
                 all_results.append(ResourceResult(
                     title=title,
-                    type=_classify_resource(title + " " + snippet + " " + link),
-                    source=_extract_source(link),
+                    type=category,
+                    source=source_domain or _extract_source(link),
                     link=link,
                     description=snippet[:200] if snippet else "",
                 ))
@@ -238,23 +279,11 @@ async def resources(req: ResourceRequest) -> ResourceResponse:
             if r.link not in seen:
                 seen[r.link] = r
 
-        return ResourceResponse(resources=list(seen.values())[:15])
+        logger.info(f"Resource search returned {len(seen)} results for subject={subject}")
+        return ResourceResponse(resources=list(seen.values()))
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-
-
-def _classify_resource(text: str) -> str:
-    t = text.lower()
-    if "past year" in t or "exam paper" in t or "past paper" in t or "soalan" in t:
-        return "past_paper"
-    if "youtube" in t or "playlist" in t or "video" in t or "tutorial" in t:
-        return "video"
-    if "textbook" in t or "pdf" in t or "ebook" in t:
-        return "textbook"
-    if "notes" in t or "lecture" in t or "slide" in t:
-        return "notes"
-    return "other"
 
 
 def _extract_source(link: str) -> str:
@@ -287,7 +316,7 @@ UNI_CALENDAR_URLS = {
 
 @app.post("/api/uni-scrape", response_model=UniCalendarResponse)
 async def uni_scrape(req: UniCalendarRequest) -> UniCalendarResponse:
-    """Scrape university academic calendar using Bright Data Web Unlocker."""
+    """Scrape university academic calendar using Bright Data SERP + LLM parsing."""
     if not settings.BRIGHTDATA_API_KEY:
         raise HTTPException(
             status_code=500,
@@ -300,13 +329,193 @@ async def uni_scrape(req: UniCalendarRequest) -> UniCalendarResponse:
             detail=f"Unknown university: {uni}. Supported: UM, USM, UKM, UTM",
         )
     try:
-        url = UNI_CALENDAR_URLS[uni]
-        html = web_unlock(url)
-        events = _parse_calendar_html(html, uni)
+        # Use SERP search to find calendar info (SERP zone can't fetch URLs directly)
+        uni_names = {
+            "UM": "Universiti Malaya",
+            "USM": "Universiti Sains Malaysia",
+            "UKM": "Universiti Kebangsaan Malaysia",
+            "UTM": "Universiti Teknologi Malaysia",
+        }
+        uni_name = uni_names.get(uni, uni)
+        queries = [
+            f"{uni_name} academic calendar 2025 2026 semester dates",
+            f"{uni_name} exam schedule 2025 2026",
+        ]
+
+        # Run SERP queries in parallel
+        loop = asyncio.get_event_loop()
+        search_tasks = [
+            loop.run_in_executor(_executor, search_serp, q)
+            for q in queries
+        ]
+        search_results = await asyncio.gather(*search_tasks)
+
+        # Collect all text from search results
+        all_text = ""
+        for results in search_results:
+            for r in results[:5]:
+                title = r.get("title", "")
+                snippet = r.get("snippet", "")
+                if title:
+                    all_text += f"Title: {title}\n"
+                if snippet:
+                    all_text += f"Description: {snippet}\n"
+                all_text += "\n"
+
+        if not all_text.strip():
+            logger.warning(f"No SERP results for {uni} calendar")
+            return UniCalendarResponse(university=uni, events=[])
+
+        # Use LLM to extract structured events from SERP snippets, fallback to regex
+        events = []
+        if settings.DEEPSEEK_API_KEY:
+            events = await _llm_parse_calendar_text(all_text, uni_name)
+        if not events:
+            logger.info(f"LLM parse failed or unavailable for {uni}, using regex fallback on SERP data")
+            events = _parse_calendar_from_text(all_text, uni_name)
+
+        logger.info(f"Uni calendar scrape returned {len(events)} events for {uni}")
         return UniCalendarResponse(university=uni, events=events)
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+async def _llm_parse_calendar_text(text: str, uni_name: str) -> list[CalendarEvent]:
+    """Use DeepSeek LLM to extract calendar events from SERP snippets."""
+    from openai import OpenAI
+
+    client = OpenAI(
+        api_key=settings.DEEPSEEK_API_KEY,
+        base_url=settings.DEEPSEEK_BASE_URL,
+    )
+
+    prompt = (
+        f"Extract academic calendar events from the following search results about {uni_name}. "
+        f"Return a JSON array of objects with keys: title, date (YYYY-MM-DD format, or descriptive like 'October 2025'), "
+        f"end_date (YYYY-MM-DD or empty), category (semester, exam, holiday, registration, other), "
+        f"description (brief note).\n\n"
+        f"Focus on: semester start/end dates, mid-semester breaks, final exam periods, "
+        f"public holidays, registration deadlines.\n\n"
+        f"Search results:\n{text[:4000]}"
+    )
+
+    try:
+        resp = client.chat.completions.create(
+            model=settings.DEEPSEEK_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a calendar data extractor. Return ONLY a valid JSON array. No markdown, no explanation."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.1,
+        )
+        content = resp.choices[0].message.content.strip()
+        # Strip markdown fences if present
+        if content.startswith("```"):
+            content = re.sub(r'^```\w*\n?', '', content)
+            content = re.sub(r'\n?```$', '', content)
+
+        raw_events = json.loads(content)
+        events = []
+        for item in raw_events[:30]:
+            if isinstance(item, dict) and item.get("title"):
+                events.append(CalendarEvent(
+                    title=item["title"],
+                    date=item.get("date", ""),
+                    end_date=item.get("end_date", ""),
+                    category=item.get("category", "other"),
+                    description=item.get("description", ""),
+                ))
+        return events
+    except Exception as e:
+        logger.error(f"LLM calendar parse failed: {e}")
+        return []
+
+
+def _parse_calendar_from_text(text: str, uni_name: str) -> list[CalendarEvent]:
+    """Regex fallback: extract calendar events from SERP snippet text.
+    Handles UM format: 'Lectures. 6 weeks*. 13.10.2025. -. 23.11.2025.'"""
+    events = []
+    seen_titles = set()
+    skip_patterns = [
+        r'^\d+\s*(weeks?|days?)\*?\s*$', r'^Read more', r'^\d+$',
+        r'^\s*$', r'^Description:', r'^Title:',
+    ]
+
+    def _find_label(before_text: str) -> str:
+        """Walk backwards through period-delimited segments to find the event label."""
+        segments = [s.strip() for s in before_text.split('.') if s.strip()]
+        for seg in reversed(segments[-6:]):
+            if any(re.match(p, seg, re.IGNORECASE) for p in skip_patterns):
+                continue
+            label = seg.strip(' -')
+            if len(label) >= 3:
+                return label
+        return ""
+
+    # Pattern 1: DD.MM.YYYY -. DD.MM.YYYY (UM format: optional trailing periods)
+    for m in re.finditer(
+        r'(\d{2}\.\d{2}\.\d{4})\.?\s*-\s*\.?\s*(\d{2}\.\d{2}\.\d{4})',
+        text
+    ):
+        before = text[:m.start()].rstrip('. ')
+        label = _find_label(before)
+        if not label or label.lower() in seen_titles:
+            continue
+        seen_titles.add(label.lower())
+        events.append(CalendarEvent(
+            title=label,
+            date=m.group(1).replace('.', '-'),
+            end_date=m.group(2).replace('.', '-'),
+            category=_classify_event(label), description="",
+        ))
+
+    # Pattern 2: DD.MM.YYYY - DD.MM.YYYY (without trailing periods)
+    for m in re.finditer(
+        r'(\d{2}\.\d{2}\.\d{4})\s*[-–]\s*(\d{2}\.\d{2}\.\d{4})',
+        text
+    ):
+        key = m.group(1) + m.group(2)
+        before = text[:m.start()].rstrip('. ')
+        label = _find_label(before)
+        if not label or label.lower() in seen_titles:
+            continue
+        seen_titles.add(label.lower())
+        events.append(CalendarEvent(
+            title=label,
+            date=m.group(1).replace('.', '-'),
+            end_date=m.group(2).replace('.', '-'),
+            category=_classify_event(label), description="",
+        ))
+
+    # Pattern 3: DD Month YYYY - DD Month YYYY
+    for m in re.finditer(
+        r'(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})\s*[-–]\s*(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})',
+        text, re.IGNORECASE
+    ):
+        before = text[:m.start()].rstrip('. ')
+        label = _find_label(before)
+        if not label or label.lower() in seen_titles:
+            continue
+        seen_titles.add(label.lower())
+        events.append(CalendarEvent(
+            title=label, date=m.group(1).strip(), end_date=m.group(2).strip(),
+            category=_classify_event(label), description="",
+        ))
+
+    # Pattern 4: standalone labeled events like "Mid Semester I Break"
+    # or "Final Examination" followed by date range in different format
+    exam_pattern = r'(?:Final\s+Exam(?:ination)?|Mid[- ]Semester\s+Break|Registration|Orientation|Census\s+Date)[^.]*?(\d{1,2}[\s./-](?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*[\s./-]\d{2,4})'
+    for m in re.finditer(exam_pattern, text, re.IGNORECASE):
+        desc = re.sub(r'<[^>]+>', '', m.group(0).split(m.group(1))[0]).strip(' .:-')
+        if desc and desc.lower() not in seen_titles:
+            seen_titles.add(desc.lower())
+            events.append(CalendarEvent(
+                title=desc, date=m.group(1).strip(), end_date="",
+                category=_classify_event(desc), description="",
+            ))
+
+    return events[:30]
 
 
 def _parse_calendar_html(html: str, uni: str) -> list[CalendarEvent]:
