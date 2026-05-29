@@ -10,84 +10,113 @@
 <script>initTailwind();</script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #12111A; overflow-x: hidden; }
-        .bg-glow-violet { background: radial-gradient(ellipse 80% 60% at 20% 10%,rgba(214,196,255,0.14) 0%,transparent 65%); }
-        .bg-glow-rose { background: radial-gradient(ellipse 70% 50% at 85% 75%,rgba(255,194,220,0.08) 0%,transparent 60%); }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(158,151,179,0.25); border-radius: 10px; }
-        @keyframes fadeInUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-        .fade-in-up { animation: fadeInUp 0.4s ease-out forwards; opacity:0; }
-        .stat-card:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,0.3); }
-    </style>
+<link href="../theme.css" rel="stylesheet"/>
+<style>
+    body { font-family:'Plus Jakarta Sans',sans-serif; background-color:#12111A; overflow-x:hidden; }
+    .bg-glow-violet { background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(214,196,255,0.14) 0%,transparent 65%); }
+    .bg-glow-rose { background:radial-gradient(ellipse 70% 50% at 85% 75%,rgba(255,194,220,0.08) 0%,transparent 60%); }
+    .custom-scrollbar::-webkit-scrollbar { width:4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background:transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background:rgba(158,151,179,0.25); border-radius:10px; }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    .fade-in-up { animation:fadeInUp 0.5s ease-out forwards; opacity:0; }
+    .stat-card { transition:transform 0.2s,box-shadow 0.2s; }
+    .stat-card:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,0.3); }
+</style>
 </head>
-<body class="bg-background min-h-screen text-on-surface">
+<body class="bg-background text-on-surface">
+<div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
+    <div class="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-glow-violet"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[65%] h-[65%] bg-glow-rose"></div>
+</div>
+
 <div id="sidebar-mount"></div>
 <div id="header-mount"></div>
 
-<main class="md:ml-[280px] pt-20 min-h-screen">
-    <div class="p-margin-desktop space-y-gutter">
-        <!-- Budget Limit Setting -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-            <div class="bg-surface-container rounded-lg p-8">
+<main class="md:ml-[280px] pt-20 h-screen overflow-y-auto custom-scrollbar">
+    <div class="px-margin-mobile md:px-margin-desktop pr-4 pb-24 space-y-6 max-w-5xl">
+
+        <!-- Budget Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="stat-card bg-surface-container/60 backdrop-blur-xl rounded-3xl p-6 border border-outline-variant/10 fade-in-up" style="animation-delay:0ms">
                 <div class="flex items-center gap-3 mb-4">
-                    <span class="material-symbols-outlined text-primary">account_balance_wallet</span>
+                    <div class="p-2.5 bg-emerald-500/15 rounded-2xl">
+                        <span class="material-symbols-outlined text-emerald-400">account_balance_wallet</span>
+                    </div>
                     <span class="text-label-sm text-on-surface-variant uppercase tracking-widest">Budget Limit</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="text-xl font-bold text-primary">RM</span>
-                    <input id="budget-limit-input" type="number" placeholder="0" class="w-full bg-transparent text-3xl font-bold text-on-surface border-none focus:outline-none" min="0">
+                    <span class="text-xl font-bold text-emerald-400">RM</span>
+                    <input id="budget-limit-input" type="number" placeholder="0" class="w-full bg-transparent text-headline-lg font-bold text-on-surface border-none focus:outline-none" min="0">
                 </div>
-                <button onclick="saveBudgetLimit()" class="mt-4 bg-primary/20 text-primary px-4 py-2 rounded-full text-label-sm font-bold hover:bg-primary/30 transition-all">Save Limit</button>
+                <button onclick="saveBudgetLimit()" class="mt-4 px-4 py-2 bg-emerald-500/15 text-emerald-400 rounded-2xl text-label-sm font-bold hover:bg-emerald-500/25 transition-all">Save Limit</button>
             </div>
-            <div class="bg-surface-container rounded-lg p-8">
+            <div class="stat-card bg-surface-container/60 backdrop-blur-xl rounded-3xl p-6 border border-outline-variant/10 fade-in-up" style="animation-delay:80ms">
                 <div class="flex items-center gap-3 mb-4">
-                    <span class="material-symbols-outlined text-secondary">payments</span>
+                    <div class="p-2.5 bg-rose-500/15 rounded-2xl">
+                        <span class="material-symbols-outlined text-rose-400">payments</span>
+                    </div>
                     <span class="text-label-sm text-on-surface-variant uppercase tracking-widest">Total Spent</span>
                 </div>
-                <p class="text-3xl font-bold" id="total-spent">RM0.00</p>
-                <p class="text-label-sm text-on-surface-variant mt-2" id="remaining-text">—</p>
+                <p class="text-headline-lg font-bold text-on-surface" id="total-spent">RM0.00</p>
+                <p class="text-label-sm mt-2" id="remaining-text">—</p>
             </div>
-            <div class="bg-surface-container rounded-lg p-8">
+            <div class="stat-card bg-surface-container/60 backdrop-blur-xl rounded-3xl p-6 border border-outline-variant/10 fade-in-up" style="animation-delay:160ms">
                 <div class="flex items-center gap-3 mb-4">
-                    <span class="material-symbols-outlined text-emerald-400">receipt_long</span>
+                    <div class="p-2.5 bg-blue-500/15 rounded-2xl">
+                        <span class="material-symbols-outlined text-blue-400">receipt_long</span>
+                    </div>
                     <span class="text-label-sm text-on-surface-variant uppercase tracking-widest">Transactions</span>
                 </div>
-                <p class="text-3xl font-bold" id="txn-count">0</p>
+                <p class="text-headline-lg font-bold text-on-surface" id="txn-count">0</p>
                 <p class="text-label-sm text-on-surface-variant mt-2">recorded expenses</p>
             </div>
         </div>
 
         <!-- Spending Progress -->
-        <div class="bg-surface-container rounded-lg p-8">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="font-headline-lg-mobile text-headline-lg-mobile">Budget Progress</h3>
-                <span id="budget-percent" class="text-label-sm font-bold text-primary">0%</span>
+        <div class="bg-surface-container/60 backdrop-blur-xl rounded-3xl p-6 border border-outline-variant/10 fade-in-up" style="animation-delay:240ms">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-2.5 bg-emerald-500/15 rounded-2xl">
+                    <span class="material-symbols-outlined text-emerald-400">trending_up</span>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-label-lg font-bold text-on-surface">Budget Progress</h3>
+                </div>
+                <span id="budget-percent" class="text-label-sm font-bold text-emerald-400">0%</span>
             </div>
             <div class="h-4 w-full bg-surface-container-high rounded-full overflow-hidden">
-                <div id="budget-progress-bar" class="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all" style="width: 0%;"></div>
+                <div id="budget-progress-bar" class="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all" style="width:0%;"></div>
             </div>
             <p id="budget-hint" class="text-label-sm text-on-surface-variant mt-3">Set a budget limit to track your spending.</p>
         </div>
 
         <!-- Breakdown -->
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-gutter">
-            <div class="bg-surface rounded-lg border border-white/5">
-                <div class="p-6 border-b border-white/5">
-                    <h3 class="font-headline-lg-mobile text-headline-lg-mobile">Spending by Category</h3>
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div class="bg-surface-container/60 backdrop-blur-xl rounded-3xl border border-outline-variant/10 overflow-hidden fade-in-up" style="animation-delay:320ms">
+                <div class="p-6 border-b border-outline-variant/10">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 bg-purple-500/15 rounded-2xl">
+                            <span class="material-symbols-outlined text-purple-400">pie_chart</span>
+                        </div>
+                        <h3 class="text-label-lg font-bold text-on-surface">Spending by Category</h3>
+                    </div>
                 </div>
                 <div id="category-bars" class="p-6 space-y-4">
-                    <p class="text-on-surface-variant">No expenses logged yet. <a href="09.html" class="text-primary hover:underline">Chat with AI</a> to log spending.</p>
+                    <p class="text-on-surface-variant text-center py-6">No expenses logged yet. <a href="09.html" class="text-primary hover:underline">Chat with AI</a> to log spending.</p>
                 </div>
             </div>
-            <div class="bg-surface rounded-lg border border-white/5">
-                <div class="p-6 border-b border-white/5 flex justify-between items-center">
-                    <h3 class="font-headline-lg-mobile text-headline-lg-mobile">Recent Expenses</h3>
-                    <a href="09.html" class="text-label-sm text-primary hover:underline">Log More</a>
+            <div class="bg-surface-container/60 backdrop-blur-xl rounded-3xl border border-outline-variant/10 overflow-hidden fade-in-up" style="animation-delay:400ms">
+                <div class="p-6 border-b border-outline-variant/10 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 bg-amber-500/15 rounded-2xl">
+                            <span class="material-symbols-outlined text-amber-400">receipt</span>
+                        </div>
+                        <h3 class="text-label-lg font-bold text-on-surface">Recent Expenses</h3>
+                    </div>
+                    <a href="09.html" class="text-label-sm text-primary hover:underline no-underline">Log More</a>
                 </div>
                 <div id="expense-list" class="p-6 space-y-3 custom-scrollbar max-h-[400px] overflow-y-auto">
-                    <p class="text-on-surface-variant">No expenses yet. Try <span class="text-secondary font-bold">"spent RM15 on lunch"</span> in AI chat.</p>
+                    <p class="text-on-surface-variant text-center py-6">No expenses yet. Try <span class="text-emerald-400 font-bold">"spent RM15 on lunch"</span> in AI chat.</p>
                 </div>
             </div>
         </div>
@@ -107,43 +136,41 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     renderSidebar('07');
-    renderHeader({ title: 'Budget' });
+    renderHeader({ title:'Budget', subtitle:'Track Your Spending' });
     renderBottomNav('07');
     renderBudget();
     document.getElementById('budget-limit-input').value = Store.getBudgetLimit() || '';
 });
 
-function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+function escapeHtml(t) { var d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
 
-var CAT_COLORS = { food: 'bg-primary', transport: 'bg-secondary', education: 'bg-tertiary', rent: 'bg-amber-500', entertainment: 'bg-pink-500', other: 'bg-gray-500' };
-var CAT_ICONS = { food: 'restaurant', transport: 'directions_car', education: 'school', rent: 'home', entertainment: 'movie', other: 'shopping_bag' };
+var CAT_COLORS = { food:'bg-emerald-500', transport:'bg-blue-500', education:'bg-purple-500', rent:'bg-amber-500', entertainment:'bg-pink-500', other:'bg-gray-500' };
+var CAT_ICONS = { food:'restaurant', transport:'directions_car', education:'school', rent:'home', entertainment:'movie', other:'shopping_bag' };
 
 function renderBudget() {
     var totals = Store.getExpenseTotals();
     var limit = Store.getBudgetLimit();
-    var expenses = Store.getExpenses().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    var expenses = Store.getExpenses().sort(function(a,b) { return b.createdAt.localeCompare(a.createdAt); });
 
     document.getElementById('total-spent').textContent = 'RM' + totals.total.toFixed(2);
     document.getElementById('txn-count').textContent = totals.count;
 
-    // Remaining
     var remainingEl = document.getElementById('remaining-text');
     if (limit > 0) {
         var remaining = limit - totals.total;
         remainingEl.textContent = remaining >= 0 ? 'RM' + remaining.toFixed(2) + ' remaining' : 'RM' + Math.abs(remaining).toFixed(2) + ' over budget!';
-        remainingEl.className = remaining >= 0 ? 'text-label-sm text-emerald-400 mt-2' : 'text-label-sm text-rose-400 mt-2';
+        remainingEl.className = 'text-label-sm mt-2 ' + (remaining >= 0 ? 'text-emerald-400' : 'text-rose-400');
     } else {
         remainingEl.textContent = '—';
         remainingEl.className = 'text-label-sm text-on-surface-variant mt-2';
     }
 
-    // Progress bar
     if (limit > 0) {
         var pct = Math.min(Math.round(totals.total / limit * 100), 100);
         document.getElementById('budget-progress-bar').style.width = pct + '%';
         document.getElementById('budget-percent').textContent = pct + '%';
         var bar = document.getElementById('budget-progress-bar');
-        bar.className = 'h-full rounded-full transition-all ' + (pct > 90 ? 'bg-gradient-to-r from-rose-500 to-rose-400' : pct > 70 ? 'bg-gradient-to-r from-amber-500 to-amber-400' : 'bg-gradient-to-r from-primary to-secondary');
+        bar.className = 'h-full rounded-full transition-all ' + (pct > 90 ? 'bg-gradient-to-r from-rose-500 to-rose-400' : pct > 70 ? 'bg-gradient-to-r from-amber-500 to-amber-400' : 'bg-gradient-to-r from-emerald-500 to-emerald-400');
         document.getElementById('budget-hint').textContent = pct > 90 ? '⚠️ Almost at your budget limit!' : pct > 70 ? 'Getting close to your limit.' : 'On track. Keep it up!';
     } else {
         document.getElementById('budget-progress-bar').style.width = '0%';
@@ -151,7 +178,6 @@ function renderBudget() {
         document.getElementById('budget-hint').textContent = 'Set a budget limit to track your spending.';
     }
 
-    // Category bars
     var catEl = document.getElementById('category-bars');
     if (totals.count > 0) {
         catEl.innerHTML = Object.entries(totals.byCategory).map(function(entry) {
@@ -163,27 +189,26 @@ function renderBudget() {
                 '<div class="w-8 text-center"><span class="material-symbols-outlined text-lg text-on-surface-variant">' + icon + '</span></div>' +
                 '<div class="flex-1">' +
                     '<div class="flex justify-between text-label-sm mb-1"><span class="capitalize text-on-surface">' + cat + '</span><span class="text-on-surface-variant">RM' + amt.toFixed(2) + ' (' + pct + '%)</span></div>' +
-                    '<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden"><div class="h-full ' + color + ' rounded-full" style="width: ' + pct + '%;"></div></div>' +
+                    '<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden"><div class="h-full ' + color + ' rounded-full" style="width:' + pct + '%;"></div></div>' +
                 '</div>' +
             '</div>';
         }).join('');
     } else {
-        catEl.innerHTML = '<p class="text-on-surface-variant">No expenses logged yet. <a href="09.html" class="text-primary hover:underline">Chat with AI</a> to log spending.</p>';
+        catEl.innerHTML = '<p class="text-on-surface-variant text-center py-6">No expenses logged yet. <a href="09.html" class="text-primary hover:underline">Chat with AI</a> to log spending.</p>';
     }
 
-    // Recent expenses
     var listEl = document.getElementById('expense-list');
     if (expenses.length > 0) {
-        listEl.innerHTML = expenses.slice(0, 20).map(function(e) {
+        listEl.innerHTML = expenses.slice(0,20).map(function(e) {
             var icon = CAT_ICONS[e.category] || CAT_ICONS.other;
-            return '<div class="flex items-center gap-4 p-3 bg-white/5 rounded-xl">' +
+            return '<div class="flex items-center gap-4 p-3 bg-surface-container-high/30 rounded-2xl hover:bg-surface-container-high/50 transition-all">' +
                 '<span class="material-symbols-outlined text-on-surface-variant">' + icon + '</span>' +
                 '<div class="flex-1 min-w-0"><p class="font-bold text-label-sm truncate">' + escapeHtml(e.title) + '</p><p class="text-[10px] text-on-surface-variant">' + e.date + '</p></div>' +
-                '<span class="font-bold text-primary">' + escapeHtml(e.amount || '') + '</span>' +
+                '<span class="font-bold text-emerald-400">' + escapeHtml(e.amount || '') + '</span>' +
             '</div>';
         }).join('');
     } else {
-        listEl.innerHTML = '<p class="text-on-surface-variant">No expenses yet. Try <span class="text-secondary font-bold">"spent RM15 on lunch"</span> in AI chat.</p>';
+        listEl.innerHTML = '<p class="text-on-surface-variant text-center py-6">No expenses yet. Try <span class="text-emerald-400 font-bold">"spent RM15 on lunch"</span> in AI chat.</p>';
     }
 }
 

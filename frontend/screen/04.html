@@ -13,17 +13,24 @@
 <link rel="stylesheet" href="../theme.css"/>
 <style>
     body {
-        background-color: #13121b;
+        background-color: #12111A;
         color: #e5e0ee;
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
+    .bg-glow-violet { background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(214,196,255,0.14) 0%,transparent 65%); }
+    .bg-glow-rose { background:radial-gradient(ellipse 70% 50% at 85% 75%,rgba(255,194,220,0.08) 0%,transparent 60%); }
     .glass-card {
-        background: #1c1a24;
+        background: rgba(255,255,255,0.03);
+        backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.05);
     }
 </style>
 </head>
 <body class="font-body text-on-surface antialiased overflow-x-hidden">
+<div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
+    <div class="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-glow-violet"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[65%] h-[65%] bg-glow-rose"></div>
+</div>
 
 <!-- Shared Components -->
 <div id="sidebar-mount"></div>
