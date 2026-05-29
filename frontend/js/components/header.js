@@ -85,7 +85,7 @@ function renderHeader(options) {
                 'Log out' +
             '</button>' +
         '</div>' +
-        '<div id="notif-dropdown" class="hidden fixed z-50 w-80 rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style="background:#1a1825;"></div>';
+        '<div id="notif-dropdown" class="hidden fixed z-50 sm:w-80 rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style="background:#1a1825;max-width:calc(100vw - 16px);"></div>';
 
     document.getElementById('header-mount').innerHTML = headerHTML;
 
@@ -163,7 +163,15 @@ function renderHeader(options) {
                 notifDropdown.innerHTML = UniNotifications.renderDropdown(currentNotifs);
                 var rect = notifBtn.getBoundingClientRect();
                 notifDropdown.style.top = (rect.bottom + 8) + 'px';
-                notifDropdown.style.right = (window.innerWidth - rect.right) + 'px';
+                if (window.innerWidth <= 640) {
+                    notifDropdown.style.left = '8px';
+                    notifDropdown.style.right = '8px';
+                    notifDropdown.style.width = 'auto';
+                } else {
+                    notifDropdown.style.left = '';
+                    notifDropdown.style.right = (window.innerWidth - rect.right) + 'px';
+                    notifDropdown.style.width = '320px';
+                }
                 notifDropdown.classList.remove('hidden');
                 bindNotifEvents();
             } else {
