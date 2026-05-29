@@ -9,7 +9,8 @@ function renderSidebar(activePage) {
         { id: '05', icon: 'edit_document', label: 'Assignments', href: '05.html' },
         { id: '06', icon: 'group_work', label: 'Group Projects', href: '06.html' },
         { id: '07', icon: 'account_balance_wallet', label: 'Budget', href: '07.html' },
-        { id: '08', icon: 'school', label: 'Scholarships', href: '08.html' }
+        { id: '08', icon: 'school', label: 'Scholarships', href: '08.html' },
+        { id: 'internships', icon: 'work', label: 'Internships', href: 'internships.html' }
     ];
 
     const navLinks = navItems.map(item => {

@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link rel="icon" type="image/svg+xml" href="../favicon.svg"/>
+<title>UniFlow | Internships</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="../js/components/tailwind.js"></script>
+<script>initTailwind();</script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+    body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#12111A}
+    .bg-glow-violet{background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(214,196,255,0.14) 0%,transparent 65%)}
+    .bg-glow-rose{background:radial-gradient(ellipse 70% 50% at 85% 75%,rgba(255,194,220,0.08) 0%,transparent 60%)}
+    .custom-scrollbar::-webkit-scrollbar{width:4px}
+    .custom-scrollbar::-webkit-scrollbar-track{background:transparent}
+    .custom-scrollbar::-webkit-scrollbar-thumb{background:rgba(158,151,179,0.25);border-radius:10px}
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .fade-in-up{animation:fadeInUp 0.4s ease-out forwards;opacity:0}
+    .filter-pill{white-space:nowrap;position:relative}
+    .filter-scroll::-webkit-scrollbar{display:none}
+    .filter-scroll{-ms-overflow-style:none;scrollbar-width:none}
+    .glass{background:rgba(26,24,37,0.6);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+    .filter-dropdown{display:none;position:fixed;min-width:180px;z-index:50;background:#1e1b2c;border:1px solid rgba(73,69,78,0.5);border-radius:12px;padding:6px;box-shadow:0 12px 40px rgba(0,0,0,0.4)}
+    .filter-dropdown.show{display:block}
+    .filter-dropdown button{width:100%;text-align:left;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;color:#cac4cf;background:transparent;border:none;cursor:pointer;transition:all 0.15s}
+    .filter-dropdown button:hover{background:rgba(255,255,255,0.08);color:#efe5ff}
+</style>
+</head>
+<body class="bg-background text-on-surface">
+<div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
+    <div class="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-glow-violet"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[65%] h-[65%] bg-glow-rose"></div>
+</div>
+<div id="sidebar-mount"></div>
+<div id="header-mount"></div>
+
+<main class="md:ml-[280px] pt-20 h-screen overflow-hidden flex flex-col">
+    <div class="px-margin-mobile md:px-margin-desktop pr-4 flex flex-col h-full overflow-hidden">
+
+        <!-- Search & Filters — Glass Container -->
+        <div class="glass rounded-3xl p-5 border border-outline-variant/10 mb-4 fade-in-up flex-shrink-0" style="animation-delay:0ms">
+            <!-- Row 1: Search Inputs -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">school</span>
+                    <input id="inp-study" type="text" placeholder="I am studying..." class="w-full bg-surface-container rounded-xl pl-10 pr-4 py-3 text-on-surface border border-outline-variant/30 focus:border-primary outline-none transition-all text-sm"/>
+                </div>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">work</span>
+                    <input id="inp-title" type="text" placeholder="Search by job title..." class="w-full bg-surface-container rounded-xl pl-10 pr-4 py-3 text-on-surface border border-outline-variant/30 focus:border-primary outline-none transition-all text-sm"/>
+                </div>
+            </div>
+            <!-- Row 2: Filter Pills -->
+            <div class="flex items-center gap-2 overflow-x-auto filter-scroll pb-1">
+                <!-- Location Pill -->
+                <div class="filter-pill">
+                    <button onclick="toggleFilter('location', event)" class="flex items-center gap-1.5 px-4 py-2 bg-surface-container-high rounded-full text-label-sm text-on-surface-variant hover:bg-surface-container-highest hover:text-primary transition-all border border-outline-variant/20">
+                        <span class="material-symbols-outlined text-sm">location_on</span> <span id="filter-label-location">Location</span>
+                        <span class="material-symbols-outlined text-xs">expand_more</span>
+                    </button>
+                </div>
+                <!-- Workplace Type Pill -->
+                <div class="filter-pill">
+                    <button onclick="toggleFilter('workplace', event)" class="flex items-center gap-1.5 px-4 py-2 bg-surface-container-high rounded-full text-label-sm text-on-surface-variant hover:bg-surface-container-highest hover:text-primary transition-all border border-outline-variant/20">
+                        <span class="material-symbols-outlined text-sm">home_work</span> <span id="filter-label-workplace">Workplace Type</span>
+                        <span class="material-symbols-outlined text-xs">expand_more</span>
+                    </button>
+                </div>
+                <!-- Industry Pill -->
+                <div class="filter-pill">
+                    <button onclick="toggleFilter('industry', event)" class="flex items-center gap-1.5 px-4 py-2 bg-surface-container-high rounded-full text-label-sm text-on-surface-variant hover:bg-surface-container-highest hover:text-primary transition-all border border-outline-variant/20">
+                        <span class="material-symbols-outlined text-sm">category</span> <span id="filter-label-industry">Industry</span>
+                        <span class="material-symbols-outlined text-xs">expand_more</span>
+                    </button>
+                </div>
+                <!-- Salary Pill -->
+                <div class="filter-pill">
+                    <button onclick="toggleFilter('salary', event)" class="flex items-center gap-1.5 px-4 py-2 bg-surface-container-high rounded-full text-label-sm text-on-surface-variant hover:bg-surface-container-highest hover:text-primary transition-all border border-outline-variant/20">
+                        <span class="material-symbols-outlined text-sm">payments</span> <span id="filter-label-salary">Salary</span>
+                        <span class="material-symbols-outlined text-xs">expand_more</span>
+                    </button>
+                </div>
+                <!-- Search Button -->
+                <button id="btn-search" onclick="searchInternships()" class="flex items-center gap-1.5 px-5 py-2 bg-primary text-on-primary rounded-full text-label-sm font-bold hover:brightness-110 active:scale-[0.97] transition-all whitespace-nowrap shadow-lg shadow-primary/20">
+                    <span class="material-symbols-outlined text-sm">search</span> <span id="btn-search-text">Search</span>
+                </button>
+                <!-- Clear Filters -->
+                <button onclick="clearAllFilters()" class="flex items-center gap-1.5 px-4 py-2 text-on-surface-variant hover:text-rose-400 transition-all text-label-sm whitespace-nowrap">
+                    <span class="material-symbols-outlined text-sm">filter_alt_off</span> Clear filters
+                </button>
+            </div>
+        </div>
+
+        <!-- Two-Column Master-Detail -->
+        <div class="flex flex-1 gap-4 overflow-hidden min-h-0">
+
+            <!-- Left Column: Master List -->
+            <div class="w-full md:w-[35%] overflow-y-auto custom-scrollbar pr-2 fade-in-up" style="animation-delay:80ms">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-label-sm font-bold text-on-surface-variant">Sort by Relevance</h3>
+                    <span class="text-[11px] text-on-surface-variant opacity-60">4 opportunities</span>
+                </div>
+
+                <!-- Job Card 1 — Active/Selected -->
+                <div onclick="selectJob(0)" class="job-card active-card bg-surface-container/80 rounded-2xl p-4 border-2 border-primary/50 mb-3 cursor-pointer hover:border-primary transition-all shadow-lg shadow-primary/5">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+                            <span class="text-lg">🏢</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-label-sm font-bold text-on-surface truncate">Google</p>
+                            <p class="text-label-sm text-primary font-semibold truncate">Software Engineer Intern</p>
+                            <div class="flex flex-wrap gap-2 mt-1.5">
+                                <span class="text-[10px] text-on-surface-variant flex items-center gap-0.5"><span class="material-symbols-outlined text-[12px]">location_on</span>Mountain View, CA</span>
+                                <span class="text-[10px] text-on-surface-variant flex items-center gap-0.5"><span class="material-symbols-outlined text-[12px]">payments</span>$9,000/mo</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="mt-3 w-full py-2 bg-primary text-on-primary rounded-xl text-label-sm font-bold hover:brightness-110 active:scale-[0.97] transition-all">Apply</button>
+                </div>
+
+                <!-- Job Card 2 -->
+                <div onclick="selectJob(1)" class="job-card bg-surface-container/60 rounded-2xl p-4 border border-outline-variant/10 mb-3 cursor-pointer hover:border-primary/20 transition-all">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center flex-shrink-0">
+                            <span class="text-lg">💼</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-label-sm font-bold text-on-surface truncate">Microsoft</p>
+                            <p class="text-label-sm text-on-surface-variant font-semibold truncate">Data Science Intern</p>
+                            <div class="flex flex-wrap gap-2 mt-1.5">
+                                <span class="text-[10px] text-on-surface-variant flex items-center gap-0.5"><span class="material-symbols-outlined text-[12px]">location_on</span>Redmond, WA</span>
+                                <span class="text-[10px] text-on-surface-variant flex items-center gap-0.5"><span class="material-symbols-outlined text-[12px]">payments</span>$7,500/mo</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="mt-3 w-full py-2 bg-primary/10 text-primary rounded-xl text-label-sm font-bold hover:bg-primary/20 transition-all">Apply</button>
+                </div>
+
+                <!-- Job Card 3 -->
+                <div onclick="selectJob(2)" class="job-card bg-surface-container/60 rounded-2xl p-4 border border-outline-variant/10 mb-3 cursor-pointer hover:border-primary/20 transition-all">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-tertiary/15 flex items-center justify-center flex-shrink-0">
+                            <span class="text-lg">🚀</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-label-sm font-bold text-on-surface truncate">Stripe</p>
+                            <p class="text-label-sm text-on-surface-variant font-semibold truncate">Backend Engineering Intern</p>
+                            <div class="flex flex-wrap gap-2 mt-1.5">
+                                <span class="text-[10px] text-on-surface-variant flex items-center gap-0.5"><span class="material-symbols-outlined text-[12px]">location_on</span>Remote</span>
+                                <span class="text-[10px] text-on-surface-variant flex items-center gap-0.5"><span class="material-symbols-outlined text-[12px]">payments</span>$8,200/mo</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="mt-3 w-full py-2 bg-primary/10 text-primary rounded-xl text-label-sm font-bold hover:bg-primary/20 transition-all">Apply</button>
+                </div>
+
+                <!-- Job Card 4 -->
+                <div onclick="selectJob(3)" class="job-card bg-surface-container/60 rounded-2xl p-4 border border-outline-variant/10 mb-3 cursor-pointer hover:border-primary/20 transition-all">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center flex-shrink-0">
+                            <span class="text-lg">🎨</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-label-sm font-bold text-on-surface truncate">Figma</p>
+                            <p class="text-label-sm text-on-surface-variant font-semibold truncate">Product Design Intern</p>
+                            <div class="flex flex-wrap gap-2 mt-1.5">
+                                <span class="text-[10px] text-on-surface-variant flex items-center gap-0.5"><span class="material-symbols-outlined text-[12px]">location_on</span>San Francisco, CA</span>
+                                <span class="text-[10px] text-on-surface-variant flex items-center gap-0.5"><span class="material-symbols-outlined text-[12px]">payments</span>$6,800/mo</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="mt-3 w-full py-2 bg-primary/10 text-primary rounded-xl text-label-sm font-bold hover:bg-primary/20 transition-all">Apply</button>
+                </div>
+            </div>
+
+            <!-- Right Column: Detail Pane -->
+            <div class="hidden md:block md:w-[65%] bg-surface-container/40 rounded-3xl border border-outline-variant/10 overflow-y-auto custom-scrollbar p-6 fade-in-up sticky top-20" style="animation-delay:160ms">
+                <div id="detail-content">
+                    <!-- Header -->
+                    <div class="flex items-start gap-4 mb-6">
+                        <div class="w-14 h-14 rounded-2xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+                            <span class="text-2xl">🏢</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h2 id="detail-title" class="text-headline-lg font-bold text-on-surface tracking-tight">Software Engineer Intern</h2>
+                            <p id="detail-company" class="text-body-md text-primary font-semibold mt-1">Google</p>
+                            <div class="flex flex-wrap items-center gap-3 mt-2">
+                                <span id="detail-location" class="text-label-sm text-on-surface-variant flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-sm">location_on</span> Mountain View, CA
+                                </span>
+                                <span class="text-on-surface-variant opacity-30">•</span>
+                                <span id="detail-type-badge" class="px-3 py-1 bg-primary/10 text-primary rounded-full text-[11px] font-bold">On-site</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-3 mb-8">
+                        <button class="flex-1 py-3 bg-primary text-on-primary rounded-2xl font-bold hover:brightness-110 active:scale-[0.97] transition-all flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined">send</span> Apply Now
+                        </button>
+                        <button class="py-3 px-5 bg-surface-container-high text-on-surface-variant rounded-2xl font-bold hover:text-primary transition-all flex items-center gap-2 border border-outline-variant/20">
+                            <span class="material-symbols-outlined">bookmark_add</span> Save
+                        </button>
+                    </div>
+
+                    <!-- Opportunity Details -->
+                    <div class="mb-6">
+                        <h3 class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider mb-4">Opportunity Details</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3 p-3 bg-surface-container/60 rounded-xl">
+                                <span class="material-symbols-outlined text-primary">schedule</span>
+                                <div>
+                                    <p class="text-[10px] text-on-surface-variant uppercase tracking-wider">Job Type</p>
+                                    <p id="detail-type" class="text-label-sm font-bold text-on-surface">Full-time Internship</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 p-3 bg-surface-container/60 rounded-xl">
+                                <span class="material-symbols-outlined text-primary">calendar_month</span>
+                                <div>
+                                    <p class="text-[10px] text-on-surface-variant uppercase tracking-wider">Start Date</p>
+                                    <p id="detail-start" class="text-label-sm font-bold text-on-surface">June 2026</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 p-3 bg-surface-container/60 rounded-xl">
+                                <span class="material-symbols-outlined text-primary">payments</span>
+                                <div>
+                                    <p class="text-[10px] text-on-surface-variant uppercase tracking-wider">Salary</p>
+                                    <p id="detail-salary" class="text-label-sm font-bold text-on-surface">$9,000 / month</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 p-3 bg-surface-container/60 rounded-xl">
+                                <span class="material-symbols-outlined text-primary">location_on</span>
+                                <div>
+                                    <p class="text-[10px] text-on-surface-variant uppercase tracking-wider">Location</p>
+                                    <p id="detail-location-full" class="text-label-sm font-bold text-on-surface">Mountain View, California, USA</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <h3 class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider mb-3">Description</h3>
+                        <p id="detail-desc" class="text-body-md text-on-surface-variant leading-relaxed">
+                            Join Google's engineering team for a 12-week immersive internship. You'll work on real products used by billions, collaborate with world-class engineers, and gain hands-on experience with cutting-edge technologies. Ideal for students passionate about scalable systems and impactful software.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+<div id="bottomnav-mount"></div>
+
+<!-- Dropdowns at body level to avoid backdrop-filter containing block issue -->
+<div id="dropdown-location" class="filter-dropdown">
+    <button onclick="selectFilter('location','Kuala Lumpur')">Kuala Lumpur</button>
+    <button onclick="selectFilter('location','Selangor')">Selangor</button>
+    <button onclick="selectFilter('location','Penang')">Penang</button>
+    <button onclick="selectFilter('location','Johor')">Johor</button>
+    <button onclick="selectFilter('location','Remote')">Remote</button>
+</div>
+<div id="dropdown-workplace" class="filter-dropdown">
+    <button onclick="selectFilter('workplace','Remote')">Remote</button>
+    <button onclick="selectFilter('workplace','Hybrid')">Hybrid</button>
+    <button onclick="selectFilter('workplace','On-site')">On-site</button>
+</div>
+<div id="dropdown-industry" class="filter-dropdown">
+    <button onclick="selectFilter('industry','Technology')">Technology</button>
+    <button onclick="selectFilter('industry','Finance')">Finance</button>
+    <button onclick="selectFilter('industry','Design')">Design</button>
+    <button onclick="selectFilter('industry','Healthcare')">Healthcare</button>
+    <button onclick="selectFilter('industry','Education')">Education</button>
+</div>
+<div id="dropdown-salary" class="filter-dropdown">
+    <button onclick="selectFilter('salary','<$5,000/mo')"><$5,000/mo</button>
+    <button onclick="selectFilter('salary','$5,000–$7,000/mo')">$5,000–$7,000/mo</button>
+    <button onclick="selectFilter('salary','$7,000–$9,000/mo')">$7,000–$9,000/mo</button>
+    <button onclick="selectFilter('salary','$9,000+/mo')">$9,000+/mo</button>
+</div>
+
+<script src="../js/components/sidebar.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="../js/firebase.js"></script>
+<script src="../js/components/header.js"></script>
+<script src="../js/components/modal.js"></script>
+<script src="../js/store.js"></script>
+<script src="../js/components/notifications.js"></script>
+<script src="../js/components/toast.js"></script>
+<script>
+var jobs = [
+    {
+        company: 'Google',
+        title: 'Software Engineer Intern',
+        location: 'Mountain View, CA',
+        locationFull: 'Mountain View, California, USA',
+        salary: '$9,000/mo',
+        salaryFull: '$9,000 / month',
+        type: 'Full-time Internship',
+        typeBadge: 'On-site',
+        start: 'June 2026',
+        icon: '🏢',
+        iconBg: 'bg-primary/15',
+        desc: 'Join Google\'s engineering team for a 12-week immersive internship. You\'ll work on real products used by billions, collaborate with world-class engineers, and gain hands-on experience with cutting-edge technologies. Ideal for students passionate about scalable systems and impactful software.'
+    },
+    {
+        company: 'Microsoft',
+        title: 'Data Science Intern',
+        location: 'Redmond, WA',
+        locationFull: 'Redmond, Washington, USA',
+        salary: '$7,500/mo',
+        salaryFull: '$7,500 / month',
+        type: 'Full-time Internship',
+        typeBadge: 'Hybrid',
+        start: 'July 2026',
+        icon: '💼',
+        iconBg: 'bg-secondary/15',
+        desc: 'Microsoft\'s Data Science internship offers you the chance to analyze large-scale datasets, build ML models, and drive data-informed decisions across Azure products. Work closely with product teams to ship features that impact millions of enterprise customers worldwide.'
+    },
+    {
+        company: 'Stripe',
+        title: 'Backend Engineering Intern',
+        location: 'Remote',
+        locationFull: 'Remote (Worldwide)',
+        salary: '$8,200/mo',
+        salaryFull: '$8,200 / month',
+        type: 'Full-time Internship',
+        typeBadge: 'Remote',
+        start: 'May 2026',
+        icon: '🚀',
+        iconBg: 'bg-tertiary/15',
+        desc: 'Build the infrastructure that powers the internet economy. As a Backend Engineering Intern at Stripe, you\'ll design and implement APIs, improve system reliability, and work on distributed systems processing billions of dollars in transactions. Remote-first culture with world-class mentorship.'
+    },
+    {
+        company: 'Figma',
+        title: 'Product Design Intern',
+        location: 'San Francisco, CA',
+        locationFull: 'San Francisco, California, USA',
+        salary: '$6,800/mo',
+        salaryFull: '$6,800 / month',
+        type: 'Full-time Internship',
+        typeBadge: 'On-site',
+        start: 'August 2026',
+        icon: '🎨',
+        iconBg: 'bg-secondary/15',
+        desc: 'Shape the future of collaborative design at Figma. You\'ll partner with engineers and researchers to prototype, test, and ship features used by design teams at every major tech company. Perfect for students with a strong eye for detail and passion for user-centered design.'
+    }
+];
+
+function selectJob(idx) {
+    var job = jobs[idx];
+
+    // Update detail pane
+    var detail = document.getElementById('detail-content');
+    if (detail) {
+        detail.querySelector('#detail-title').textContent = job.title;
+        detail.querySelector('#detail-company').textContent = job.company;
+        detail.querySelector('#detail-location').innerHTML = '<span class="material-symbols-outlined text-sm">location_on</span> ' + job.location;
+        detail.querySelector('#detail-type-badge').textContent = job.typeBadge;
+        detail.querySelector('#detail-type').textContent = job.type;
+        detail.querySelector('#detail-start').textContent = job.start;
+        detail.querySelector('#detail-salary').textContent = job.salaryFull;
+        detail.querySelector('#detail-location-full').textContent = job.locationFull;
+        detail.querySelector('#detail-desc').textContent = job.desc;
+    }
+
+    // Update active card styling
+    var cards = document.querySelectorAll('.job-card');
+    cards.forEach(function(card, i) {
+        if (i === idx) {
+            card.className = 'job-card active-card bg-surface-container/80 rounded-2xl p-4 border-2 border-primary/50 mb-3 cursor-pointer hover:border-primary transition-all shadow-lg shadow-primary/5';
+            var btn = card.querySelector('button');
+            if (btn) {
+                btn.className = 'mt-3 w-full py-2 bg-primary text-on-primary rounded-xl text-label-sm font-bold hover:brightness-110 active:scale-[0.97] transition-all';
+            }
+            var title = card.querySelector('.text-label-sm.text-on-surface-variant.font-semibold');
+            if (title) {
+                title.className = 'text-label-sm text-primary font-semibold truncate';
+            }
+        } else {
+            card.className = 'job-card bg-surface-container/60 rounded-2xl p-4 border border-outline-variant/10 mb-3 cursor-pointer hover:border-primary/20 transition-all';
+            var btn = card.querySelector('button');
+            if (btn) {
+                btn.className = 'mt-3 w-full py-2 bg-primary/10 text-primary rounded-xl text-label-sm font-bold hover:bg-primary/20 transition-all';
+            }
+            var title = card.querySelector('.text-label-sm.text-primary.font-semibold');
+            if (title) {
+                title.className = 'text-label-sm text-on-surface-variant font-semibold truncate';
+            }
+        }
+    });
+}
+
+// ── Filter Dropdown Logic ──
+var defaultLabels = { location: 'Location', workplace: 'Workplace Type', industry: 'Industry', salary: 'Salary' };
+var activeFilters = {};
+
+function closeAllFilters() {
+    document.querySelectorAll('.filter-dropdown').forEach(function(dd) {
+        dd.classList.remove('show');
+    });
+}
+
+function toggleFilter(id, event) {
+    event.stopPropagation();
+    var dd = document.getElementById('dropdown-' + id);
+    var btn = event.currentTarget;
+    var rect = btn.getBoundingClientRect();
+    var isOpen = dd.classList.contains('show');
+    closeAllFilters();
+    if (!isOpen) {
+        dd.style.top = (rect.bottom + 6) + 'px';
+        dd.style.left = rect.left + 'px';
+        dd.classList.add('show');
+    }
+}
+
+function getPillButton(id) {
+    var label = document.getElementById('filter-label-' + id);
+    return label ? label.closest('button') : null;
+}
+
+function selectFilter(id, value) {
+    activeFilters[id] = value;
+    var label = document.getElementById('filter-label-' + id);
+    if (label) label.textContent = value;
+    closeAllFilters();
+    // Highlight pill when filter is active
+    var pill = getPillButton(id);
+    if (pill) {
+        pill.classList.remove('bg-surface-container-high', 'text-on-surface-variant');
+        pill.classList.add('bg-primary/15', 'text-primary');
+    }
+}
+
+function clearAllFilters() {
+    activeFilters = {};
+    Object.keys(defaultLabels).forEach(function(id) {
+        var label = document.getElementById('filter-label-' + id);
+        if (label) label.textContent = defaultLabels[id];
+        var pill = getPillButton(id);
+        if (pill) {
+            pill.classList.remove('bg-primary/15', 'text-primary');
+            pill.classList.add('bg-surface-container-high', 'text-on-surface-variant');
+        }
+    });
+    closeAllFilters();
+}
+
+// ── Search Logic ──
+function searchInternships() {
+    var studyField = document.getElementById('inp-study').value.trim();
+    var jobTitle = document.getElementById('inp-title').value.trim();
+
+    // Collect only non-default filter selections
+    var filters = {};
+    Object.keys(activeFilters).forEach(function(key) {
+        if (activeFilters[key] && activeFilters[key] !== defaultLabels[key]) {
+            filters[key] = activeFilters[key];
+        }
+    });
+
+    // Validate: at least one input must be filled
+    var hasInput = studyField || jobTitle || Object.keys(filters).length > 0;
+    if (!hasInput) {
+        Toast.show('Please fill in at least one search criteria', 'warning');
+        return;
+    }
+
+    // Build search params object
+    var searchParams = {
+        studyField: studyField || null,
+        jobTitle: jobTitle || null,
+        location: filters.location || null,
+        workplaceType: filters.workplace || null,
+        industry: filters.industry || null,
+        salary: filters.salary || null
+    };
+
+    // Show loading state on button
+    var btn = document.getElementById('btn-search');
+    var btnText = document.getElementById('btn-search-text');
+    if (btn) btn.disabled = true;
+    if (btnText) btnText.textContent = 'Searching...';
+
+    console.log('🔍 Internship Search Params:', searchParams);
+
+    // TODO: Replace this placeholder with actual API call once backend is ready
+    // Example:
+    //   fetch('/api/internships/search', {
+    //       method: 'POST',
+    //       headers: { 'Content-Type': 'application/json' },
+    //       body: JSON.stringify(searchParams)
+    //   })
+    //   .then(function(res) { return res.json(); })
+    //   .then(function(data) { updateJobCards(data); })
+    //   .catch(function(err) { Toast.show('Search failed. Please try again.', 'error'); })
+    //   .finally(function() { reset button state });
+
+    setTimeout(function() {
+        Toast.show('Search functionality will be available once backend is ready', 'info');
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.textContent = 'Search';
+    }, 800);
+}
+
+// Close dropdowns when clicking outside pill buttons or dropdowns
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.filter-pill') && !e.target.closest('.filter-dropdown')) {
+        closeAllFilters();
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function(){
+    renderSidebar('internships');
+    renderHeader({title:'Internships', subtitle:'Find Opportunities'});
+});
+</script>
+</body>
+</html>
