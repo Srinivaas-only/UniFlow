@@ -39,8 +39,8 @@
     <div class="px-margin-mobile md:px-margin-desktop pr-4 pb-24 space-y-6 max-w-3xl">
         <!-- Profile Header -->
         <div class="fade-in-up flex flex-col items-center pt-4" style="animation-delay:0ms">
-            <div class="w-24 h-24 rounded-full bg-primary/20 border-2 border-primary/30 flex items-center justify-center mb-4">
-                <span class="material-symbols-outlined text-primary text-5xl" style="font-variation-settings:'FILL' 1;">person</span>
+            <div id="profile-avatar" class="w-24 h-24 rounded-full bg-primary/20 border-2 border-primary/30 flex items-center justify-center mb-4">
+                <span class="text-3xl font-bold text-primary">U</span>
             </div>
             <h1 class="text-headline-lg font-bold text-on-surface" id="profile-name-display">Student</h1>
             <p class="text-on-surface-variant text-body-md mt-1" id="profile-email-display">student@university.edu</p>
@@ -202,8 +202,13 @@ function loadProfile() {
     var user = getCurrentUser();
 
     // Display name
-    var name = profile.name || 'Student';
+    var name = profile.name || (user && user.displayName) || 'Student';
     document.getElementById('profile-name-display').textContent = name;
+
+    // Avatar initials
+    var initials = name.split(' ').map(function(w) { return w[0] || ''; }).join('').toUpperCase().slice(0, 2) || 'U';
+    var avatarEl = document.getElementById('profile-avatar');
+    avatarEl.innerHTML = '<span class="text-3xl font-bold text-primary">' + initials + '</span>';
 
     // Email
     var email = user ? user.email : '—';

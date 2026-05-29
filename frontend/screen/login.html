@@ -11,52 +11,62 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <link href="../theme.css" rel="stylesheet"/>
-<!-- Firebase SDK (compat) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="../js/firebase.js"></script>
-<script src="../js/store.js"></script>
 <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #12111a; }
+    body { font-family:'Plus Jakarta Sans',sans-serif; background-color:#12111A; }
+    .bg-glow-violet { background:radial-gradient(ellipse 80% 60% at 30% 20%,rgba(214,196,255,0.18) 0%,transparent 65%); }
+    .bg-glow-rose { background:radial-gradient(ellipse 70% 50% at 75% 80%,rgba(255,194,220,0.10) 0%,transparent 60%); }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .fade-in-up { animation:fadeInUp 0.5s ease-out forwards; opacity:0; }
+    @keyframes pulse-glow { 0%,100%{opacity:0.5;transform:scale(1)} 50%{opacity:0.85;transform:scale(1.04)} }
+    .ai-pulse { animation:pulse-glow 4s infinite ease-in-out; }
     .shake { animation: shake 0.4s ease-in-out; }
     @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+    .login-field:focus { border-color: #D6C4FF; box-shadow: 0 0 0 2px rgba(214,196,255,0.15); }
+    .login-field::placeholder { color: #948f99; }
 </style>
 </head>
-<body>
+<body class="bg-background text-on-surface">
 
-<!-- Full-screen backdrop overlay -->
-<div class="fixed inset-0 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+<!-- Background Glows (matches landing page) -->
+<div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
+    <div class="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-glow-violet ai-pulse"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[65%] h-[65%] bg-glow-rose"></div>
+</div>
 
-    <!-- Login Modal Card -->
-    <div class="w-full max-w-[400px] rounded-2xl p-8" style="background: #1a1825;">
+<!-- Full-screen centered card -->
+<div class="fixed inset-0 flex items-center justify-center p-4">
 
-        <!-- App Title -->
+    <!-- Login Card -->
+    <div class="w-full max-w-[420px] bg-surface-container/60 backdrop-blur-2xl rounded-3xl p-8 border border-outline-variant/10 shadow-2xl fade-in-up">
+
+        <!-- Logo + Title -->
         <div class="text-center mb-8">
-            <h1 class="text-[26px] font-bold" style="color: #f1eff5;">UniFlow</h1>
-            <p class="text-sm mt-1" style="color: #948f99;">Log In To Continue</p>
+            <div class="w-14 h-14 bg-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-primary text-3xl">auto_awesome</span>
+            </div>
+            <h1 class="text-headline-lg font-bold text-on-surface">UniFlow</h1>
+            <p class="text-on-surface-variant text-label-sm mt-1">Log in to continue</p>
         </div>
 
         <!-- Error message (hidden by default) -->
-        <div id="login-error" class="hidden mb-4 p-3 rounded-lg text-sm text-center" style="background: rgba(239,68,68,0.15); color: #f87171;"></div>
+        <div id="login-error" class="hidden mb-4 p-3 rounded-2xl text-label-sm text-center bg-rose-500/15 text-rose-400"></div>
 
-        <!-- Email Input -->
+        <!-- Email -->
         <div class="mb-4">
-            <label for="login-email" class="block text-xs font-semibold mb-1.5" style="color: #f1eff5;">Email</label>
+            <label for="login-email" class="text-label-sm text-on-surface-variant block mb-1.5">Email</label>
             <input
                 type="email"
                 id="login-email"
                 name="email"
-                placeholder="Enter your email"
+                placeholder="you@university.edu"
                 autocomplete="off"
-                class="w-full px-4 py-3 rounded-lg text-sm outline-none focus:ring-2"
-                style="background: #12111a; color: #f1eff5; border: 1px solid #35343e; --tw-ring-color: #3b82f6;"
+                class="login-field w-full bg-surface-container-high rounded-2xl px-4 py-3 text-on-surface border border-outline-variant/30 outline-none transition-all"
             />
         </div>
 
-        <!-- Password Input with Show/Hide -->
+        <!-- Password -->
         <div class="mb-6">
-            <label for="login-password" class="block text-xs font-semibold mb-1.5" style="color: #f1eff5;">Password</label>
+            <label for="login-password" class="text-label-sm text-on-surface-variant block mb-1.5">Password</label>
             <div class="relative">
                 <input
                     type="password"
@@ -64,70 +74,73 @@
                     name="password"
                     placeholder="Enter your password"
                     autocomplete="off"
-                    class="w-full px-4 py-3 pr-16 rounded-lg text-sm outline-none focus:ring-2"
-                    style="background: #12111a; color: #f1eff5; border: 1px solid #35343e; --tw-ring-color: #3b82f6;"
+                    class="login-field w-full bg-surface-container-high rounded-2xl px-4 py-3 pr-16 text-on-surface border border-outline-variant/30 outline-none transition-all"
                 />
                 <button
                     type="button"
                     id="toggle-password"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold bg-transparent border-none cursor-pointer"
-                    style="color: #3b82f6;"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold bg-transparent border-none cursor-pointer text-primary"
                 >Show</button>
             </div>
         </div>
 
-        <!-- Log In Button (disabled until all fields are filled) -->
+        <!-- Log In Button -->
         <button
             type="button"
             id="login-btn"
             disabled
-            class="w-full py-3 rounded-lg text-sm font-bold border-none cursor-not-allowed transition-opacity"
-            style="background: #3b82f6; color: #ffffff; opacity: 0.4;"
-        >Log In</button>
+            class="w-full py-3.5 bg-primary text-on-primary rounded-2xl font-bold text-body-md border-none cursor-not-allowed transition-all opacity-40 hover:brightness-110 active:scale-[0.97] flex items-center justify-center gap-2"
+        >
+            <span class="material-symbols-outlined">login</span> Log In
+        </button>
 
         <!-- Forgot Password -->
         <div id="forgot-password-section" class="mt-4">
-            <button type="button" id="forgot-password-btn" class="w-full text-xs font-semibold bg-transparent border-none cursor-pointer hover:underline" style="color: #948f99;">
+            <button type="button" id="forgot-password-btn" class="w-full text-label-sm font-bold bg-transparent border-none cursor-pointer hover:underline text-on-surface-variant">
                 Forgot Password?
             </button>
         </div>
 
-        <!-- Forgot Password Form (hidden by default) -->
+        <!-- Forgot Password Form (hidden) -->
         <div id="forgot-password-form" class="hidden mt-4">
             <div class="mb-3">
-                <label for="reset-email" class="block text-xs font-semibold mb-1.5" style="color: #f1eff5;">Enter your email</label>
+                <label for="reset-email" class="text-label-sm text-on-surface-variant block mb-1.5">Enter your email</label>
                 <input
                     type="email"
                     id="reset-email"
                     name="reset-email"
                     placeholder="your@email.com"
                     autocomplete="email"
-                    class="w-full px-4 py-3 rounded-lg text-sm outline-none focus:ring-2"
-                    style="background: #12111a; color: #f1eff5; border: 1px solid #35343e; --tw-ring-color: #3b82f6;"
+                    class="login-field w-full bg-surface-container-high rounded-2xl px-4 py-3 text-on-surface border border-outline-variant/30 outline-none transition-all"
                 />
             </div>
-            <div id="reset-message" class="hidden mb-3 p-3 rounded-lg text-sm text-center"></div>
+            <div id="reset-message" class="hidden mb-3 p-3 rounded-2xl text-label-sm text-center"></div>
             <button
                 type="button"
                 id="send-reset-btn"
-                class="w-full py-2.5 rounded-lg text-sm font-bold border-none cursor-pointer transition-opacity"
-                style="background: #35343e; color: #f1eff5;"
+                class="w-full py-3 bg-surface-container-high text-on-surface rounded-2xl font-bold text-label-sm border-none cursor-pointer hover:bg-surface-container-highest transition-all"
             >Send Reset Link</button>
             <button
                 type="button"
                 id="cancel-reset-btn"
-                class="w-full py-2 mt-2 text-xs font-semibold bg-transparent border-none cursor-pointer"
-                style="color: #948f99;"
+                class="w-full py-2 mt-2 text-label-sm font-bold bg-transparent border-none cursor-pointer text-on-surface-variant"
             >Cancel</button>
         </div>
 
-        <!-- Footer Link -->
-        <p class="text-center text-xs mt-6" style="color: #948f99;">
-            New to UniFlow? <a href="./signup.html" class="font-semibold hover:underline" style="color: #3b82f6;">Create an account.</a>
+        <!-- Footer -->
+        <p class="text-center text-label-sm text-on-surface-variant mt-6">
+            New to UniFlow? <a href="./signup.html" class="text-primary font-bold hover:underline">Create an account</a>
         </p>
 
     </div>
 </div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="../js/firebase.js"></script>
+<script src="../js/store.js"></script>
 
 <script>
 (function() {
@@ -148,29 +161,23 @@
         errorBox.classList.add('hidden');
     }
 
-    // Validate all fields and toggle button state
     function validateFields() {
-        var allFilled = emailInput.value.trim() !== '' &&
-                        passwordInput.value.trim() !== '';
+        var allFilled = emailInput.value.trim() !== '' && passwordInput.value.trim() !== '';
         loginBtn.disabled = !allFilled;
         if (allFilled) {
             loginBtn.style.opacity = '1';
             loginBtn.style.cursor = 'pointer';
             loginBtn.classList.remove('cursor-not-allowed');
-            loginBtn.classList.add('hover:opacity-90');
         } else {
             loginBtn.style.opacity = '0.4';
             loginBtn.style.cursor = 'not-allowed';
             loginBtn.classList.add('cursor-not-allowed');
-            loginBtn.classList.remove('hover:opacity-90');
         }
     }
 
-    // Listen for input changes
     emailInput.addEventListener('input', validateFields);
     passwordInput.addEventListener('input', validateFields);
 
-    // Password show/hide toggle
     toggleBtn.addEventListener('click', function() {
         if (passwordInput.type === 'password') {
             passwordInput.type = 'text';
@@ -181,17 +188,12 @@
         }
     });
 
-    // Enter key triggers Log In
     function onEnter(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            if (!loginBtn.disabled) loginBtn.click();
-        }
+        if (e.key === 'Enter') { e.preventDefault(); if (!loginBtn.disabled) loginBtn.click(); }
     }
     emailInput.addEventListener('keydown', onEnter);
     passwordInput.addEventListener('keydown', onEnter);
 
-    // Log In with Firebase Auth
     loginBtn.addEventListener('click', function() {
         if (loginBtn.disabled) return;
         hideError();
@@ -199,14 +201,12 @@
         var email = emailInput.value.trim();
         var password = passwordInput.value;
 
-        // Show loading state
         loginBtn.disabled = true;
-        loginBtn.textContent = 'Logging in...';
+        loginBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> Logging in...';
         loginBtn.style.opacity = '0.7';
 
         firebaseAuth.signInWithEmailAndPassword(email, password)
             .then(function(userCredential) {
-                // Save display name to Store for header
                 var user = userCredential.user;
                 if (user.displayName) {
                     try {
@@ -215,45 +215,30 @@
                         localStorage.setItem('uniflow_profile', JSON.stringify(profile));
                     } catch(e) {}
                 }
-                // Load user data from Firestore, then redirect to dashboard
                 return Store.loadFromFirestore();
             })
             .then(function() {
                 window.location.href = './01.html';
             })
             .catch(function(error) {
-                // Show user-friendly error
                 var msg = 'Login failed. ';
                 switch (error.code) {
-                    case 'auth/user-not-found':
-                        msg = 'No account found with this email.';
-                        break;
+                    case 'auth/user-not-found': msg = 'No account found with this email.'; break;
                     case 'auth/wrong-password':
-                    case 'auth/invalid-credential':
-                        msg = 'Incorrect email or password.';
-                        break;
-                    case 'auth/invalid-email':
-                        msg = 'Please enter a valid email address.';
-                        break;
-                    case 'auth/too-many-requests':
-                        msg = 'Too many attempts. Please try again later.';
-                        break;
-                    case 'auth/user-disabled':
-                        msg = 'This account has been disabled.';
-                        break;
-                    default:
-                        msg = error.message || 'Something went wrong. Please try again.';
+                    case 'auth/invalid-credential': msg = 'Incorrect email or password.'; break;
+                    case 'auth/invalid-email': msg = 'Please enter a valid email address.'; break;
+                    case 'auth/too-many-requests': msg = 'Too many attempts. Please try again later.'; break;
+                    case 'auth/user-disabled': msg = 'This account has been disabled.'; break;
+                    default: msg = error.message || 'Something went wrong. Please try again.';
                 }
                 showError(msg);
-
-                // Reset button
                 loginBtn.disabled = false;
-                loginBtn.textContent = 'Log In';
+                loginBtn.innerHTML = '<span class="material-symbols-outlined">login</span> Log In';
                 loginBtn.style.opacity = '1';
             });
     });
 
-    // ── Forgot Password ──
+    // Forgot Password
     var forgotBtn = document.getElementById('forgot-password-btn');
     var forgotForm = document.getElementById('forgot-password-form');
     var forgotSection = document.getElementById('forgot-password-section');
@@ -265,10 +250,7 @@
     forgotBtn.addEventListener('click', function() {
         forgotSection.classList.add('hidden');
         forgotForm.classList.remove('hidden');
-        // Pre-fill with login email if available
-        if (emailInput.value.trim()) {
-            resetEmailInput.value = emailInput.value.trim();
-        }
+        if (emailInput.value.trim()) resetEmailInput.value = emailInput.value.trim();
         resetEmailInput.focus();
     });
 
@@ -282,20 +264,17 @@
         var resetEmail = resetEmailInput.value.trim();
         if (!resetEmail) {
             resetMessage.classList.remove('hidden');
-            resetMessage.style.background = 'rgba(239,68,68,0.15)';
-            resetMessage.style.color = '#f87171';
+            resetMessage.className = 'mb-3 p-3 rounded-2xl text-label-sm text-center bg-rose-500/15 text-rose-400';
             resetMessage.textContent = 'Please enter your email address.';
             return;
         }
-
         sendResetBtn.disabled = true;
         sendResetBtn.textContent = 'Sending...';
 
         firebaseAuth.sendPasswordResetEmail(resetEmail)
             .then(function() {
                 resetMessage.classList.remove('hidden');
-                resetMessage.style.background = 'rgba(16,185,129,0.15)';
-                resetMessage.style.color = '#34d399';
+                resetMessage.className = 'mb-3 p-3 rounded-2xl text-label-sm text-center bg-emerald-500/15 text-emerald-400';
                 resetMessage.textContent = 'Password reset email sent! Check your inbox.';
                 sendResetBtn.disabled = false;
                 sendResetBtn.textContent = 'Send Reset Link';
@@ -303,28 +282,20 @@
             .catch(function(error) {
                 var msg = 'Failed to send reset email.';
                 switch (error.code) {
-                    case 'auth/user-not-found':
-                        msg = 'No account found with this email.';
-                        break;
-                    case 'auth/invalid-email':
-                        msg = 'Please enter a valid email address.';
-                        break;
-                    case 'auth/too-many-requests':
-                        msg = 'Too many attempts. Please try again later.';
-                        break;
-                    default:
-                        msg = error.message || 'Something went wrong.';
+                    case 'auth/user-not-found': msg = 'No account found with this email.'; break;
+                    case 'auth/invalid-email': msg = 'Please enter a valid email address.'; break;
+                    case 'auth/too-many-requests': msg = 'Too many attempts. Please try again later.'; break;
+                    default: msg = error.message || 'Something went wrong.';
                 }
                 resetMessage.classList.remove('hidden');
-                resetMessage.style.background = 'rgba(239,68,68,0.15)';
-                resetMessage.style.color = '#f87171';
+                resetMessage.className = 'mb-3 p-3 rounded-2xl text-label-sm text-center bg-rose-500/15 text-rose-400';
                 resetMessage.textContent = msg;
                 sendResetBtn.disabled = false;
                 sendResetBtn.textContent = 'Send Reset Link';
             });
     });
 
-    // If already logged in, load data then redirect to dashboard
+    // Auto-redirect if already logged in
     firebaseAuth.onAuthStateChanged(function(user) {
         if (user) {
             Store.loadFromFirestore().then(function() {
