@@ -72,7 +72,7 @@
                     type="password"
                     id="signup-password"
                     name="password"
-                    placeholder="Min 6 characters"
+                    placeholder="Min 8 characters"
                     autocomplete="new-password"
                     class="signup-field w-full bg-surface-container-high rounded-2xl px-4 py-3 pr-16 text-on-surface border border-outline-variant/30 outline-none transition-all"
                 />
@@ -120,6 +120,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="../js/firebase.js"></script>
+<script src="../js/utils/validation.js"></script>
 
 <script>
 (function() {
@@ -157,6 +158,11 @@
         }
     }
 
+    /* ── Inline validation bindings ── */
+    UniValidation.bind(emailInput, [UniValidation.rules.required, UniValidation.rules.email]);
+    UniValidation.bind(passwordInput, [UniValidation.rules.required, UniValidation.rules.password]);
+    UniValidation.bind(nameInput, [UniValidation.rules.required, UniValidation.rules.name]);
+
     emailInput.addEventListener('input', validateFields);
     passwordInput.addEventListener('input', validateFields);
     nameInput.addEventListener('input', validateFields);
@@ -182,14 +188,12 @@
         if (signupBtn.disabled) return;
         hideError();
 
+        /* Block submission if inline validation fails */
+        if (!UniValidation.allValid()) return;
+
         var email = emailInput.value.trim();
         var password = passwordInput.value;
         var displayName = nameInput.value.trim();
-
-        if (password.length < 6) {
-            showError('Password must be at least 6 characters.');
-            return;
-        }
 
         signupBtn.disabled = true;
         signupBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> Creating account...';
