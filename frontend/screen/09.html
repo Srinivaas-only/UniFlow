@@ -135,7 +135,6 @@
     </div>
 </main>
 
-<div id="bottomnav-mount"></div>
 
 <script src="../js/components/sidebar.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -143,7 +142,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="../js/firebase.js"></script>
 <script src="../js/components/header.js"></script>
-<script src="../js/components/bottomNav.js"></script>
 <script src="../js/components/loading.js"></script>
 <script src="../js/store.js"></script>
 <script src="../js/components/notifications.js"></script>
@@ -154,7 +152,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     renderSidebar('09');
     renderHeader({ title: 'Command Center', subtitle: 'AI Engine Online' });
-    renderBottomNav('09');
     initAuthGuard({onAuthenticated:function(){
         // Check onboarding
         var profile = Store.getProfile();

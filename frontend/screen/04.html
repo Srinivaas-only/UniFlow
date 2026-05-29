@@ -246,7 +246,6 @@
 </main>
 
 <!-- Shared Bottom Nav -->
-<div id="bottomnav-mount"></div>
 
 <!-- Shared Component Scripts -->
 <script src="../js/components/sidebar.js"></script>
@@ -255,7 +254,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="../js/firebase.js"></script>
 <script src="../js/components/header.js"></script>
-<script src="../js/components/bottomNav.js"></script>
 <script src="../js/components/loading.js"></script>
 <script src="../js/components/toast.js"></script>
 <script src="../js/components/authGuard.js"></script>
@@ -265,7 +263,6 @@
     document.addEventListener('DOMContentLoaded', function() {
         renderSidebar('03');
         renderHeader({ title: 'Data Structures', subtitle: 'CS201 • Resources' });
-        renderBottomNav('03');
         initAuthGuard({
             onAuthenticated: function() {
                 initLoading('Loading Data Structures...');

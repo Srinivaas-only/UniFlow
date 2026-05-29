@@ -109,7 +109,6 @@
     </div>
 </main>
 
-<div id="bottomnav-mount"></div>
 
 <script src="../js/components/sidebar.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -117,7 +116,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="../js/firebase.js"></script>
 <script src="../js/components/header.js"></script>
-<script src="../js/components/bottomNav.js"></script>
 <script src="../js/store.js"></script>
 <script src="../js/components/notifications.js"></script>
 <script src="../js/components/authGuard.js"></script>
@@ -160,7 +158,6 @@ function escapeHtml(t) { var d=document.createElement('div'); d.textContent=t; r
 document.addEventListener('DOMContentLoaded', function() {
     renderSidebar('02');
     renderHeader({ title:'Schedule', subtitle:'Your Calendar' });
-    renderBottomNav('02');
     initAuthGuard({ onAuthenticated: function() { renderCalendar(); } });
 });
 
