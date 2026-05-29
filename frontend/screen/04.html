@@ -63,11 +63,11 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
-                    <button class="px-6 py-3 rounded-full bg-surface-container-high border border-white/5 text-on-surface text-sm font-bold flex items-center gap-2 hover:bg-surface-container-highest transition-colors">
+                    <button onclick="Toast.show('Sharing modules is coming soon! We are working on it.','info')" class="px-6 py-3 rounded-full bg-surface-container-high border border-white/5 text-on-surface text-sm font-bold flex items-center gap-2 hover:bg-surface-container-highest transition-colors">
                         <span class="material-symbols-outlined text-[20px]">share</span>
                         Share Module
                     </button>
-                    <button class="px-6 py-3 rounded-full bg-primary text-on-primary text-sm font-bold flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all">
+                    <button onclick="Toast.show('Adding resources is coming soon! We are working on it.','info')" class="px-6 py-3 rounded-full bg-primary text-on-primary text-sm font-bold flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all">
                         <span class="material-symbols-outlined text-[20px]">add</span>
                         Add Resource
                     </button>
@@ -149,15 +149,15 @@
                     <div class="bg-surface-container-low p-8 rounded-card border border-white/5 space-y-6">
                         <p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-[0.2em]">Quick Actions</p>
                         <div class="space-y-2">
-                            <button class="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors text-left group">
+                            <button onclick="Toast.show('File upload is coming soon! We are working on it.','info')" class="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors text-left group">
                                 <span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">upload_file</span>
                                 <span class="text-sm font-semibold">Upload New Resource</span>
                             </button>
-                            <button class="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors text-left group">
+                            <button onclick="Toast.show('AI flashcard generation is coming soon! We are working on it.','info')" class="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors text-left group">
                                 <span class="material-symbols-outlined text-secondary group-hover:scale-110 transition-transform">psychology</span>
                                 <span class="text-sm font-semibold">Generate Flashcards (AI)</span>
                             </button>
-                            <button class="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors text-left group">
+                            <button onclick="Toast.show('Folder summarization is coming soon! We are working on it.','info')" class="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors text-left group">
                                 <span class="material-symbols-outlined text-tertiary group-hover:scale-110 transition-transform">summarize</span>
                                 <span class="text-sm font-semibold">Summarize Folder</span>
                             </button>
@@ -173,7 +173,7 @@
                             <p class="text-base text-on-surface font-medium italic leading-relaxed">
                                 "You spend the most time on 'Graph Algorithms'. Consider reviewing 'B-Trees' before the upcoming quiz."
                             </p>
-                            <button class="flex items-center gap-2 text-primary text-sm font-bold hover:gap-3 transition-all">
+                            <button onclick="Toast.show('Study plan feature is coming soon! We are working on it.','info')" class="flex items-center gap-2 text-primary text-sm font-bold hover:gap-3 transition-all">
                                 Open Study Plan <span class="material-symbols-outlined text-sm">arrow_forward</span>
                             </button>
                         </div>
@@ -187,7 +187,7 @@
                             <h3 class="text-2xl font-bold text-on-surface">Recent Resources</h3>
                             <p class="text-sm text-on-surface-variant">Files you accessed in the last 48 hours</p>
                         </div>
-                        <button class="px-5 py-2 rounded-full border border-white/10 text-xs font-bold hover:bg-white/5 transition-colors">View All Files</button>
+                        <button onclick="Toast.show('View all files is coming soon! We are working on it.','info')" class="px-5 py-2 rounded-full border border-white/10 text-xs font-bold hover:bg-white/5 transition-colors">View All Files</button>
                     </div>
                     <div class="divide-y divide-white/5">
                         <div class="flex items-center justify-between py-5 group cursor-pointer">
@@ -257,6 +257,8 @@
 <script src="../js/components/header.js"></script>
 <script src="../js/components/bottomNav.js"></script>
 <script src="../js/components/loading.js"></script>
+<script src="../js/components/toast.js"></script>
+<script src="../js/components/authGuard.js"></script>
 
 <!-- Page Init -->
 <script>
@@ -264,8 +266,12 @@
         renderSidebar('03');
         renderHeader({ title: 'Data Structures', subtitle: 'CS201 • Resources' });
         renderBottomNav('03');
-        initLoading('Loading Data Structures...');
-        initPage();
+        initAuthGuard({
+            onAuthenticated: function() {
+                initLoading('Loading Data Structures...');
+                initPage();
+            }
+        });
     });
 
     function fetchPageData() {
@@ -285,7 +291,7 @@
         } catch (error) {
             console.error('Failed to load page:', error);
             var overlay = document.getElementById('loading-overlay');
-            if (overlay) overlay.innerHTML = '<p class="text-error font-bold">Failed to load. Please refresh.</p>';
+            if (overlay) overlay.innerHTML = '<div class="text-center"><span class="material-symbols-outlined text-rose-400 text-5xl mb-4 block">cloud_off</span><p class="text-rose-400 font-bold text-lg mb-2">Failed to load course content</p><p class="text-on-surface-variant text-sm mb-4">This may be a network issue. Please check your connection and refresh the page.</p><button onclick="location.reload()" class="px-6 py-2 bg-primary text-on-primary rounded-2xl font-bold">Refresh Page</button></div>';
         }
     }
 

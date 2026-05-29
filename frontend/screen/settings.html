@@ -40,7 +40,8 @@
 <div id="header-mount"></div>
 
 <main class="md:ml-[280px] pt-20 h-screen overflow-y-auto custom-scrollbar">
-    <div class="px-margin-mobile md:px-margin-desktop pr-4 pb-24 space-y-6 max-w-3xl">
+    <div id="auth-loading"></div>
+    <div id="page-content" class="px-margin-mobile md:px-margin-desktop pr-4 pb-24 space-y-6 max-w-3xl">
 
         <!-- Backend Connection Card -->
         <div class="bg-surface-container/60 rounded-3xl p-6 border border-outline-variant/10 fade-in-up" style="animation-delay:0ms">
@@ -210,6 +211,7 @@
 <script src="../js/store.js"></script>
 <script src="../js/components/notifications.js"></script>
 <script src="../js/components/toast.js"></script>
+<script src="../js/components/authGuard.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -217,15 +219,9 @@ document.addEventListener('DOMContentLoaded', function() {
     renderHeader({ title:'Settings', subtitle:'Preferences & Configuration' });
     renderBottomNav('settings');
 
-    // Show loading while auth resolves
-    document.querySelector('main').style.opacity = '0.5';
-    document.querySelector('main').style.pointerEvents = 'none';
-
-    firebaseAuth.onAuthStateChanged(function(user) {
-        if (user) {
+    initAuthGuard({
+        onAuthenticated: function(user) {
             loadSettings();
-            document.querySelector('main').style.opacity = '1';
-            document.querySelector('main').style.pointerEvents = 'auto';
         }
     });
 });
@@ -309,7 +305,7 @@ function testBackendConnection() {
         })
         .catch(function(err) {
             statusEl.className = 'p-3 rounded-2xl text-label-sm text-center bg-rose-500/15 text-rose-400';
-            statusEl.innerHTML = '<span class="material-symbols-outlined text-sm align-middle mr-1">error</span> Connection failed. Is the backend running?';
+            statusEl.innerHTML = '<span class="material-symbols-outlined text-sm align-middle mr-1">error</span> Could not reach the backend server. Please ensure the backend is running at <strong>' + escapeHtml(testUrl) + '</strong> and try again.';
         });
 }
 
@@ -340,12 +336,14 @@ function syncFromCloud() {
         Store.loadFromFirestore().then(function() {
             Toast.show('Data synced from cloud successfully!', 'success');
         }).catch(function(e) {
-            Toast.show('Sync failed: ' + e.message, 'error');
+            Toast.show('Cloud sync failed because the connection to Firebase could not be established. Please check your internet connection and try again.', 'error');
         });
     } else {
         Toast.show('Cloud sync not available.', 'warning');
     }
 }
+
+function escapeHtml(t){var d=document.createElement('div');d.textContent=t;return d.innerHTML}
 
 function clearChatHistory() {
     if (!confirm('Clear all chat history? This cannot be undone.')) return;

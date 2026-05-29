@@ -40,7 +40,8 @@
 <div id="header-mount"></div>
 
 <main class="md:ml-[280px] pt-20 h-screen overflow-y-auto custom-scrollbar">
-    <div class="px-margin-mobile md:px-margin-desktop pr-4 pb-24 space-y-6">
+    <div id="auth-loading"></div>
+    <div id="page-content" class="px-margin-mobile md:px-margin-desktop pr-4 pb-24 space-y-6">
         <!-- Greeting Section -->
         <div class="fade-in-up" style="animation-delay:0ms">
             <h1 class="text-headline-lg font-bold text-on-surface" id="greeting-text">Good evening, Student</h1>
@@ -105,7 +106,7 @@
                         <span class="text-label-sm text-primary font-bold">AI Command Hub</span>
                         <span class="material-symbols-outlined text-primary text-lg ml-auto">arrow_forward</span>
                     </a>
-                    <a href="09.html" onclick="setTimeout(function(){document.getElementById('main-input')&&document.getElementById('main-input').value='spent RM'},500)" class="quick-action flex items-center gap-3 p-3 bg-secondary/10 rounded-2xl hover:bg-secondary/20 transition-all">
+                    <a href="09.html" onclick="setTimeout(function(){var i=document.getElementById('main-input');if(i){i.value='spent RM'}},500)" class="quick-action flex items-center gap-3 p-3 bg-secondary/10 rounded-2xl hover:bg-secondary/20 transition-all">
                         <span class="material-symbols-outlined text-secondary">payments</span>
                         <span class="text-label-sm text-secondary font-bold">Add Expense</span>
                         <span class="material-symbols-outlined text-secondary text-lg ml-auto">arrow_forward</span>
@@ -160,6 +161,7 @@
 <script src="../js/store.js"></script>
 <script src="../js/components/notifications.js"></script>
 <script src="../js/components/toast.js"></script>
+<script src="../js/components/authGuard.js"></script>
 
 <script>
 var TYPE_COLORS = {
@@ -184,29 +186,18 @@ document.addEventListener('DOMContentLoaded', function() {
     renderHeader({ title:'UniFlow Hub', subtitle:'Your Dashboard' });
     renderBottomNav('01');
 
-    // Show loading state
-    var mainContent = document.querySelector('main > div');
-    mainContent.style.opacity = '0.4';
-    mainContent.style.pointerEvents = 'none';
-    mainContent.style.transition = 'opacity 0.3s ease';
-
-    // Wait for auth, then load cloud data, then render
-    firebaseAuth.onAuthStateChanged(function(user) {
-        if (!user) return; // header.js will redirect to login
-
-        // Try to sync from cloud, then render dashboard
-        var cloudLoaded = Store.loadFromFirestore ? Store.loadFromFirestore() : Promise.resolve();
-        cloudLoaded.then(function() {
-            renderDashboard();
-            mainContent.style.opacity = '1';
-            mainContent.style.pointerEvents = 'auto';
-        }).catch(function(err) {
-            console.warn('Cloud sync failed, using local data:', err);
-            renderDashboard();
-            mainContent.style.opacity = '1';
-            mainContent.style.pointerEvents = 'auto';
-            Toast.show('Using offline data — cloud sync unavailable', 'warning');
-        });
+    initAuthGuard({
+        onAuthenticated: function(user) {
+            // Try to sync from cloud, then render dashboard
+            var cloudLoaded = Store.loadFromFirestore ? Store.loadFromFirestore() : Promise.resolve();
+            cloudLoaded.then(function() {
+                renderDashboard();
+            }).catch(function(err) {
+                console.warn('Cloud sync failed, using local data:', err);
+                renderDashboard();
+                Toast.show('Using offline data — cloud sync unavailable', 'warning');
+            });
+        }
     });
 });
 

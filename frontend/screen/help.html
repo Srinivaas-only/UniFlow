@@ -38,7 +38,8 @@
 <div id="header-mount"></div>
 
 <main class="md:ml-[280px] pt-20 h-screen overflow-y-auto custom-scrollbar">
-    <div class="px-margin-mobile md:px-margin-desktop pr-4 pb-24 space-y-6 max-w-3xl">
+    <div id="auth-loading"></div>
+    <div id="page-content" class="px-margin-mobile md:px-margin-desktop pr-4 pb-24 space-y-6 max-w-3xl" style="display:none;">
 
         <!-- Quick Help -->
         <div class="bg-surface-container/60 rounded-3xl p-6 border border-outline-variant/10 fade-in-up" style="animation-delay:0ms">
@@ -286,12 +287,19 @@
 <script src="../js/components/bottomNav.js"></script>
 <script src="../js/store.js"></script>
 <script src="../js/components/notifications.js"></script>
+<script src="../js/components/authGuard.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     renderSidebar('help');
     renderHeader({ title:'Help & Support', subtitle:'FAQs & Guides' });
     renderBottomNav('help');
+    initAuthGuard({onAuthenticated:function(){
+        var pc = document.getElementById('page-content');
+        if (pc) pc.style.display = '';
+        var al = document.getElementById('auth-loading');
+        if (al) al.style.display = 'none';
+    }});
 });
 
 function toggleFaq(btn) {

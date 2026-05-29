@@ -36,7 +36,8 @@
 <div id="header-mount"></div>
 
 <main class="md:ml-[280px] pt-20 h-screen overflow-y-auto custom-scrollbar">
-    <div class="px-margin-mobile md:px-margin-desktop pr-4 pb-24 space-y-6 max-w-3xl">
+    <div id="auth-loading"></div>
+    <div id="page-content" class="px-margin-mobile md:px-margin-desktop pr-4 pb-24 space-y-6 max-w-3xl">
         <!-- Profile Header -->
         <div class="fade-in-up flex flex-col items-center pt-4" style="animation-delay:0ms">
             <div id="profile-avatar" class="w-24 h-24 rounded-full bg-primary/20 border-2 border-primary/30 flex items-center justify-center mb-4">
@@ -178,6 +179,7 @@
 <script src="../js/store.js"></script>
 <script src="../js/components/notifications.js"></script>
 <script src="../js/components/toast.js"></script>
+<script src="../js/components/authGuard.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -185,15 +187,9 @@ document.addEventListener('DOMContentLoaded', function() {
     renderHeader({ title:'My Profile', subtitle:'Account & Settings' });
     renderBottomNav('profile');
 
-    // Show loading spinner while data loads
-    document.querySelector('main').style.opacity = '0.5';
-    document.querySelector('main').style.pointerEvents = 'none';
-
-    firebaseAuth.onAuthStateChanged(function(user) {
-        if (user) {
+    initAuthGuard({
+        onAuthenticated: function(user) {
             loadProfile();
-            document.querySelector('main').style.opacity = '1';
-            document.querySelector('main').style.pointerEvents = 'auto';
         }
     });
 });
@@ -246,12 +242,12 @@ function saveProfile() {
 
     // Validation
     if (!name) {
-        Toast.show('Please enter your display name.', 'warning');
+        Toast.show('Display name is required because it personalizes your UniFlow experience. Please enter your name in the field above.', 'warning');
         document.getElementById('edit-name').focus();
         return;
     }
     if (name.length < 2) {
-        Toast.show('Name must be at least 2 characters.', 'warning');
+        Toast.show('Your name must be at least 2 characters so it displays correctly across the app. Please enter a longer name.', 'warning');
         document.getElementById('edit-name').focus();
         return;
     }
@@ -307,8 +303,8 @@ function logoutUser() {
     if (typeof firebaseAuth !== 'undefined') {
         firebaseAuth.signOut().then(function() {
             window.location.href = './login.html';
-        }).catch(function() {
-            window.location.href = './login.html';
+        }).catch(function(err) {
+            Toast.show('Logout failed, but your local data has been cleared. Please refresh the page and try again.', 'warning');
         });
     } else {
         window.location.href = './login.html';

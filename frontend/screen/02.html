@@ -65,7 +65,8 @@
 </div>
 
 <main class="md:ml-[280px] pt-20 h-screen flex flex-col relative">
-    <div class="flex-1 overflow-y-auto custom-scrollbar px-margin-mobile md:px-margin-desktop pr-4 pb-24">
+    <div id="auth-loading"></div>
+    <div id="page-content" class="flex-1 overflow-y-auto custom-scrollbar px-margin-mobile md:px-margin-desktop pr-4 pb-24">
         <!-- Top Bar -->
         <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
             <div class="flex items-center gap-3">
@@ -119,6 +120,7 @@
 <script src="../js/components/bottomNav.js"></script>
 <script src="../js/store.js"></script>
 <script src="../js/components/notifications.js"></script>
+<script src="../js/components/authGuard.js"></script>
 
 <script>
 var TYPE_COLORS = {
@@ -159,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
     renderSidebar('02');
     renderHeader({ title:'Schedule', subtitle:'Your Calendar' });
     renderBottomNav('02');
-    renderCalendar();
+    initAuthGuard({ onAuthenticated: function() { renderCalendar(); } });
 });
 
 function navigateWeek(dir) {
@@ -186,7 +188,7 @@ function renderCalendar() {
     // Update week label
     var endOfWeek = new Date(currentWeekStart);
     endOfWeek.setDate(endOfWeek.getDate() + 6);
-    var label = currentWeekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' – ' + endOfWeek.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    var label = currentWeekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' â€“ ' + endOfWeek.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
     document.getElementById('week-label').textContent = label;
 
     if (currentView === 'week') {

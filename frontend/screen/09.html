@@ -63,10 +63,11 @@
 </div>
 
 <main class="md:ml-[280px] pt-20 h-screen flex flex-col relative">
-    <div id="page-content" class="flex-1 flex flex-col min-h-0">
+    <div id="auth-loading"></div>
+    <div id="page-content" class="flex-1 flex flex-col min-h-0" style="display:none;">
         <!-- Chat Scroller -->
         <div class="flex-1 overflow-y-auto custom-scrollbar px-margin-mobile md:px-margin-desktop pr-4 space-y-6 pb-44" id="chat-scroller">
-            <!-- Empty state intro — shown on fresh start -->
+            <!-- Empty state intro â€” shown on fresh start -->
             <div id="chat-empty-state" class="flex flex-col items-center justify-center py-12 text-center max-w-2xl mx-auto">
                 <div class="w-16 h-16 rounded-3xl bg-gradient-to-br from-primary via-primary-container to-secondary flex items-center justify-center shadow-lg mb-6 ai-pulse">
                     <span class="material-symbols-outlined text-on-primary text-4xl" style="font-variation-settings:'FILL' 1;">auto_awesome</span>
@@ -146,49 +147,53 @@
 <script src="../js/components/loading.js"></script>
 <script src="../js/store.js"></script>
 <script src="../js/components/notifications.js"></script>
+<script src="../js/components/toast.js"></script>
+<script src="../js/components/authGuard.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     renderSidebar('09');
     renderHeader({ title: 'Command Center', subtitle: 'AI Engine Online' });
     renderBottomNav('09');
-
-    // Check onboarding
-    var profile = Store.getProfile();
-    if (!profile.onboarded) {
-        document.getElementById('onboarding-modal').style.display = 'flex';
-    }
-
-    // Restore chat history
-    var history = Store.getChatHistory();
-    if (history.length > 0) {
-        document.getElementById('chat-empty-state').style.display = 'none';
-        history.forEach(function(msg) {
-            if (msg.role === 'user') {
-                appendUserBubble(msg.text, false);
-            } else if (msg.role === 'ai-events') {
-                renderEventCards(msg.events, false);
-            } else if (msg.role === 'ai-text') {
-                appendAITextBubble(msg.text, false);
-            } else if (msg.role === 'ai-error') {
-                appendErrorBubble(msg.text, false);
-            }
-        });
-        setTimeout(scrollToBottom, 100);
-    } else {
-        // Set personalized greeting
-        var name = profile.name;
-        if (name) {
-            var hour = new Date().getHours();
-            var greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-            document.getElementById('empty-greeting').textContent = greet + ', ' + name + '! Type a message to add events, track expenses, and more.';
+    initAuthGuard({onAuthenticated:function(){
+        // Check onboarding
+        var profile = Store.getProfile();
+        if (!profile.onboarded) {
+            document.getElementById('onboarding-modal').style.display = 'flex';
         }
-    }
+
+        // Restore chat history
+        var history = Store.getChatHistory();
+        if (history.length > 0) {
+            document.getElementById('chat-empty-state').style.display = 'none';
+            history.forEach(function(msg) {
+                if (msg.role === 'user') {
+                    appendUserBubble(msg.text, false);
+                } else if (msg.role === 'ai-events') {
+                    renderEventCards(msg.events, false);
+                } else if (msg.role === 'ai-text') {
+                    appendAITextBubble(msg.text, false);
+                } else if (msg.role === 'ai-error') {
+                    appendErrorBubble(msg.text, false);
+                }
+            });
+            setTimeout(scrollToBottom, 100);
+        } else {
+            // Set personalized greeting
+            var name = profile.name;
+            if (name) {
+                var hour = new Date().getHours();
+                var greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+                document.getElementById('empty-greeting').textContent = greet + ', ' + name + '! Type a message to add events, track expenses, and more.';
+            }
+        }
+    }});
 });
 
 // -- Onboarding --
 function completeOnboarding() {
-    var name = document.getElementById('onboard-name').value.trim() || 'Student';
+    var name = document.getElementById('onboard-name').value.trim();
+    if (!name) { Toast.show('Please enter your name so UniFlow can personalize your experience.','warning'); document.getElementById('onboard-name').focus(); return; }
     Store.setProfile({ name: name, onboarded: true });
     document.getElementById('onboarding-modal').style.display = 'none';
     var hour = new Date().getHours();
@@ -273,7 +278,7 @@ function appendAILoadingBubble() {
                         '<span class="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce" style="animation-delay:150ms"></span>' +
                         '<span class="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce" style="animation-delay:300ms"></span>' +
                     '</div>' +
-                    '<span class="text-label-sm text-on-surface-variant">UniFlow is thinking…</span>' +
+                    '<span class="text-label-sm text-on-surface-variant">UniFlow is thinkingâ€¦</span>' +
                 '</div>' +
                 '<div class="mt-3 space-y-2">' +
                     '<div class="skeleton h-3 w-3/4"></div>' +
@@ -364,7 +369,7 @@ function renderEventCards(events, saveHistory) {
                     '</button>' +
                 '</div>' +
             '</div>' +
-            '<span class="text-[10px] text-on-surface-variant ml-2">' + getTimeLabel() + ' · UniFlow Intelligence</span>' +
+            '<span class="text-[10px] text-on-surface-variant ml-2">' + getTimeLabel() + ' Â· UniFlow Intelligence</span>' +
         '</div>';
 
     // Store events data on the wrapper for later save
@@ -409,7 +414,7 @@ function appendAITextBubble(text, saveHistory) {
             '<div class="bg-surface-container p-6 rounded-3xl shadow-lg">' +
                 '<p class="font-body-md text-on-surface">' + text + '</p>' +
             '</div>' +
-            '<span class="text-[10px] text-on-surface-variant ml-2">' + getTimeLabel() + ' · UniFlow Intelligence</span>' +
+            '<span class="text-[10px] text-on-surface-variant ml-2">' + getTimeLabel() + ' Â· UniFlow Intelligence</span>' +
         '</div>';
     document.getElementById('chat-scroller').appendChild(bubble);
     scrollToBottom();
@@ -431,7 +436,7 @@ function appendErrorBubble(msg, saveHistory) {
                     '<span class="material-symbols-outlined text-sm align-middle mr-1">refresh</span> Retry' +
                 '</button>' +
             '</div>' +
-            '<span class="text-[10px] text-on-surface-variant ml-2">' + getTimeLabel() + ' · Error</span>' +
+            '<span class="text-[10px] text-on-surface-variant ml-2">' + getTimeLabel() + ' Â· Error</span>' +
         '</div>';
     document.getElementById('chat-scroller').appendChild(bubble);
     scrollToBottom();
@@ -444,6 +449,8 @@ function retryLastMessage() {
     if (lastMessage) {
         document.getElementById('main-input').value = lastMessage;
         sendMessage();
+    } else {
+        Toast.show('No previous message to retry. Type a new message below.','info');
     }
 }
 
@@ -451,7 +458,7 @@ function retryLastMessage() {
 async function sendMessage() {
     var input = document.getElementById('main-input');
     var text = input.value.trim();
-    if (!text) return;
+    if (!text) { Toast.show('Please type a message before sending.','warning'); input.focus(); return; }
 
     lastMessage = text;
     appendUserBubble(text);
@@ -476,7 +483,7 @@ async function sendMessage() {
         }
     } catch (error) {
         removeAILoadingBubble();
-        appendErrorBubble(error.message || 'Something went wrong. Make sure the backend is running.');
+        appendErrorBubble('Unable to process your message because the AI server could not be reached. Please make sure the backend is running, then click Retry.');
     }
 }
 

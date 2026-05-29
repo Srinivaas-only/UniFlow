@@ -189,7 +189,7 @@
         hideError();
 
         /* Block submission if inline validation fails */
-        if (!UniValidation.allValid()) return;
+        if (!UniValidation.allValid()) { showError('Please fix the highlighted fields above before creating your account.'); return; }
 
         var email = emailInput.value.trim();
         var password = passwordInput.value;
@@ -220,12 +220,12 @@
             .catch(function(error) {
                 var msg = 'Sign up failed. ';
                 switch (error.code) {
-                    case 'auth/email-already-in-use': msg = 'This email is already registered. Try logging in instead.'; break;
-                    case 'auth/invalid-email': msg = 'Please enter a valid email address.'; break;
-                    case 'auth/weak-password': msg = 'Password is too weak. Use at least 6 characters.'; break;
-                    case 'auth/too-many-requests': msg = 'Too many attempts. Please try again later.'; break;
-                    case 'auth/network-request-failed': msg = 'Network error. Please check your internet connection.'; break;
-                    default: msg = error.message || 'Something went wrong. Please try again.';
+                    case 'auth/email-already-in-use': msg = 'An account with this email already exists. Please log in instead, or use a different email address.'; break;
+                    case 'auth/invalid-email': msg = 'The email address format is invalid. Please enter a valid email (e.g. you@university.edu).'; break;
+                    case 'auth/weak-password': msg = 'Your password is too weak. Please use at least 6 characters with a mix of letters and numbers.'; break;
+                    case 'auth/too-many-requests': msg = 'Too many sign-up attempts. Please wait a few minutes and try again.'; break;
+                    case 'auth/network-request-failed': msg = 'Network error — could not connect to the server. Please check your internet connection and try again.'; break;
+                    default: msg = 'Sign up failed due to an unexpected error. Please refresh the page and try again, or contact support if the problem persists.'; break;
                 }
                 showError(msg);
                 signupBtn.disabled = false;

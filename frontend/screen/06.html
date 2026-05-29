@@ -35,7 +35,8 @@
 <div id="header-mount"></div>
 
 <main class="md:ml-[280px] pt-20 h-screen overflow-y-auto custom-scrollbar">
-    <div class="px-margin-mobile md:px-margin-desktop pr-4 pb-24 space-y-6">
+    <div id="auth-loading"></div>
+    <div id="page-content" class="px-margin-mobile md:px-margin-desktop pr-4 pb-24 space-y-6">
         <div class="flex justify-between items-center fade-in-up" style="animation-delay:0ms">
             <div class="flex items-center gap-3">
                 <div class="p-2.5 bg-purple-500/15 rounded-2xl">
@@ -117,6 +118,8 @@
 <script src="../js/components/bottomNav.js"></script>
 <script src="../js/store.js"></script>
 <script src="../js/components/notifications.js"></script>
+<script src="../js/components/toast.js"></script>
+<script src="../js/components/authGuard.js"></script>
 
 <script>
 var currentGroupId = null;
@@ -124,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
     renderSidebar('06');
     renderHeader({ title:'Group Projects', subtitle:'Collaborate' });
     renderBottomNav('06');
-    renderGroups();
+    initAuthGuard({onAuthenticated:function(){renderGroups();}});
 });
 
 function escapeHtml(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
@@ -166,7 +169,7 @@ function renderGroups() {
 
 function openCreateModal() { document.getElementById('create-modal').classList.remove('hidden'); document.getElementById('create-modal').classList.add('flex'); document.getElementById('group-name-input').focus(); }
 function closeCreateModal() { document.getElementById('create-modal').classList.add('hidden'); document.getElementById('create-modal').classList.remove('flex'); }
-function createGroup() { var name = document.getElementById('group-name-input').value.trim(); if (!name) return; Store.createGroup(name); document.getElementById('group-name-input').value = ''; closeCreateModal(); renderGroups(); }
+function createGroup() { var name = document.getElementById('group-name-input').value.trim(); if (!name) { Toast.show('Please enter a group name to create a new group.', 'warning'); document.getElementById('group-name-input').focus(); return; } Store.createGroup(name); document.getElementById('group-name-input').value = ''; closeCreateModal(); renderGroups(); Toast.show('Group "' + name + '" created!', 'success'); }
 function deleteGroup(id) { if (confirm('Delete this group?')) { Store.deleteGroup(id); renderGroups(); } }
 
 function openDetail(id) {
@@ -175,7 +178,7 @@ function openDetail(id) {
     if (!group) return;
     document.getElementById('detail-title').textContent = group.name;
     document.getElementById('detail-members').innerHTML = group.members.map(function(m, i) {
-        return '<span class="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-500/10 text-purple-400 rounded-2xl text-label-sm font-semibold">' + escapeHtml(m) + '<button onclick="removeMember(' + i + ')" class="ml-1 hover:text-rose-400 transition-colors">×</button></span>';
+        return '<span class="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-500/10 text-purple-400 rounded-2xl text-label-sm font-semibold">' + escapeHtml(m) + '<button onclick="removeMember(' + i + ')" class="ml-1 hover:text-rose-400 transition-colors">Ã—</button></span>';
     }).join('');
     document.getElementById('detail-tasks').innerHTML = group.tasks.map(function(t, i) {
         return '<div class="flex items-center gap-3 p-3 bg-surface-container/50 rounded-2xl hover:bg-surface-container/70 transition-all">' +
@@ -189,9 +192,9 @@ function openDetail(id) {
 }
 function closeDetailModal() { document.getElementById('detail-modal').classList.add('hidden'); document.getElementById('detail-modal').classList.remove('flex'); currentGroupId = null; renderGroups(); }
 
-function addMember() { var name = prompt('Member name:'); if (!name || !currentGroupId) return; var groups = Store.getGroups(); var g = groups.find(function(gr){return gr.id===currentGroupId}); if (g) { g.members.push(name.trim()); Store.saveGroup(g); openDetail(currentGroupId); } }
+function addMember() { var name = prompt('Member name:'); if (!name) { Toast.show('Please enter a member name to add them to the group.', 'warning'); return; } if (!currentGroupId) return; var groups = Store.getGroups(); var g = groups.find(function(gr){return gr.id===currentGroupId}); if (g) { g.members.push(name.trim()); Store.saveGroup(g); openDetail(currentGroupId); Toast.show(name.trim() + ' added to the group.', 'success'); } }
 function removeMember(idx) { if (!currentGroupId) return; var groups = Store.getGroups(); var g = groups.find(function(gr){return gr.id===currentGroupId}); if (g) { g.members.splice(idx, 1); Store.saveGroup(g); openDetail(currentGroupId); } }
-function addTask() { var text = prompt('Task description:'); if (!text || !currentGroupId) return; var groups = Store.getGroups(); var g = groups.find(function(gr){return gr.id===currentGroupId}); if (g) { g.tasks.push({text:text.trim(),done:false}); Store.saveGroup(g); openDetail(currentGroupId); } }
+function addTask() { var text = prompt('Task description:'); if (!text) { Toast.show('Please enter a task description.', 'warning'); return; } if (!currentGroupId) return; var groups = Store.getGroups(); var g = groups.find(function(gr){return gr.id===currentGroupId}); if (g) { g.tasks.push({text:text.trim(),done:false}); Store.saveGroup(g); openDetail(currentGroupId); Toast.show('Task added.', 'success'); } }
 function removeTask(idx) { if (!currentGroupId) return; var groups = Store.getGroups(); var g = groups.find(function(gr){return gr.id===currentGroupId}); if (g) { g.tasks.splice(idx, 1); Store.saveGroup(g); openDetail(currentGroupId); } }
 function toggleTask(idx) { if (!currentGroupId) return; var groups = Store.getGroups(); var g = groups.find(function(gr){return gr.id===currentGroupId}); if (g) { g.tasks[idx].done = !g.tasks[idx].done; Store.saveGroup(g); openDetail(currentGroupId); } }
 </script>

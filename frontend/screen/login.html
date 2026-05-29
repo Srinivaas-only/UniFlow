@@ -48,6 +48,11 @@
             <p class="text-on-surface-variant text-label-sm mt-1">Log in to continue</p>
         </div>
 
+        <!-- Redirect notice (shown when redirected from auth guard) -->
+        <div id="redirect-notice" class="hidden mb-4 p-3 rounded-2xl text-label-sm text-center bg-primary/10 text-primary">
+            <span class="material-symbols-outlined text-sm align-middle mr-1">lock</span> Please log in to access that page.
+        </div>
+
         <!-- Error message (hidden by default) -->
         <div id="login-error" class="hidden mb-4 p-3 rounded-2xl text-label-sm text-center bg-rose-500/15 text-rose-400"></div>
 
@@ -205,7 +210,7 @@
         hideError();
 
         /* Block submission if inline validation fails */
-        if (!UniValidation.allValid()) return;
+        if (!UniValidation.allValid()) { showError('Please fix the highlighted fields above before logging in.'); return; }
 
         var email = emailInput.value.trim();
         var password = passwordInput.value;
@@ -227,18 +232,20 @@
                 return Store.loadFromFirestore();
             })
             .then(function() {
-                window.location.href = './01.html';
+                var redirect = getRedirectUrl();
+                window.location.href = redirect;
             })
             .catch(function(error) {
                 var msg = 'Login failed. ';
                 switch (error.code) {
-                    case 'auth/user-not-found': msg = 'No account found with this email.'; break;
+                    case 'auth/user-not-found': msg = 'No account found with this email. Please sign up for a new account or check your email address.'; break;
                     case 'auth/wrong-password':
-                    case 'auth/invalid-credential': msg = 'Incorrect email or password.'; break;
-                    case 'auth/invalid-email': msg = 'Please enter a valid email address.'; break;
-                    case 'auth/too-many-requests': msg = 'Too many attempts. Please try again later.'; break;
-                    case 'auth/user-disabled': msg = 'This account has been disabled.'; break;
-                    default: msg = error.message || 'Something went wrong. Please try again.';
+                    case 'auth/invalid-credential': msg = 'The email or password you entered is incorrect. Please double-check your credentials and try again.'; break;
+                    case 'auth/invalid-email': msg = 'The email address format is invalid. Please enter a valid email (e.g. you@university.edu).'; break;
+                    case 'auth/too-many-requests': msg = 'Too many failed login attempts. Your account is temporarily locked. Please wait a few minutes and try again.'; break;
+                    case 'auth/user-disabled': msg = 'This account has been disabled by an administrator. Please contact support for help.'; break;
+                    case 'auth/network-request-failed': msg = 'Network error — could not connect to the login server. Please check your internet connection and try again.'; break;
+                    default: msg = 'Login failed due to an unexpected error. Please refresh the page and try again, or contact support if the problem persists.'; break;
                 }
                 showError(msg);
                 loginBtn.disabled = false;
@@ -291,10 +298,11 @@
             .catch(function(error) {
                 var msg = 'Failed to send reset email.';
                 switch (error.code) {
-                    case 'auth/user-not-found': msg = 'No account found with this email.'; break;
-                    case 'auth/invalid-email': msg = 'Please enter a valid email address.'; break;
-                    case 'auth/too-many-requests': msg = 'Too many attempts. Please try again later.'; break;
-                    default: msg = error.message || 'Something went wrong.';
+                    case 'auth/user-not-found': msg = 'No account found with this email. Please check your email or sign up for a new account.'; break;
+                    case 'auth/invalid-email': msg = 'The email address format is invalid. Please enter a valid email (e.g. you@university.edu).'; break;
+                    case 'auth/too-many-requests': msg = 'Too many reset attempts. Please wait a few minutes and try again.'; break;
+                    case 'auth/network-request-failed': msg = 'Network error — could not reach the server. Please check your internet connection and try again.'; break;
+                    default: msg = 'Could not send reset email due to an unexpected error. Please try again or contact support.'; break;
                 }
                 resetMessage.classList.remove('hidden');
                 resetMessage.className = 'mb-3 p-3 rounded-2xl text-label-sm text-center bg-rose-500/15 text-rose-400';
@@ -304,11 +312,30 @@
             });
     });
 
+    // Get redirect URL from query params
+    function getRedirectUrl() {
+        var params = new URLSearchParams(window.location.search);
+        var redirect = params.get('redirect');
+        if (redirect) {
+            return './' + redirect;
+        }
+        return './01.html';
+    }
+
+    // Show redirect notice if user was redirected from auth guard
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('redirect')) {
+            document.getElementById('redirect-notice').classList.remove('hidden');
+        }
+    })();
+
     // Auto-redirect if already logged in
     firebaseAuth.onAuthStateChanged(function(user) {
         if (user) {
+            var redirect = getRedirectUrl();
             Store.loadFromFirestore().then(function() {
-                window.location.href = './01.html';
+                window.location.href = redirect;
             });
         }
     });

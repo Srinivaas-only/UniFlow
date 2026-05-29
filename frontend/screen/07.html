@@ -34,7 +34,8 @@
 <div id="header-mount"></div>
 
 <main class="md:ml-[280px] pt-20 h-screen overflow-y-auto custom-scrollbar">
-    <div class="px-margin-mobile md:px-margin-desktop pr-4 pb-24 space-y-6 max-w-5xl">
+    <div id="auth-loading"></div>
+    <div id="page-content" class="px-margin-mobile md:px-margin-desktop pr-4 pb-24 space-y-6 max-w-5xl">
 
         <!-- Budget Stats -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -59,7 +60,7 @@
                     <span class="text-label-sm text-on-surface-variant uppercase tracking-widest">Total Spent</span>
                 </div>
                 <p class="text-headline-lg font-bold text-on-surface" id="total-spent">RM0.00</p>
-                <p class="text-label-sm mt-2" id="remaining-text">—</p>
+                <p class="text-label-sm mt-2" id="remaining-text">â€”</p>
             </div>
             <div class="stat-card bg-surface-container/60 backdrop-blur-xl rounded-3xl p-6 border border-outline-variant/10 fade-in-up" style="animation-delay:160ms">
                 <div class="flex items-center gap-3 mb-4">
@@ -133,14 +134,18 @@
 <script src="../js/components/bottomNav.js"></script>
 <script src="../js/store.js"></script>
 <script src="../js/components/notifications.js"></script>
+<script src="../js/components/toast.js"></script>
+<script src="../js/components/authGuard.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     renderSidebar('07');
     renderHeader({ title:'Budget', subtitle:'Track Your Spending' });
     renderBottomNav('07');
-    renderBudget();
-    document.getElementById('budget-limit-input').value = Store.getBudgetLimit() || '';
+    initAuthGuard({onAuthenticated:function(){
+        renderBudget();
+        document.getElementById('budget-limit-input').value = Store.getBudgetLimit() || '';
+    }});
 });
 
 function escapeHtml(t) { var d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
@@ -162,7 +167,7 @@ function renderBudget() {
         remainingEl.textContent = remaining >= 0 ? 'RM' + remaining.toFixed(2) + ' remaining' : 'RM' + Math.abs(remaining).toFixed(2) + ' over budget!';
         remainingEl.className = 'text-label-sm mt-2 ' + (remaining >= 0 ? 'text-emerald-400' : 'text-rose-400');
     } else {
-        remainingEl.textContent = '—';
+        remainingEl.textContent = 'â€”';
         remainingEl.className = 'text-label-sm text-on-surface-variant mt-2';
     }
 
@@ -175,7 +180,7 @@ function renderBudget() {
         document.getElementById('budget-hint').textContent = pct > 90 ? '?? Almost at your budget limit!' : pct > 70 ? 'Getting close to your limit.' : 'On track. Keep it up!';
     } else {
         document.getElementById('budget-progress-bar').style.width = '0%';
-        document.getElementById('budget-percent').textContent = '—';
+        document.getElementById('budget-percent').textContent = 'â€”';
         document.getElementById('budget-hint').textContent = 'Set a budget limit to track your spending.';
     }
 
@@ -214,9 +219,21 @@ function renderBudget() {
 }
 
 function saveBudgetLimit() {
-    var val = parseFloat(document.getElementById('budget-limit-input').value) || 0;
+    var raw = document.getElementById('budget-limit-input').value;
+    if (!raw || raw.trim() === '') {
+        Toast.show('Please enter a budget limit amount to track your spending.', 'warning');
+        document.getElementById('budget-limit-input').focus();
+        return;
+    }
+    var val = parseFloat(raw);
+    if (isNaN(val) || val < 0) {
+        Toast.show('Please enter a valid positive number for the budget limit.', 'warning');
+        document.getElementById('budget-limit-input').focus();
+        return;
+    }
     Store.setBudgetLimit(val);
     renderBudget();
+    Toast.show('Budget limit set to RM' + val.toFixed(2) + '!', 'success');
 }
 </script>
 </body>
