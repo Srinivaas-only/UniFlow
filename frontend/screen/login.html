@@ -85,6 +85,42 @@
             style="background: #3b82f6; color: #ffffff; opacity: 0.4;"
         >Log In</button>
 
+        <!-- Forgot Password -->
+        <div id="forgot-password-section" class="mt-4">
+            <button type="button" id="forgot-password-btn" class="w-full text-xs font-semibold bg-transparent border-none cursor-pointer hover:underline" style="color: #948f99;">
+                Forgot Password?
+            </button>
+        </div>
+
+        <!-- Forgot Password Form (hidden by default) -->
+        <div id="forgot-password-form" class="hidden mt-4">
+            <div class="mb-3">
+                <label for="reset-email" class="block text-xs font-semibold mb-1.5" style="color: #f1eff5;">Enter your email</label>
+                <input
+                    type="email"
+                    id="reset-email"
+                    name="reset-email"
+                    placeholder="your@email.com"
+                    autocomplete="email"
+                    class="w-full px-4 py-3 rounded-lg text-sm outline-none focus:ring-2"
+                    style="background: #12111a; color: #f1eff5; border: 1px solid #35343e; --tw-ring-color: #3b82f6;"
+                />
+            </div>
+            <div id="reset-message" class="hidden mb-3 p-3 rounded-lg text-sm text-center"></div>
+            <button
+                type="button"
+                id="send-reset-btn"
+                class="w-full py-2.5 rounded-lg text-sm font-bold border-none cursor-pointer transition-opacity"
+                style="background: #35343e; color: #f1eff5;"
+            >Send Reset Link</button>
+            <button
+                type="button"
+                id="cancel-reset-btn"
+                class="w-full py-2 mt-2 text-xs font-semibold bg-transparent border-none cursor-pointer"
+                style="color: #948f99;"
+            >Cancel</button>
+        </div>
+
         <!-- Footer Link -->
         <p class="text-center text-xs mt-6" style="color: #948f99;">
             New to UniFlow? <a href="./signup.html" class="font-semibold hover:underline" style="color: #3b82f6;">Create an account.</a>
@@ -214,6 +250,77 @@
                 loginBtn.disabled = false;
                 loginBtn.textContent = 'Log In';
                 loginBtn.style.opacity = '1';
+            });
+    });
+
+    // ── Forgot Password ──
+    var forgotBtn = document.getElementById('forgot-password-btn');
+    var forgotForm = document.getElementById('forgot-password-form');
+    var forgotSection = document.getElementById('forgot-password-section');
+    var resetEmailInput = document.getElementById('reset-email');
+    var sendResetBtn = document.getElementById('send-reset-btn');
+    var cancelResetBtn = document.getElementById('cancel-reset-btn');
+    var resetMessage = document.getElementById('reset-message');
+
+    forgotBtn.addEventListener('click', function() {
+        forgotSection.classList.add('hidden');
+        forgotForm.classList.remove('hidden');
+        // Pre-fill with login email if available
+        if (emailInput.value.trim()) {
+            resetEmailInput.value = emailInput.value.trim();
+        }
+        resetEmailInput.focus();
+    });
+
+    cancelResetBtn.addEventListener('click', function() {
+        forgotForm.classList.add('hidden');
+        forgotSection.classList.remove('hidden');
+        resetMessage.classList.add('hidden');
+    });
+
+    sendResetBtn.addEventListener('click', function() {
+        var resetEmail = resetEmailInput.value.trim();
+        if (!resetEmail) {
+            resetMessage.classList.remove('hidden');
+            resetMessage.style.background = 'rgba(239,68,68,0.15)';
+            resetMessage.style.color = '#f87171';
+            resetMessage.textContent = 'Please enter your email address.';
+            return;
+        }
+
+        sendResetBtn.disabled = true;
+        sendResetBtn.textContent = 'Sending...';
+
+        firebaseAuth.sendPasswordResetEmail(resetEmail)
+            .then(function() {
+                resetMessage.classList.remove('hidden');
+                resetMessage.style.background = 'rgba(16,185,129,0.15)';
+                resetMessage.style.color = '#34d399';
+                resetMessage.textContent = 'Password reset email sent! Check your inbox.';
+                sendResetBtn.disabled = false;
+                sendResetBtn.textContent = 'Send Reset Link';
+            })
+            .catch(function(error) {
+                var msg = 'Failed to send reset email.';
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                        msg = 'No account found with this email.';
+                        break;
+                    case 'auth/invalid-email':
+                        msg = 'Please enter a valid email address.';
+                        break;
+                    case 'auth/too-many-requests':
+                        msg = 'Too many attempts. Please try again later.';
+                        break;
+                    default:
+                        msg = error.message || 'Something went wrong.';
+                }
+                resetMessage.classList.remove('hidden');
+                resetMessage.style.background = 'rgba(239,68,68,0.15)';
+                resetMessage.style.color = '#f87171';
+                resetMessage.textContent = msg;
+                sendResetBtn.disabled = false;
+                sendResetBtn.textContent = 'Send Reset Link';
             });
     });
 

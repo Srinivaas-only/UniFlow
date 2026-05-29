@@ -8,7 +8,7 @@ function renderBottomNav(activePage) {
         { id: 'hub', icon: 'token', label: 'Hub', href: '01.html', activeFor: ['01','02','03','04','05','06','07','08'] },
         { id: 'chat', icon: 'forum', label: 'Chat', href: '09.html', activeFor: ['09'] },
         { id: 'vault', icon: 'inventory_2', label: 'Vault', href: '03.html', activeFor: [] },
-        { id: 'profile', icon: 'person', label: 'Profile', href: '#', activeFor: [] }
+        { id: 'profile', icon: 'person', label: 'Profile', href: 'profile.html', activeFor: ['profile'] }
     ];
 
     var navLinks = navItems.map(function(item) {

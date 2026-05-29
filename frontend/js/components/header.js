@@ -64,6 +64,10 @@ function renderHeader(options) {
             '</div>' +
         '</header>' +
         '<div id="profile-dropdown" class="hidden fixed z-50 w-48 rounded-xl shadow-2xl border border-white/10 py-1" style="background: #1a1825;">' +
+            '<a href="profile.html" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors cursor-pointer bg-transparent border-none no-underline" style="color: #f1eff5; text-decoration: none;" onmouseover="this.style.background=\'rgba(255,255,255,0.05)\'" onmouseout="this.style.background=\'transparent\'">' +
+                '<span class="material-symbols-outlined text-base" style="color: #948f99;">person</span>' +
+                'My Profile' +
+            '</a>' +
             '<button id="logout-btn" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors cursor-pointer bg-transparent border-none" style="color: #f1eff5;" onmouseover="this.style.background=\'rgba(255,255,255,0.05)\'" onmouseout="this.style.background=\'transparent\'">' +
                 '<span class="material-symbols-outlined text-base" style="color: #948f99;">logout</span>' +
                 'Log out' +

@@ -46,11 +46,11 @@ function renderSidebar(activePage) {
                 '</a>' +
             '</div>' +
             '<div class="px-4 border-t border-white/5 pt-6 space-y-2">' +
-                '<a class="text-on-surface-variant px-4 py-2 flex items-center gap-3 hover:bg-white/5 transition-all" href="#">' +
+                '<a class="text-on-surface-variant px-4 py-2 flex items-center gap-3 hover:bg-white/5 transition-all" href="settings.html">' +
                     '<span class="material-symbols-outlined" data-icon="settings">settings</span>' +
                     '<span class="font-body-md text-body-md">Settings</span>' +
                 '</a>' +
-                '<a class="text-on-surface-variant px-4 py-2 flex items-center gap-3 hover:bg-white/5 transition-all" href="#">' +
+                '<a class="text-on-surface-variant px-4 py-2 flex items-center gap-3 hover:bg-white/5 transition-all" href="help.html">' +
                     '<span class="material-symbols-outlined" data-icon="help">help</span>' +
                     '<span class="font-body-md text-body-md">Support</span>' +
                 '</a>' +

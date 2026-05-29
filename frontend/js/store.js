@@ -3,11 +3,11 @@
  * All screens read/write through this module.
  * localStorage is the fast primary store; Firestore syncs in the background.
  */
-// Auto-detect backend URL: use same host on port 8080, or override via localStorage
+// Auto-detect backend URL: use same host on port 8000, or override via localStorage
 const BACKEND_URL = localStorage.getItem("uniflow_backend_url") || 
     (window.location.protocol === "file:" 
-        ? "http://localhost:8080" 
-        : window.location.protocol + "//" + window.location.hostname + ":8080");
+        ? "http://localhost:8000" 
+        : window.location.protocol + "//" + window.location.hostname + ":8000");
 
 const Store = {
   // ── Helpers ──
