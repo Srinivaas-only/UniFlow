@@ -96,6 +96,11 @@
             </div>
         </div>
 
+        <!-- Scroll-to-bottom button -->
+        <button id="scroll-bottom-btn" style="display:none;position:absolute;bottom:120px;left:50%;transform:translateX(-50%);width:40px;height:40px;border-radius:50%;background:rgba(30,28,40,0.9);border:none;cursor:pointer;z-index:10;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.4);transition:opacity 0.2s;" onclick="scrollToBottom()">
+            <span class="material-symbols-outlined" style="font-size:22px;color:#fff;">arrow_downward</span>
+        </button>
+
         <!-- Input Container -->
         <div class="flex-shrink-0 px-margin-mobile md:px-margin-desktop pr-4 pb-6 pt-2">
             <div class="max-w-5xl mx-auto">
@@ -478,6 +483,20 @@ document.getElementById('main-input').addEventListener('input', function() {
     this.style.height = 'auto';
     this.style.height = (this.scrollHeight) + 'px';
 });
+
+// Show/hide scroll-to-bottom button
+(function() {
+    var scroller = document.getElementById('chat-scroller');
+    var scrollBtn = document.getElementById('scroll-bottom-btn');
+    scroller.addEventListener('scroll', function() {
+        var distFromBottom = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight;
+        if (distFromBottom > 150) {
+            scrollBtn.style.display = 'flex';
+        } else {
+            scrollBtn.style.display = 'none';
+        }
+    });
+})();
 
 // Tap chat area to dismiss keyboard on mobile
 document.getElementById('chat-scroller').addEventListener('click', function(e) {

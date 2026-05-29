@@ -61,7 +61,7 @@ function renderHeader(options) {
                 '<div class="flex items-center gap-4">' +
                     '<button id="notif-btn" class="relative p-2 text-on-surface-variant hover:bg-white/5 rounded-full transition-colors" title="Notifications">' +
                         '<span class="material-symbols-outlined">notifications</span>' +
-                        '<span id="notif-badge" style="display:none;position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:#f87171;font-size:10px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;">0</span>' +
+                        '<span id="notif-badge" style="display:none;position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:#f87171;font-size:10px;font-weight:700;color:#fff;align-items:center;justify-content:center;">0</span>' +
                     '</button>' +
                 '</div>' +
                 '<div class="flex items-center gap-3 pl-4 border-l border-white/10">' +
@@ -85,7 +85,7 @@ function renderHeader(options) {
                 'Log out' +
             '</button>' +
         '</div>' +
-        '<div id="notif-dropdown" class="hidden fixed z-50 sm:w-80 rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style="background:#1a1825;max-width:calc(100vw - 16px);"></div>';
+        '<div id="notif-dropdown" class="hidden fixed z-50 rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style="background:#1a1825;max-width:calc(100vw - 16px);"></div>';
 
     document.getElementById('header-mount').innerHTML = headerHTML;
 
@@ -200,7 +200,13 @@ function renderHeader(options) {
         // Position dropdown below profile button
         var rect = profileBtn.getBoundingClientRect();
         profileDropdown.style.top = (rect.bottom + 8) + 'px';
-        profileDropdown.style.right = (window.innerWidth - rect.right) + 'px';
+        var rightPos = window.innerWidth - rect.right;
+        // Ensure dropdown doesn't go off-screen on the left
+        if (rightPos + 192 > window.innerWidth) {
+            profileDropdown.style.right = '8px';
+        } else {
+            profileDropdown.style.right = rightPos + 'px';
+        }
         profileDropdown.classList.toggle('hidden');
     });
 
