@@ -176,13 +176,25 @@
 <script src="../js/components/header.js"></script>
 <script src="../js/components/bottomNav.js"></script>
 <script src="../js/store.js"></script>
+<script src="../js/components/toast.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     renderSidebar('profile');
     renderHeader({ title:'My Profile', subtitle:'Account & Settings' });
     renderBottomNav('profile');
-    loadProfile();
+
+    // Show loading spinner while data loads
+    document.querySelector('main').style.opacity = '0.5';
+    document.querySelector('main').style.pointerEvents = 'none';
+
+    firebaseAuth.onAuthStateChanged(function(user) {
+        if (user) {
+            loadProfile();
+            document.querySelector('main').style.opacity = '1';
+            document.querySelector('main').style.pointerEvents = 'auto';
+        }
+    });
 });
 
 function loadProfile() {
@@ -222,9 +234,21 @@ function loadProfile() {
 }
 
 function saveProfile() {
-    var name = document.getElementById('edit-name').value.trim() || 'Student';
+    var name = document.getElementById('edit-name').value.trim();
     var uni = document.getElementById('edit-uni').value.trim();
     var course = document.getElementById('edit-course').value.trim();
+
+    // Validation
+    if (!name) {
+        Toast.show('Please enter your display name.', 'warning');
+        document.getElementById('edit-name').focus();
+        return;
+    }
+    if (name.length < 2) {
+        Toast.show('Name must be at least 2 characters.', 'warning');
+        document.getElementById('edit-name').focus();
+        return;
+    }
 
     var profile = Store.getProfile();
     profile.name = name;
@@ -245,10 +269,7 @@ function saveProfile() {
     document.getElementById('info-uni').textContent = uni || 'Not set';
     document.getElementById('info-course').textContent = course || 'Not set';
 
-    // Show success
-    var successEl = document.getElementById('profile-success');
-    successEl.classList.remove('hidden');
-    setTimeout(function() { successEl.classList.add('hidden'); }, 3000);
+    Toast.show('Profile updated successfully!', 'success');
 }
 
 function clearLocalData() {
@@ -265,7 +286,7 @@ function clearLocalData() {
 
     // Reload stats
     loadProfile();
-    alert('Local data cleared. Refresh to see changes.');
+    Toast.show('Local data cleared successfully.', 'success');
 }
 
 function logoutUser() {

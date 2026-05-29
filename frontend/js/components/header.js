@@ -20,6 +20,7 @@ function renderHeader(options) {
 
     // Get user name from Firebase or localStorage
     var userName = 'Student';
+    var userPhotoURL = null;
     try {
         var user = firebaseAuth.currentUser;
         if (user && user.displayName) {
@@ -28,7 +29,16 @@ function renderHeader(options) {
             var profile = JSON.parse(localStorage.getItem('uniflow_profile') || '{}');
             if (profile.name) userName = profile.name;
         }
+        if (user && user.photoURL) userPhotoURL = user.photoURL;
     } catch(e) {}
+
+    // Generate initials for avatar
+    var initials = userName.split(' ').map(function(w) { return w[0] || ''; }).join('').toUpperCase().slice(0, 2);
+    if (!initials) initials = 'U';
+
+    var avatarHTML = userPhotoURL
+        ? '<img alt="' + userName + '" class="w-10 h-10 rounded-full border-2 border-primary/20 object-cover" src="' + userPhotoURL + '"/>'
+        : '<div class="w-10 h-10 rounded-full border-2 border-primary/20 flex items-center justify-center text-sm font-bold text-primary" style="background:rgba(214,196,255,0.15);">' + initials + '</div>';
 
     var leftContent = title
         ? '<div class="flex flex-col">' +
@@ -49,8 +59,8 @@ function renderHeader(options) {
             '</div>' +
             '<div class="flex items-center gap-gutter">' +
                 '<div class="flex items-center gap-4">' +
-                    '<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors" data-icon="notifications">notifications</span>' +
-                    '<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors hidden sm:block" data-icon="monitoring">monitoring</span>' +
+                    '<span title="Coming soon" class="material-symbols-outlined text-on-surface-variant cursor-not-allowed opacity-50" data-icon="notifications">notifications</span>' +
+                    '<span title="Coming soon" class="material-symbols-outlined text-on-surface-variant cursor-not-allowed opacity-50 hidden sm:block" data-icon="monitoring">monitoring</span>' +
                 '</div>' +
                 '<div class="flex items-center gap-3 pl-4 border-l border-white/10">' +
                     '<div class="text-right hidden sm:block">' +
@@ -58,7 +68,7 @@ function renderHeader(options) {
                         '<p class="text-[10px] text-primary uppercase tracking-widest">UniFlow Student</p>' +
                     '</div>' +
                     '<button id="profile-btn" class="cursor-pointer bg-transparent border-none p-0 outline-none">' +
-                        '<img alt="' + userName + ' profile" class="w-10 h-10 rounded-full border-2 border-primary/20" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAeHEu9otQhM_u1D7Z3ah7IsgHoGsVpfTcLZoCde-J3-RSR5UrdnuyRs3lEmbaTmEKJtO_D9CWz86HjRwtfI-9w8OOUAhmdfeZOh4R3p_YTZkBf7Wk4GVreiVOU0xxs4-WMPEAlYpldjBtgC1lDDqDkzezCFsEVVzHJ8E9EbYmq0M33hBMDtip5A_Hlvl0xiSJH5hISoIu2U8epNIBySCQudTX0i-iSatxU-CA67opf8AaoNJDTriuWS8Mb4_hoN9V4vU1C6BNbM5-c"/>' +
+                        avatarHTML +
                     '</button>' +
                 '</div>' +
             '</div>' +

@@ -208,13 +208,25 @@
 <script src="../js/components/header.js"></script>
 <script src="../js/components/bottomNav.js"></script>
 <script src="../js/store.js"></script>
+<script src="../js/components/toast.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     renderSidebar('settings');
     renderHeader({ title:'Settings', subtitle:'Preferences & Configuration' });
     renderBottomNav('settings');
-    loadSettings();
+
+    // Show loading while auth resolves
+    document.querySelector('main').style.opacity = '0.5';
+    document.querySelector('main').style.pointerEvents = 'none';
+
+    firebaseAuth.onAuthStateChanged(function(user) {
+        if (user) {
+            loadSettings();
+            document.querySelector('main').style.opacity = '1';
+            document.querySelector('main').style.pointerEvents = 'auto';
+        }
+    });
 });
 
 function loadSettings() {
@@ -263,14 +275,20 @@ function toggleSetting(key) {
 
 function saveBackendUrl() {
     var url = document.getElementById('settings-backend-url').value.trim();
+
+    // Validation: if URL provided, must be valid
+    if (url && !url.match(/^https?:\/\/.+/)) {
+        Toast.show('URL must start with http:// or https://', 'warning');
+        document.getElementById('settings-backend-url').focus();
+        return;
+    }
+
     if (url) {
         localStorage.setItem('uniflow_backend_url', url);
     } else {
         localStorage.removeItem('uniflow_backend_url');
     }
-    var el = document.getElementById('backend-success');
-    el.classList.remove('hidden');
-    setTimeout(function() { el.classList.add('hidden'); }, 3000);
+    Toast.show('Backend URL saved!', 'success');
 }
 
 function testBackendConnection() {
@@ -316,21 +334,22 @@ function exportData() {
 }
 
 function syncFromCloud() {
+    Toast.show('Syncing from cloud...', 'info');
     if (typeof Store !== 'undefined' && Store.loadFromFirestore) {
         Store.loadFromFirestore().then(function() {
-            alert('Data synced from cloud successfully!');
+            Toast.show('Data synced from cloud successfully!', 'success');
         }).catch(function(e) {
-            alert('Sync failed: ' + e.message);
+            Toast.show('Sync failed: ' + e.message, 'error');
         });
     } else {
-        alert('Cloud sync not available.');
+        Toast.show('Cloud sync not available.', 'warning');
     }
 }
 
 function clearChatHistory() {
     if (!confirm('Clear all chat history? This cannot be undone.')) return;
     Store.clearChatHistory();
-    alert('Chat history cleared.');
+    Toast.show('Chat history cleared.', 'success');
 }
 
 function clearAllData() {
@@ -344,8 +363,8 @@ function clearAllData() {
         }
     }
     keysToRemove.forEach(function(k) { localStorage.removeItem(k); });
-    alert('All data cleared. You will be redirected to login.');
-    window.location.href = './login.html';
+    Toast.show('All data cleared. Redirecting to login...', 'success');
+    setTimeout(function() { window.location.href = './login.html'; }, 1500);
 }
 </script>
 </body>
