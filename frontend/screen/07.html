@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -59,7 +59,7 @@
                     <span class="text-label-sm text-on-surface-variant uppercase tracking-widest">Total Spent</span>
                 </div>
                 <p class="text-headline-lg font-bold text-on-surface" id="total-spent">RM0.00</p>
-                <p class="text-label-sm mt-2" id="remaining-text">—</p>
+                <p class="text-label-sm mt-2" id="remaining-text">�</p>
             </div>
             <div class="stat-card bg-surface-container/60 backdrop-blur-xl rounded-3xl p-6 border border-outline-variant/10 fade-in-up" style="animation-delay:160ms">
                 <div class="flex items-center gap-3 mb-4">
@@ -132,6 +132,7 @@
 <script src="../js/components/header.js"></script>
 <script src="../js/components/bottomNav.js"></script>
 <script src="../js/store.js"></script>
+<script src="../js/components/notifications.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -161,7 +162,7 @@ function renderBudget() {
         remainingEl.textContent = remaining >= 0 ? 'RM' + remaining.toFixed(2) + ' remaining' : 'RM' + Math.abs(remaining).toFixed(2) + ' over budget!';
         remainingEl.className = 'text-label-sm mt-2 ' + (remaining >= 0 ? 'text-emerald-400' : 'text-rose-400');
     } else {
-        remainingEl.textContent = '—';
+        remainingEl.textContent = '�';
         remainingEl.className = 'text-label-sm text-on-surface-variant mt-2';
     }
 
@@ -171,10 +172,10 @@ function renderBudget() {
         document.getElementById('budget-percent').textContent = pct + '%';
         var bar = document.getElementById('budget-progress-bar');
         bar.className = 'h-full rounded-full transition-all ' + (pct > 90 ? 'bg-gradient-to-r from-rose-500 to-rose-400' : pct > 70 ? 'bg-gradient-to-r from-amber-500 to-amber-400' : 'bg-gradient-to-r from-emerald-500 to-emerald-400');
-        document.getElementById('budget-hint').textContent = pct > 90 ? '⚠️ Almost at your budget limit!' : pct > 70 ? 'Getting close to your limit.' : 'On track. Keep it up!';
+        document.getElementById('budget-hint').textContent = pct > 90 ? '?? Almost at your budget limit!' : pct > 70 ? 'Getting close to your limit.' : 'On track. Keep it up!';
     } else {
         document.getElementById('budget-progress-bar').style.width = '0%';
-        document.getElementById('budget-percent').textContent = '—';
+        document.getElementById('budget-percent').textContent = '�';
         document.getElementById('budget-hint').textContent = 'Set a budget limit to track your spending.';
     }
 

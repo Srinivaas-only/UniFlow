@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -116,6 +116,7 @@
 <script src="../js/components/header.js"></script>
 <script src="../js/components/bottomNav.js"></script>
 <script src="../js/store.js"></script>
+<script src="../js/components/notifications.js"></script>
 
 <script>
 var currentGroupId = null;
@@ -174,7 +175,7 @@ function openDetail(id) {
     if (!group) return;
     document.getElementById('detail-title').textContent = group.name;
     document.getElementById('detail-members').innerHTML = group.members.map(function(m, i) {
-        return '<span class="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-500/10 text-purple-400 rounded-2xl text-label-sm font-semibold">' + escapeHtml(m) + '<button onclick="removeMember(' + i + ')" class="ml-1 hover:text-rose-400 transition-colors">×</button></span>';
+        return '<span class="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-500/10 text-purple-400 rounded-2xl text-label-sm font-semibold">' + escapeHtml(m) + '<button onclick="removeMember(' + i + ')" class="ml-1 hover:text-rose-400 transition-colors">�</button></span>';
     }).join('');
     document.getElementById('detail-tasks').innerHTML = group.tasks.map(function(t, i) {
         return '<div class="flex items-center gap-3 p-3 bg-surface-container/50 rounded-2xl hover:bg-surface-container/70 transition-all">' +

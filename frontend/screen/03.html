@@ -1,4 +1,4 @@
-ï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -41,7 +41,7 @@
             <h2 class="text-headline-sm font-bold text-primary mb-4 flex items-center gap-2">
                 <span class="material-symbols-outlined">library_books</span> Study Resources
             </h2>
-            <p class="text-on-surface-variant text-body-md mb-4">Powered by Bright Data â€” search the web for past papers, notes, textbooks, and video tutorials.</p>
+            <p class="text-on-surface-variant text-body-md mb-4">Powered by Bright Data — search the web for past papers, notes, textbooks, and video tutorials.</p>
             <div class="flex gap-3">
                 <input id="search-input" type="text" placeholder="e.g. Data Structures, Calculus, OS..." class="flex-1 bg-surface-container rounded-2xl px-4 py-3 text-on-surface border border-outline-variant/30 focus:border-primary outline-none transition-all"/>
                 <button onclick="searchResources()" id="search-btn" class="px-6 py-3 bg-primary text-on-primary rounded-2xl font-bold hover:brightness-110 active:scale-[0.97] transition-all flex items-center gap-2">
@@ -105,6 +105,7 @@
 <script src="../js/components/header.js"></script>
 <script src="../js/components/bottomNav.js"></script>
 <script src="../js/store.js"></script>
+<script src="../js/components/notifications.js"></script>
 <script>
 var allResults=[];
 var currentFilter='all';
@@ -196,7 +197,7 @@ function renderFavorites(){
         '<div class="flex items-center gap-3 p-3 bg-surface-container/40 rounded-2xl mb-2 hover:bg-surface-container/60 transition-all">'+
             '<span class="material-symbols-outlined '+cfg.color+'">'+cfg.icon+'</span>'+
             '<div class="flex-1 min-w-0"><p class="text-label-sm font-bold truncate">'+escapeHtml(r.title)+'</p>'+
-            '<span class="text-[10px] text-on-surface-variant">'+cfg.label+' Â· '+escapeHtml(r.source||'')+'</span></div>'+
+            '<span class="text-[10px] text-on-surface-variant">'+cfg.label+' · '+escapeHtml(r.source||'')+'</span></div>'+
             (r.link?'<a href="'+escapeHtml(r.link)+'" target="_blank" class="text-primary text-label-sm font-bold hover:underline">Open</a>':'')+
             '<button onclick="removeFav('+idx+')" class="p-1 text-on-surface-variant hover:text-rose-400 transition-colors"><span class="material-symbols-outlined text-lg">delete</span></button>'+
         '</div>';

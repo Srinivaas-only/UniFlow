@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -118,6 +118,7 @@
 <script src="../js/components/header.js"></script>
 <script src="../js/components/bottomNav.js"></script>
 <script src="../js/store.js"></script>
+<script src="../js/components/notifications.js"></script>
 
 <script>
 var TYPE_COLORS = {
@@ -185,7 +186,7 @@ function renderCalendar() {
     // Update week label
     var endOfWeek = new Date(currentWeekStart);
     endOfWeek.setDate(endOfWeek.getDate() + 6);
-    var label = currentWeekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' – ' + endOfWeek.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    var label = currentWeekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' � ' + endOfWeek.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
     document.getElementById('week-label').textContent = label;
 
     if (currentView === 'week') {
@@ -363,7 +364,7 @@ function renderMonthView(container, events, uniEvents) {
     container.innerHTML = html;
 }
 
-// ── Event Modal ──
+// -- Event Modal --
 function openEventModal(id) {
     var events = Store.getEvents();
     var evt = events.find(function(e) { return e.id === id; });

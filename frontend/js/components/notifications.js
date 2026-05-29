@@ -82,33 +82,33 @@ var UniNotifications = (function () {
                 }
             });
 
-            /* 2. Events today & tomorrow */
+            /* 2. Upcoming events within 7 days */
             var upcoming = Store.getUpcomingEvents();
             upcoming.forEach(function (e) {
                 if (e.type === 'expense') return;
+                if (e.date < t || e.date > weekAhead) return;
+
+                var rel = relativeDate(e.date);
+                var icon, iconColor, iconBg;
+
                 if (e.date === t) {
-                    notifs.push({
-                        id: 'today_' + (e.id || e.title),
-                        icon: 'today',
-                        iconColor: '#fbbf24',
-                        iconBg: 'rgba(251,191,36,0.15)',
-                        title: e.title || 'Event today',
-                        subtitle: (e.time || '') + ' — Today',
-                        type: e.type || 'event',
-                        date: e.date
-                    });
+                    icon = 'today'; iconColor = '#fbbf24'; iconBg = 'rgba(251,191,36,0.15)';
                 } else if (e.date === tomorrow()) {
-                    notifs.push({
-                        id: 'tmrw_' + (e.id || e.title),
-                        icon: 'event_upcoming',
-                        iconColor: '#D6C4FF',
-                        iconBg: 'rgba(214,196,255,0.15)',
-                        title: e.title || 'Event tomorrow',
-                        subtitle: (e.time || '') + ' — Tomorrow',
-                        type: e.type || 'event',
-                        date: e.date
-                    });
+                    icon = 'event_upcoming'; iconColor = '#D6C4FF'; iconBg = 'rgba(214,196,255,0.15)';
+                } else {
+                    icon = 'event'; iconColor = '#60a5fa'; iconBg = 'rgba(96,165,250,0.15)';
                 }
+
+                notifs.push({
+                    id: 'upcoming_' + (e.id || e.title),
+                    icon: icon,
+                    iconColor: iconColor,
+                    iconBg: iconBg,
+                    title: e.title || 'Upcoming event',
+                    subtitle: (e.time ? e.time + ' — ' : '') + rel,
+                    type: e.type || 'event',
+                    date: e.date
+                });
             });
 
             /* 3. Budget warning */

@@ -14,16 +14,6 @@
     }
 })();
 
-// ── Dynamically load notifications.js (if Store is available) ──
-(function() {
-    if (typeof UniNotifications === 'undefined') {
-        var s = document.createElement('script');
-        s.src = '../js/components/notifications.js';
-        s.async = false;
-        document.currentScript.parentNode.insertBefore(s, document.currentScript.nextSibling);
-    }
-})();
-
 function renderHeader(options) {
     var title = options.title || '';
     var subtitle = options.subtitle || '';

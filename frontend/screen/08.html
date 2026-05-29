@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -42,7 +42,7 @@
             <h2 class="text-headline-sm font-bold text-primary mb-4 flex items-center gap-2">
                 <span class="material-symbols-outlined">school</span> Scholarship Finder
             </h2>
-            <p class="text-on-surface-variant text-body-md mb-4">Powered by Bright Data — real-time web search for Malaysian scholarships matching your profile.</p>
+            <p class="text-on-surface-variant text-body-md mb-4">Powered by Bright Data � real-time web search for Malaysian scholarships matching your profile.</p>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
                     <label class="text-label-sm text-on-surface-variant block mb-1">Course</label>
@@ -122,6 +122,7 @@
 <script src="../js/components/bottomNav.js"></script>
 <script src="../js/components/modal.js"></script>
 <script src="../js/store.js"></script>
+<script src="../js/components/notifications.js"></script>
 <script>
 var currentResults = [];
 function escapeHtml(t){var d=document.createElement('div');d.textContent=t;return d.innerHTML}
@@ -184,7 +185,7 @@ function renderResults(){
             '</div>'+
             (s.eligibility?'<p class="text-[11px] text-on-surface-variant mb-3">Eligibility: '+escapeHtml(s.eligibility)+'</p>':'')+
             '<div class="flex items-center gap-2">'+
-                (s.link?'<a href="'+escapeHtml(s.link)+'" target="_blank" class="flex-1 py-2 bg-primary/10 text-primary rounded-xl text-label-sm font-bold text-center hover:bg-primary/20 transition-all">Apply →</a>':'')+
+                (s.link?'<a href="'+escapeHtml(s.link)+'" target="_blank" class="flex-1 py-2 bg-primary/10 text-primary rounded-xl text-label-sm font-bold text-center hover:bg-primary/20 transition-all">Apply ?</a>':'')+
                 '<button onclick="saveScholarship('+idx+')" class="py-2 px-3 bg-surface-container-high text-on-surface-variant rounded-xl text-label-sm hover:text-primary transition-all"><span class="material-symbols-outlined text-lg">bookmark_add</span></button>'+
                 (s.deadline?'<button onclick="addDeadlineReminder('+idx+')" class="py-2 px-3 bg-surface-container-high text-on-surface-variant rounded-xl text-label-sm hover:text-primary transition-all" title="Add to schedule"><span class="material-symbols-outlined text-lg">calendar_add_on</span></button>':'')+
             '</div>'+
