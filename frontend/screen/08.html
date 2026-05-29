@@ -120,6 +120,7 @@
 <script src="../js/firebase.js"></script>
 <script src="../js/components/header.js"></script>
 <script src="../js/components/bottomNav.js"></script>
+<script src="../js/components/modal.js"></script>
 <script src="../js/store.js"></script>
 <script>
 var currentResults = [];
@@ -135,7 +136,7 @@ async function searchScholarships(){
     var cgpa=document.getElementById('inp-cgpa').value.trim();
     var year=document.getElementById('inp-year').value.trim();
     var state=document.getElementById('inp-state').value.trim();
-    if(!course){alert('Please enter your course');return}
+    if(!course){showModal({title:'Missing Field',message:'Please enter your course to search for scholarships.',type:'warning',showCancel:false,confirmText:'Got it'});return}
 
     document.getElementById('empty-state').style.display='none';
     document.getElementById('searching-state').style.display='block';
@@ -149,7 +150,7 @@ async function searchScholarships(){
     }catch(err){
         document.getElementById('searching-state').style.display='none';
         document.getElementById('empty-state').style.display='flex';
-        alert('Search failed: '+err.message);
+        showModal({title:'Search Failed',message:err.message||'Something went wrong while searching. Please try again.',type:'error',showCancel:false,confirmText:'OK'});
     }
 }
 
@@ -211,7 +212,7 @@ function addDeadlineReminder(idx){
     var s=currentResults[idx];
     if(!s.deadline)return;
     Store.addEvents([{title:'Scholarship Deadline: '+s.title,date:s.deadline,time:'11:59pm',type:'deadline'}]);
-    alert('Deadline added to your schedule!');
+    showModal({title:'Deadline Added',message:'"'+s.title+'" deadline has been added to your schedule.',type:'success',showCancel:false,confirmText:'Nice!'});
 }
 
 function renderSaved(){
