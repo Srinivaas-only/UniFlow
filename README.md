@@ -1,166 +1,202 @@
-# UniFlow — AI-Powered University Life Hub
+# 🎓 UniFlow — AI-Powered University Life Hub
 
-> One message to manage your entire university life — schedules, budgets, assignments, scholarships, and study resources. Built for Malaysian university students.
+> **One message to manage your entire university life** — schedules, budgets, assignments, scholarships, and study resources. Built for Malaysian university students.
 
-## Architecture
+[![Tech Stack](https://img.shields.io/badge/Backend-FastAPI-009688?style=flat-square)](https://fastapi.tiangolo.com/)
+[![Tech Stack](https://img.shields.io/badge/Frontend-Tailwind_CSS-38B2AC?style=flat-square)](https://tailwindcss.com/)
+[![Tech Stack](https://img.shields.io/badge/AI-DeepSeek_%7C_Groq-6366F1?style=flat-square)](https://deepseek.com/)
+[![Tech Stack](https://img.shields.io/badge/Cloud-Firebase-FFCA28?style=flat-square)](https://firebase.google.com/)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+
+---
+
+## 🎯 The Problem
+
+University students juggle **classes, assignments, expenses, scholarships, and group projects** — all scattered across different apps, calendars, and sticky notes. There's no single tool that understands natural language and manages everything in one place.
+
+## 💡 The Solution
+
+**UniFlow** is an AI-powered hub where you type naturally:
+
+> *"calc quiz thursday 2pm, OS assignment due friday, spent RM15 on lunch"*
+
+The AI parses your message into structured events, expenses, and reminders — all saved and synced to the cloud. No forms, no tapping through menus. Just type.
+
+---
+
+## ✨ Key Features
+
+| Feature | Description |
+|---------|-------------|
+| 🤖 **AI Command Hub** | Type naturally — LLM parses events, expenses, reminders simultaneously |
+| 📅 **Smart Schedule** | Weekly calendar with color-coded events, countdown timers, month view |
+| 📊 **Hub Dashboard** | Dynamic greeting, stats, upcoming events, weekly activity, quick actions |
+| 💰 **Budget Tracker** | Auto-categorized expenses, budget limits, spending insights |
+| 📝 **Assignments** | Priority-sorted with overdue badges, completion tracking |
+| 🎓 **Scholarship Finder** | Real Malaysian scholarships via Bright Data web search |
+| 📚 **Study Resources** | Past papers, notes, textbooks found via Bright Data |
+| 👥 **Group Projects** | Create groups, assign tasks, track progress |
+| 🔐 **Auth & Cloud Sync** | Firebase Auth + Firestore — data follows you across devices |
+
+---
+
+## 🏗️ Architecture
+
+```
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│   Frontend   │────▶│   Backend    │────▶│  LLM (AI)    │
+│  HTML/JS/    │     │   FastAPI    │     │ DeepSeek /   │
+│  Tailwind    │     │              │     │ Groq         │
+│              │     │              │────▶│ Bright Data  │
+│              │────▶│  Firebase    │     │ (Web Search) │
+│              │     │  Auth +      │     └──────────────┘
+│              │     │  Firestore   │
+└──────────────┘     └──────────────┘
+```
 
 ```
 UniFlow/
-├── backend/           # FastAPI + OpenAI-compatible LLM + Bright Data
+├── backend/               # FastAPI + LLM + Bright Data
 │   ├── app/
-│   │   ├── main.py        # API endpoints (/api/parse, /api/scholarships, /api/resources)
+│   │   ├── main.py        # API endpoints
 │   │   ├── parser.py      # LLM-powered NLP parser
 │   │   ├── brightdata.py  # Bright Data web scraper
 │   │   ├── models.py      # Pydantic schemas
 │   │   └── config.py      # Settings
 │   ├── requirements.txt
-│   └── .env               # API keys (not committed)
-├── frontend/          # Static HTML + Tailwind CSS + Firebase SDK
-│   ├── index.html          # Landing page + onboarding
+│   └── .env.example
+├── frontend/              # Static HTML + Tailwind CSS + Firebase SDK
+│   ├── index.html         # Landing page
 │   ├── js/
-│   │   ├── firebase.js    # Firebase config (public, shared across team)
+│   │   ├── firebase.js    # Firebase config
 │   │   ├── store.js       # localStorage + Firestore sync + API client
-│   │   └── components/    # Shared UI (sidebar, header, bottomNav, tailwind)
+│   │   └── components/    # Shared UI (header, sidebar, bottomNav, toast)
 │   └── screen/
-│       ├── login.html      # Login page
-│       ├── signup.html     # Signup page
-│       ├── 01.html         # Hub Dashboard
-│       ├── 02.html         # Schedule Calendar
-│       ├── 03.html         # Study Resources (Bright Data)
-│       ├── 04.html         # Data Structures Vault
-│       ├── 05.html         # Assignments
-│       ├── 06.html         # Group Projects
-│       ├── 07.html         # Budget Tracker
-│       ├── 08.html         # Scholarship Finder (Bright Data)
-│       └── 09.html         # AI Command Hub (Chat)
-├── firestore.rules        # Firestore security rules (reference copy)
+│       ├── login.html     # Authentication
+│       ├── signup.html    # Registration
+│       ├── 01.html        # Hub Dashboard
+│       ├── 02.html        # Schedule Calendar
+│       ├── 03.html        # Study Resources
+│       ├── 04.html        # Data Structures Vault
+│       ├── 05.html        # Assignments
+│       ├── 06.html        # Group Projects
+│       ├── 07.html        # Budget Tracker
+│       ├── 08.html        # Scholarship Finder
+│       ├── 09.html        # AI Command Hub
+│       ├── profile.html   # User Profile
+│       ├── settings.html  # App Settings
+│       └── help.html      # Help & FAQ
+└── firestore.rules        # Firestore security rules
 ```
 
-## Quick Start
+---
 
-### 1. Firebase Setup (one-time, project owner)
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.8+
+- A Firebase project (free)
+- API key for DeepSeek or Groq (free tier available)
+
+### 1. Firebase Setup (one-time)
 
 ```bash
 # 1. Create a Firebase project at https://console.firebase.google.com
-# 2. Enable Authentication → Email/Password sign-in method
-# 3. Create Firestore Database (start in test mode, then apply rules)
+# 2. Enable Authentication → Email/Password
+# 3. Create Firestore Database (start in test mode)
 # 4. Copy your Firebase config to frontend/js/firebase.js
-# 5. Apply security rules: Firestore → Rules tab → paste contents of firestore.rules
+# 5. Apply security rules from firestore.rules
 ```
 
-> **Note:** This is done once by whoever sets up the project. Teammates just `git pull` and the Firebase config is already there. Firebase API keys are public-safe — security comes from Firestore rules.
+> Firebase API keys are **public-safe** — security comes from Firestore rules.
 
 ### 2. Backend
 
 ```bash
 cd backend
-
-# Install dependencies
 pip install -r requirements.txt
 
-# Set up environment variables
+# Set up API keys
 cp .env.example .env
-# Edit .env — add your API keys (Groq, DeepSeek, or any OpenAI-compatible provider)
+# Edit .env — add your DeepSeek or Groq API key
 
-# Run the server
-python -m uvicorn app.main:app --reload --port 8080
+# Start the server
+python -m uvicorn app.main:app --reload --port 8000
 ```
 
 ### 3. Frontend
 
-Open `frontend/screen/login.html` in a browser, or serve with any static server:
-
 ```bash
 cd frontend
 python -m http.server 3000
-# Visit http://localhost:3000/screen/login.html
+# Visit http://localhost:3000
 ```
 
-## Features
+---
 
-### 🔐 Authentication & Cloud Sync
-Firebase Auth for login/signup. Firestore cloud sync — data follows the user across devices and sessions. Auth guards protect all dashboard pages. Each user's data is isolated with Firestore security rules.
-
-### 🤖 AI Command Hub (Screen 09)
-Type naturally: *"calc quiz thursday 2pm, OS assignment due friday, spent RM15 on lunch"* — LLM parses events, expenses, and reminders simultaneously.
-
-### 📅 Smart Schedule (Screen 02)
-Weekly calendar grid with time slots, color-coded events by type, month view toggle, overlap detection, and event modal with edit/delete.
-
-### 📊 Hub Dashboard (Screen 01)
-Dynamic greeting, next event countdown, stats (exams/assignments/budget/streak), upcoming events list, weekly activity chart, quick actions.
-
-### 💰 Budget Tracker (Screen 07)
-Auto-categorized expenses, budget limit with progress bar, category breakdown, spending insights.
-
-### 📝 Assignments (Screen 05)
-Priority-sorted list with overdue/today/this-week badges, completion tracking, progress stats.
-
-### 🎓 Scholarship Finder (Screen 08)
-Bright Data searches the web for real Malaysian scholarships. Sort by match/amount/deadline. Save favorites. Auto-add deadline reminders.
-
-### 📚 Study Resources (Screen 03)
-Bright Data finds past papers, notes, textbooks, and video tutorials. Filter by type. Save favorites.
-
-### 👥 Group Projects (Screen 06)
-Create groups, manage members, assign tasks, track completion progress.
-
-## API Endpoints
+## 🔌 API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/parse` | POST | Parse natural language to structured events |
-| `/api/scholarships` | POST | Search scholarships via Bright Data |
-| `/api/resources` | POST | Search study resources via Bright Data |
-| `/api/uni-scrape` | POST | Scrape university calendar |
-| `/health` | GET | Health check with cache stats |
+| `POST /api/parse` | POST | Parse natural language → structured events |
+| `POST /api/scholarships` | POST | Search scholarships via Bright Data |
+| `POST /api/resources` | POST | Search study resources via Bright Data |
+| `GET /health` | GET | Health check |
 
 ### Parse Example
 
 ```json
 // POST /api/parse
-{ "message": "calc quiz thursday 2pm, OS assignment due friday" }
+{ "message": "calc quiz thursday 2pm, spent RM15 on lunch" }
 
 // Response
 {
   "events": [
     { "title": "Calculus Quiz", "date": "2026-05-28", "time": "14:00", "type": "exam" },
-    { "title": "OS Assignment Due", "date": "2026-05-29", "time": null, "type": "assignment" }
+    { "title": "Lunch", "date": "2026-05-28", "amount": "RM 15", "type": "expense" }
   ]
 }
 ```
 
-### Event Types
+---
 
-| Type | Examples |
-|------|----------|
-| `exam` | tests, quizzes, midterms, finals |
-| `assignment` | homework, labs, reports, projects |
-| `meeting` | FYP meetings, consultations |
-| `class` | lectures, tutorials, labs |
-| `expense` | spending, purchases |
-| `deadline` | submission deadlines |
-| `reminder` | personal reminders |
-| `social` | dinners, hangouts |
+## 🛠️ Tech Stack
 
-## Environment Variables
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Frontend** | Tailwind CSS, Material Symbols, Vanilla JS | Responsive dark-themed UI |
+| **Backend** | FastAPI (Python) | REST API server |
+| **AI** | DeepSeek / Groq (OpenAI-compatible) | Natural language processing |
+| **Web Data** | Bright Data | Real-time scholarship & resource search |
+| **Auth** | Firebase Authentication | Email/password login |
+| **Database** | Firestore + localStorage | Cloud sync with offline support |
+
+---
+
+## ⚙️ Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `DEEPSEEK_API_KEY` | Yes | API key (works with Groq, DeepSeek, or any OpenAI-compatible provider) |
-| `DEEPSEEK_BASE_URL` | No | API base URL (default: https://api.deepseek.com, use https://api.groq.com/openai/v1 for Groq) |
-| `DEEPSEEK_MODEL` | No | Model name (default: deepseek-chat, use llama-3.3-70b-versatile for Groq) |
-| `BRIGHTDATA_API_KEY` | No | Bright Data API key for scholarship/resource search |
+| `DEEPSEEK_BASE_URL` | No | Default: `https://api.deepseek.com` (use `https://api.groq.com/openai/v1` for Groq) |
+| `DEEPSEEK_MODEL` | No | Default: `deepseek-chat` (use `llama-3.3-70b-versatile` for Groq) |
+| `BRIGHTDATA_API_KEY` | No | Required for scholarship/resource search |
 
-## Tech Stack
+---
 
-- **Backend:** FastAPI, OpenAI-compatible LLM (Groq / DeepSeek / etc.), Bright Data
-- **Frontend:** Tailwind CSS, Material Symbols, vanilla JS
-- **Cloud Services:** Firebase Auth (authentication), Firestore (database)
-- **Storage:** localStorage (client) + Firestore (cloud sync), in-memory cache (server — planned)
-- **LLM:** OpenAI-compatible API for NLP parsing
-- **Web Data:** Bright Data for real-time scholarship/resource search
+## 🎥 Demo Flow
 
-## License
+1. **Landing page** → Click "Get Started"
+2. **Sign up** → Create account with email/password
+3. **Dashboard** → See greeting, stats, upcoming events
+4. **AI Command Hub** → Type *"OS quiz friday 3pm, spent RM8 on coffee"*
+5. **Schedule** → See AI-parsed events in calendar
+6. **Budget** → Track auto-categorized expenses
+7. **Scholarship Finder** → Search real Malaysian scholarships
+8. **Profile** → View stats, edit info
+
+---
+
+## 📄 License
 
 MIT
