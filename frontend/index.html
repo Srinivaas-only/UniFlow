@@ -72,7 +72,7 @@
             <span class="material-symbols-outlined text-primary text-2xl">auto_awesome</span>
             <span class="text-headline-sm font-bold text-on-surface">UniFlow</span>
         </div>
-        <button onclick="document.getElementById('onboarding-modal').style.display='flex'" class="px-5 py-2 bg-primary/10 text-primary rounded-2xl text-label-sm font-bold hover:bg-primary/20 transition-all">Get Started</button>
+        <a href="screen/login.html" class="px-5 py-2 bg-primary/10 text-primary rounded-2xl text-label-sm font-bold hover:bg-primary/20 transition-all no-underline flex items-center gap-1">Get Started</a>
     </nav>
 
     <!-- Hero -->
@@ -91,11 +91,11 @@
             One message to manage everything — schedules, budgets, assignments, scholarships, and study resources. Built for Malaysian university students.
         </p>
         <div class="flex flex-wrap gap-3 mt-8 justify-center fade-in-up" style="animation-delay:300ms">
-            <a href="screen/09.html" class="cta-btn px-8 py-4 bg-primary text-on-primary rounded-2xl font-bold text-body-lg flex items-center gap-2 transition-all">
-                <span class="material-symbols-outlined">chat</span> Try AI Chat
+            <a href="screen/login.html" class="cta-btn px-8 py-4 bg-primary text-on-primary rounded-2xl font-bold text-body-lg flex items-center gap-2 transition-all">
+                <span class="material-symbols-outlined">login</span> Get Started
             </a>
-            <a href="screen/01.html" class="px-8 py-4 bg-surface-container/60 text-on-surface rounded-2xl font-bold text-body-lg border border-outline-variant/20 hover:border-primary/30 transition-all flex items-center gap-2">
-                <span class="material-symbols-outlined">dashboard</span> View Dashboard
+            <a href="screen/signup.html" class="px-8 py-4 bg-surface-container/60 text-on-surface rounded-2xl font-bold text-body-lg border border-outline-variant/20 hover:border-primary/30 transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined">person_add</span> Create Account
             </a>
         </div>
     </div>
@@ -154,13 +154,29 @@ Built with ❤️ for Malaysian University Students · FastAPI + DeepSeek + Brig
     </footer>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="js/firebase.js"></script>
 <script src="js/store.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var profile = Store.getProfile();
-    if (profile.onboarded) {
-        document.getElementById('onboarding-modal').style.display = 'none';
-    }
+    // If already logged in, redirect straight to dashboard
+    firebaseAuth.onAuthStateChanged(function(user) {
+        if (user) {
+            // Load cloud data before redirecting
+            Store.loadFromFirestore().then(function() {
+                window.location.href = 'screen/01.html';
+            }).catch(function() {
+                window.location.href = 'screen/01.html';
+            });
+        } else {
+            // Not logged in — show landing page
+            var profile = Store.getProfile();
+            if (profile.onboarded) {
+                document.getElementById('onboarding-modal').style.display = 'none';
+            }
+        }
+    });
 });
 
 function completeOnboarding() {
@@ -169,7 +185,8 @@ function completeOnboarding() {
     var course = document.getElementById('onboard-course').value.trim();
     Store.setProfile({ name: name, university: uni, course: course, onboarded: true });
     document.getElementById('onboarding-modal').style.display = 'none';
-    window.location.href = 'screen/01.html';
+    // Redirect to login since onboarding doesn't create an account
+    window.location.href = 'screen/login.html';
 }
 </script>
 </body>
