@@ -1,226 +1,137 @@
 /**
- * UniFlow — Spectrum (Moodle) Content Script
- * Runs on spectrum.um.edu.my, scrapes DOM data when invoked by popup.
+ * UniFlow — Spectrum Content Script V2
+ *
+ * Runs on spectrum.um.edu.my. Dispatches to extractors, handles
+ * message protocol with popup, and sends data to backend.
+ *
+ * Depends on (loaded via manifest): lib/debug.js, lib/dateParser.js,
+ * lib/classifier.js, lib/dedupe.js, lib/extractors.js
  */
 (() => {
   'use strict';
 
   const BACKEND_URL = 'http://localhost:8000';
+  const EX = window.UniFlowExtractors;
+  const DBG = window.UniFlowDebug;
+  const DEDUPE = window.UniFlowDedupe;
 
   // ── Page Detection ──
+
   function detectPageType() {
     const body = document.body ? document.body.className : '';
     const path = location.pathname;
 
     if (body.includes('pagelayout-mydashboard')) return 'dashboard';
-    if (body.includes('path-course-view') || body.includes('pagelayout-course')) return 'course';
+    if (body.includes('path-course-view') || body.includes('pagelayout-incourse')) return 'course';
     if (body.includes('path-calendar')) return 'calendar';
     if (path.includes('/my/courses') || body.includes('pagelayout-mycourses')) return 'my_courses';
+    if (body.includes('path-mod-assign')) return 'assignment';
+    if (body.includes('path-mod-quiz')) return 'quiz';
     return 'unknown';
   }
 
-  // ── Dashboard Scraper ──
-  function scrapeDashboard() {
-    const items = [];
-    const eventItems = document.querySelectorAll('[data-region="event-item"]');
+  // ── Quick preview counts (fast, no full extraction) ──
 
-    eventItems.forEach(el => {
-      const link = el.querySelector('a[data-action="view-event"]');
-      if (!link) return;
+  function getPreviewInfo(pageType) {
+    let previewName = '';
+    let previewCount = 0;
+    let breakdown = {};
 
-      const title = link.getAttribute('title') || link.textContent.trim();
-      const eventId = link.getAttribute('data-event-id') || '';
-      const url = link.getAttribute('href') || '';
-      const dateEl = el.querySelector('.date.small');
-      const dateText = dateEl ? dateEl.textContent.trim() : '';
-
-      if (!title) return;
-
-      items.push({
-        title: title,
-        event_id: eventId,
-        url: url.startsWith('http') ? url : 'https://spectrum.um.edu.my' + url,
-        date_text: dateText,
-        raw_type: 'event'
-      });
-    });
-
-    return {
-      type: 'dashboard_import',
-      source_url: location.href,
-      items: items
-    };
-  }
-
-  // ── Course Scraper ──
-  function scrapeCourse() {
-    // Course name
-    let courseName = '';
-    const h1 = document.querySelector('.page-header-headings h1') || document.querySelector('#region-main h1');
-    if (h1) courseName = h1.textContent.trim();
-
-    // Course ID from URL
-    const idMatch = location.search.match(/[?&]id=(\d+)/);
-    const courseId = idMatch ? idMatch[1] : '';
-
-    // Also try body class
-    if (!courseId) {
-      const bodyClasses = document.body.className;
-      const bodyMatch = bodyClasses.match(/course-(\d+)/);
-      if (bodyMatch) courseId = bodyMatch[1];
+    switch (pageType) {
+      case 'dashboard': {
+        const items = document.querySelectorAll('[data-region="event-item"]');
+        previewCount = items.length;
+        breakdown = { events: previewCount };
+        break;
+      }
+      case 'course': {
+        const h1 = document.querySelector('.page-header-headings h1') ||
+                    document.querySelector('#region-main h1');
+        previewName = h1 ? h1.textContent.trim() : '';
+        const all = document.querySelectorAll('[class*="modtype_"]');
+        previewCount = all.length;
+        // Quick breakdown by type
+        all.forEach(el => {
+          const cls = [...el.classList].find(c => c.startsWith('modtype_'));
+          const t = cls ? cls.replace('modtype_', '') : 'other';
+          breakdown[t] = (breakdown[t] || 0) + 1;
+        });
+        break;
+      }
+      case 'calendar': {
+        const links = document.querySelectorAll('a[data-event-id][title]');
+        previewCount = links.length;
+        breakdown = { events: previewCount };
+        break;
+      }
+      case 'my_courses': {
+        const cards = document.querySelectorAll('a[href*="/course/view.php?id="]');
+        previewCount = cards.length;
+        breakdown = { courses: previewCount };
+        break;
+      }
+      case 'assignment': {
+        const h1 = document.querySelector('h1');
+        previewName = h1 ? h1.textContent.trim() : 'Assignment';
+        previewCount = 1;
+        breakdown = { assignment: 1 };
+        break;
+      }
     }
 
-    const SKIP_TYPES = ['attendance', 'label'];
-    const items = [];
+    return { pageType, previewCount, previewName, breakdown };
+  }
 
-    // Find all activity modules
-    const modules = document.querySelectorAll('[class*="modtype_"]');
-    modules.forEach(mod => {
-      // Determine type
-      let modType = '';
-      const classList = mod.className;
-      const typeMatch = classList.match(/modtype_(\w+)/);
-      if (typeMatch) modType = typeMatch[1].toLowerCase();
+  // ── Full extraction dispatch ──
 
-      if (SKIP_TYPES.includes(modType)) return;
+  async function runExtraction(pageType) {
+    DBG.info(`Starting extraction for page type: ${pageType}`);
+    let result;
 
-      // Name
-      let name = '';
-      const instancename = mod.querySelector('.instancename');
-      if (instancename) {
-        // Strip accessibility suffix like "Assignment" that Moodle adds
-        const srOnly = instancename.querySelector('.sr-only');
-        if (srOnly) srOnly.remove();
-        name = instancename.textContent.trim();
-      }
-      // Fallback to data-activityname
-      if (!name) {
-        const activityItem = mod.querySelector('[data-activityname]');
-        if (activityItem) name = activityItem.getAttribute('data-activityname') || '';
-      }
-      if (!name) return;
+    switch (pageType) {
+      case 'dashboard':
+        result = EX.extractDashboard();
+        break;
+      case 'course':
+        result = EX.extractCourse();
+        break;
+      case 'calendar':
+        result = EX.extractCalendar();
+        break;
+      case 'my_courses':
+        result = await EX.extractMyCourses();
+        break;
+      case 'assignment':
+      case 'quiz':
+        result = EX.extractAssignment();
+        break;
+      default:
+        throw new Error(`Unknown page type: ${pageType}`);
+    }
 
-      // Link
-      const linkEl = mod.querySelector('.activityname a') || mod.querySelector('a[href*="mod/"]');
-      const url = linkEl ? linkEl.getAttribute('href') || '' : '';
+    DBG.info(`Extraction complete: ${(result.items || []).length} items, ${(result.skipped || []).length} skipped`);
 
-      // Module ID
-      let moduleId = '';
-      const parent = mod.closest('[id^="module-"]') || mod;
-      const idAttr = parent.id || mod.id || '';
-      const modIdMatch = idAttr.match(/module-(\d+)/);
-      if (modIdMatch) moduleId = modIdMatch[1];
-
-      items.push({
-        name: name,
-        type: modType || 'unknown',
-        url: url.startsWith('http') ? url : (url ? 'https://spectrum.um.edu.my' + url : ''),
-        module_id: moduleId
-      });
-    });
-
-    return {
-      type: 'course_import',
+    // Build payload
+    const payload = {
+      type: `${pageType}_import`,
       source_url: location.href,
-      course_name: courseName,
-      course_id: courseId,
-      items: items
+      extracted_at: new Date().toISOString(),
+      course_context: result.course || null,
+      raw_items: result.items || [],
+      skipped: result.skipped || []
     };
+
+    return payload;
   }
 
-  // ── Calendar Scraper ──
-  function scrapeCalendar() {
-    const items = [];
-    const eventLinks = document.querySelectorAll('a[data-event-id][title]');
+  // ── Send to backend ──
 
-    eventLinks.forEach(link => {
-      const title = link.getAttribute('title') || '';
-      const eventId = link.getAttribute('data-event-id') || '';
-      const url = link.getAttribute('href') || '';
-
-      // Walk up to find the day container with timestamp
-      let timestamp = null;
-      let parent = link.parentElement;
-      for (let i = 0; i < 10 && parent; i++) {
-        if (parent.hasAttribute && parent.hasAttribute('data-new-event-timestamp')) {
-          timestamp = parseInt(parent.getAttribute('data-new-event-timestamp'), 10);
-          break;
-        }
-        parent = parent.parentElement;
-      }
-
-      if (!title) return;
-
-      items.push({
-        title: title,
-        event_id: eventId,
-        url: url.startsWith('http') ? url : (url ? 'https://spectrum.um.edu.my' + url : ''),
-        timestamp: timestamp
-      });
-    });
-
-    return {
-      type: 'calendar_import',
-      source_url: location.href,
-      items: items
-    };
-  }
-
-  // ── My Courses Scraper (async load) ──
-  function waitForCourses(maxWaitMs = 10000) {
-    return new Promise((resolve) => {
-      const startTime = Date.now();
-      const interval = 500;
-
-      function check() {
-        const courseLinks = document.querySelectorAll('a[href*="/course/view.php?id="]');
-        if (courseLinks.length > 0) {
-          resolve(courseLinks);
-          return;
-        }
-        if (Date.now() - startTime >= maxWaitMs) {
-          resolve(courseLinks); // return whatever we have
-          return;
-        }
-        setTimeout(check, interval);
-      }
-      check();
-    });
-  }
-
-  async function scrapeMyCourses() {
-    const courseLinks = await waitForCourses();
-    const items = [];
-
-    courseLinks.forEach(link => {
-      const name = link.textContent.trim();
-      const url = link.getAttribute('href') || '';
-      const idMatch = url.match(/[?&]id=(\d+)/);
-      const courseId = idMatch ? idMatch[1] : '';
-
-      if (!name) return;
-
-      items.push({
-        name: name,
-        url: url.startsWith('http') ? url : 'https://spectrum.um.edu.my' + url,
-        course_id: courseId
-      });
-    });
-
-    return {
-      type: 'courses_import',
-      source_url: location.href,
-      items: items
-    };
-  }
-
-  // ── Send to Backend ──
-  async function sendToBackend(data) {
+  async function sendToBackend(payload) {
     try {
       const response = await fetch(BACKEND_URL + '/api/spectrum-import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
@@ -230,102 +141,107 @@
 
       return await response.json();
     } catch (err) {
-      // If backend unreachable, store locally for later
       if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
-        console.warn('[UniFlow] Backend unreachable, storing data locally');
-        // Store in chrome.storage for later retrieval
-        const storageKey = 'uniflow_pending_' + data.type;
-        await chrome.storage.local.set({ [storageKey]: data });
+        DBG.warn('Backend unreachable, storing locally');
+        const storageKey = 'uniflow_pending_' + payload.type;
+        await chrome.storage.local.set({ [storageKey]: payload });
         throw new Error('Backend not running. Data saved locally. Start the backend and try again.');
       }
       throw err;
     }
   }
 
-  // ── Message Handler ──
+  // ── Message handler ──
+
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+
+    // Detect page + quick preview
     if (request.action === 'DETECT_PAGE') {
       const pageType = detectPageType();
-      let previewCount = 0;
-      let previewName = '';
-
-      switch (pageType) {
-        case 'dashboard':
-          previewCount = document.querySelectorAll('[data-region="event-item"]').length;
-          break;
-        case 'course': {
-          const h1 = document.querySelector('.page-header-headings h1') || document.querySelector('#region-main h1');
-          previewName = h1 ? h1.textContent.trim() : '';
-          previewCount = document.querySelectorAll('[class*="modtype_"]').length;
-          break;
-        }
-        case 'calendar':
-          previewCount = document.querySelectorAll('a[data-event-id][title]').length;
-          break;
-        case 'my_courses':
-          previewCount = document.querySelectorAll('a[href*="/course/view.php?id="]').length;
-          break;
-      }
-
-      sendResponse({ pageType, previewCount, previewName });
+      const preview = getPreviewInfo(pageType);
+      sendResponse(preview);
       return false;
     }
 
-    if (request.action === 'START_IMPORT') {
+    // Full extraction (for preview)
+    if (request.action === 'EXTRACT') {
       (async () => {
         try {
           const pageType = detectPageType();
-          let scrapedData;
+          const payload = await runExtraction(pageType);
 
-          switch (pageType) {
-            case 'dashboard':
-              scrapedData = scrapeDashboard();
-              break;
-            case 'course':
-              scrapedData = scrapeCourse();
-              break;
-            case 'calendar':
-              scrapedData = scrapeCalendar();
-              break;
-            case 'my_courses':
-              scrapedData = await scrapeMyCourses();
-              break;
-            default:
-              chrome.runtime.sendMessage({ status: 'error', message: 'Unknown page type' });
-              return;
-          }
-
-          console.log('[UniFlow] Scraped data:', scrapedData);
-
-          if (scrapedData.items.length === 0) {
-            chrome.runtime.sendMessage({ status: 'empty', message: 'No items found on this page' });
-            return;
-          }
-
-          // Send to backend
-          const result = await sendToBackend(scrapedData);
-          console.log('[UniFlow] Backend response:', result);
-
-          // Also store result in chrome.storage for frontend pickup
-          await chrome.storage.local.set({ last_spectrum_sync: result });
-
-          chrome.runtime.sendMessage({
-            status: 'success',
-            imported_count: result.imported_count || 0,
-            events_count: (result.events || []).length,
-            resources_count: (result.resources || []).length,
-            message: result.message || 'Import complete'
+          // Check against dedupe history
+          const history = await DEDUPE.loadImportHistory();
+          payload.raw_items.forEach(item => {
+            item._already_imported = DEDUPE.isAlreadyImported(item, history);
           });
 
+          sendResponse({ status: 'ok', payload });
         } catch (err) {
-          console.error('[UniFlow] Import failed:', err);
-          chrome.runtime.sendMessage({ status: 'error', message: err.message || 'Import failed' });
+          DBG.error('Extraction failed:', err);
+          sendResponse({ status: 'error', message: err.message });
         }
       })();
+      return true;
+    }
 
-      return true; // async response
+    // Commit selected items to backend
+    if (request.action === 'COMMIT') {
+      (async () => {
+        try {
+          const { items, type } = request;
+          DBG.info(`Committing ${items.length} items of type ${type}`);
+
+          const payload = {
+            type: type,
+            source_url: location.href,
+            extracted_at: new Date().toISOString(),
+            raw_items: items
+          };
+
+          const result = await sendToBackend(payload);
+          DBG.info('Backend response:', result);
+
+          // Mark items as imported in dedupe history
+          const history = await DEDUPE.loadImportHistory();
+          DEDUPE.markImported(items, history);
+          await DEDUPE.saveImportHistory(history);
+
+          // Store result for frontend pickup
+          await chrome.storage.local.set({
+            spectrum_pending: result,
+            last_spectrum_sync_time: new Date().toISOString()
+          });
+
+          sendResponse({
+            status: 'success',
+            events_count: (result.events || []).length,
+            resources_count: (result.resources || []).length,
+            imported_count: result.imported_count || 0,
+            message: result.message || 'Import complete'
+          });
+        } catch (err) {
+          DBG.error('Commit failed:', err);
+          sendResponse({ status: 'error', message: err.message });
+        }
+      })();
+      return true;
+    }
+
+    // Toggle debug mode
+    if (request.action === 'SET_DEBUG') {
+      DBG.setDebugMode(request.enabled);
+      sendResponse({ status: 'ok', debugMode: request.enabled });
+      return false;
+    }
+
+    // Download debug bundle
+    if (request.action === 'DOWNLOAD_DEBUG') {
+      DBG.downloadDebugBundle(request.data || {});
+      sendResponse({ status: 'ok' });
+      return false;
     }
   });
 
-  console.log('[UniFlow] Content script loaded on', location.href);
+  DBG.info(`Content script V2 loaded on ${location.href} (page type: ${detectPageType()})`);
 })();

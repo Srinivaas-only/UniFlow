@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "UniFlow — Spectrum Importer",
-  "version": "1.0.0",
-  "description": "Import your UM Spectrum courses, assignments, and deadlines into UniFlow",
+  "version": "2.0.0",
+  "description": "Import your UM Spectrum courses, assignments, and deadlines into UniFlow with preview and dedup",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": [
     "https://spectrum.um.edu.my/*",
@@ -19,7 +19,14 @@
   "content_scripts": [
     {
       "matches": ["https://spectrum.um.edu.my/*"],
-      "js": ["content.js"],
+      "js": [
+        "lib/debug.js",
+        "lib/dateParser.js",
+        "lib/classifier.js",
+        "lib/dedupe.js",
+        "lib/extractors.js",
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ]

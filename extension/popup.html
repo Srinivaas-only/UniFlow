@@ -9,106 +9,238 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  width: 360px;
-  min-height: 280px;
+  width: 400px;
+  min-height: 300px;
+  max-height: 580px;
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   background: #12111A;
   color: #F1EFF5;
-  overflow: hidden;
+  overflow-y: auto;
 }
+body::-webkit-scrollbar { width: 4px; }
+body::-webkit-scrollbar-thumb { background: rgba(158,151,179,0.25); border-radius: 10px; }
+
+/* Header */
 .header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 16px 20px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px 10px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
+  position: sticky; top: 0; background: #12111A; z-index: 10;
 }
+.header-left { display: flex; align-items: center; gap: 10px; }
 .header-icon {
-  width: 36px; height: 36px; border-radius: 12px;
+  width: 32px; height: 32px; border-radius: 10px;
   background: linear-gradient(135deg, #D6C4FF, #A3DAFF);
   display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: 18px; color: #12111A;
+  font-weight: 800; font-size: 16px; color: #12111A;
 }
-.header h1 { font-size: 16px; font-weight: 700; color: #D6C4FF; }
-.header p { font-size: 11px; color: #948f99; margin-top: 1px; }
+.header h1 { font-size: 14px; font-weight: 700; color: #D6C4FF; }
+.header p { font-size: 10px; color: #948f99; margin-top: 1px; }
+.header-right { display: flex; gap: 4px; }
+.icon-btn {
+  width: 28px; height: 28px; border-radius: 8px; border: none;
+  background: transparent; color: #948f99; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.icon-btn:hover { background: rgba(255,255,255,0.06); color: #D6C4FF; }
+.icon-btn.active { color: #4ade80; background: rgba(74,222,128,0.1); }
 
-.content { padding: 16px 20px; }
-
+/* Status */
 .status-row {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 14px; border-radius: 12px;
-  background: rgba(255,255,255,0.04);
-  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 12px; margin: 10px 16px; border-radius: 10px;
+  background: rgba(255,255,255,0.03);
 }
-.status-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: #4ade80; flex-shrink: 0;
-}
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; flex-shrink: 0; }
 .status-dot.inactive { background: #948f99; }
 .status-dot.detecting { background: #fbbf24; animation: pulse 1.5s infinite; }
-.status-label { font-size: 12px; color: #D0CBE1; font-weight: 600; }
-
 @keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+.status-label { font-size: 11px; color: #D0CBE1; font-weight: 600; }
+.status-breakdown { font-size: 10px; color: #554F68; margin-left: auto; }
 
-.import-btn {
-  width: 100%; padding: 12px 16px;
-  background: #D6C4FF; color: #12111A;
-  border: none; border-radius: 16px;
-  font-family: inherit; font-size: 14px; font-weight: 700;
-  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+/* Buttons */
+.btn-primary {
+  width: calc(100% - 32px); margin: 0 16px 10px; padding: 10px 14px;
+  background: #D6C4FF; color: #12111A; border: none; border-radius: 14px;
+  font-family: inherit; font-size: 13px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
   transition: all 0.2s;
 }
-.import-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
-.import-btn:active { transform: scale(0.97); }
-.import-btn:disabled {
-  background: rgba(214,196,255,0.15); color: #948f99; cursor: not-allowed; transform: none;
+.btn-primary:hover { filter: brightness(1.1); }
+.btn-primary:active { transform: scale(0.97); }
+.btn-primary:disabled {
+  background: rgba(214,196,255,0.12); color: #948f99; cursor: not-allowed; transform: none;
 }
+.btn-secondary {
+  width: calc(100% - 32px); margin: 0 16px 10px; padding: 9px 14px;
+  background: rgba(255,255,255,0.04); color: #D0CBE1; border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; font-family: inherit; font-size: 12px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all 0.15s;
+}
+.btn-secondary:hover { background: rgba(255,255,255,0.06); }
 
-.result-area {
-  margin-top: 14px; min-height: 48px;
-  padding: 12px 14px; border-radius: 12px;
-  background: rgba(255,255,255,0.03);
-  font-size: 12px; line-height: 1.5;
+/* Preview list */
+.preview-section { padding: 0 16px 8px; }
+.preview-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px; padding: 0 2px;
 }
-.result-area.success { background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.2); }
-.result-area.error { background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2); }
-.result-area .count { font-size: 20px; font-weight: 800; color: #D6C4FF; }
-.result-area .label { font-size: 11px; color: #948f99; }
+.preview-title { font-size: 11px; font-weight: 700; color: #948f99; text-transform: uppercase; letter-spacing: 0.05em; }
+.preview-count { font-size: 10px; color: #554F68; }
+
+.item-card {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 8px 10px; margin-bottom: 4px;
+  background: rgba(255,255,255,0.025); border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.04);
+  transition: all 0.15s;
+}
+.item-card:hover { background: rgba(255,255,255,0.04); }
+.item-card.imported { opacity: 0.5; }
+.item-check {
+  width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0; margin-top: 2px;
+  background: rgba(214,196,255,0.2); border: 1.5px solid rgba(214,196,255,0.4);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.item-check.checked { background: #D6C4FF; border-color: #D6C4FF; }
+.item-check.checked::after { content: '✓'; font-size: 10px; color: #12111A; font-weight: 800; }
+.item-body { flex: 1; min-width: 0; }
+.item-name { font-size: 12px; font-weight: 600; color: #F1EFF5; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.item-meta { display: flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap; }
+.item-badge {
+  font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 4px;
+  background: rgba(255,255,255,0.06); color: #948f99;
+}
+.item-badge.type-assignment { background: rgba(96,165,250,0.15); color: #60a5fa; }
+.item-badge.type-exam { background: rgba(251,113,133,0.15); color: #fb7185; }
+.item-badge.type-deadline { background: rgba(251,146,60,0.15); color: #fb923c; }
+.item-badge.type-reminder { background: rgba(103,232,249,0.15); color: #67e8f9; }
+.item-badge.type-class { background: rgba(250,204,21,0.15); color: #facc15; }
+.item-badge.type-resource { background: rgba(74,222,128,0.15); color: #4ade80; }
+.item-badge.type-meeting { background: rgba(167,139,250,0.15); color: #a78bfa; }
+.item-date { font-size: 10px; color: #554F68; }
+.item-date.low-confidence { color: #fbbf24; }
+.item-indicator { font-size: 10px; }
+.item-indicator.imported-indicator { color: #948f99; }
+.item-indicator.review-indicator { color: #fbbf24; }
+
+.skipped-section { padding: 0 16px 8px; }
+.skipped-toggle {
+  font-size: 10px; color: #554F68; cursor: pointer;
+  padding: 4px 0; display: flex; align-items: center; gap: 4px;
+}
+.skipped-toggle:hover { color: #948f99; }
+.skipped-list { display: none; }
+.skipped-list.open { display: block; }
+.skipped-item { font-size: 10px; color: #554F68; padding: 3px 0 3px 16px; }
+
+/* Result area */
+.result-area {
+  margin: 8px 16px 12px; padding: 12px 14px; border-radius: 12px;
+  background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.2);
+}
+.result-area.error { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.2); }
+.result-area .count { font-size: 18px; font-weight: 800; color: #D6C4FF; }
+.result-area .label { font-size: 10px; color: #948f99; }
+.result-area .msg { font-size: 11px; color: #4ade80; font-weight: 600; margin-top: 4px; }
+.result-area.error .msg { color: #f87171; }
 
 .spinner {
-  display: inline-block; width: 16px; height: 16px;
+  display: inline-block; width: 14px; height: 14px;
   border: 2px solid rgba(18,17,26,0.3); border-top-color: #12111A;
   border-radius: 50%; animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .footer {
-  padding: 10px 20px;
-  border-top: 1px solid rgba(255,255,255,0.04);
-  font-size: 10px; color: #554F68; text-align: center;
+  padding: 8px 16px; border-top: 1px solid rgba(255,255,255,0.04);
+  font-size: 9px; color: #554F68; text-align: center;
 }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-icon">U</div>
-  <div>
-    <h1>UniFlow Importer</h1>
-    <p>Spectrum (UM Moodle) → UniFlow</p>
+  <div class="header-left">
+    <div class="header-icon">U</div>
+    <div>
+      <h1>Spectrum Importer</h1>
+      <p>V2 · Preview before import</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" id="debug-btn" title="Toggle debug mode">
+      <span class="material-symbols-outlined" style="font-size:16px">bug_report</span>
+    </button>
+    <button class="icon-btn" id="download-btn" title="Download debug bundle" style="display:none">
+      <span class="material-symbols-outlined" style="font-size:16px">download</span>
+    </button>
   </div>
 </div>
 
-<div class="content">
+<!-- Step 1: Detection -->
+<div id="step-detect">
   <div class="status-row">
     <div class="status-dot detecting" id="status-dot"></div>
     <span class="status-label" id="status-label">Detecting page...</span>
+    <span class="status-breakdown" id="status-breakdown"></span>
+  </div>
+  <button class="btn-primary" id="preview-btn" disabled>
+    <span class="material-symbols-outlined" style="font-size:16px">preview</span>
+    <span id="preview-btn-text">Navigate to a Spectrum page</span>
+  </button>
+</div>
+
+<!-- Step 2: Preview (hidden until extraction) -->
+<div id="step-preview" style="display:none">
+  <div class="status-row">
+    <div class="status-dot" style="background:#4ade80"></div>
+    <span class="status-label" id="preview-status">Preview</span>
+    <span class="status-breakdown" id="preview-breakdown"></span>
   </div>
 
-  <button class="import-btn" id="import-btn" disabled>
-    <span class="material-symbols-outlined" style="font-size:18px">cloud_download</span>
-    <span id="btn-text">Navigate to a Spectrum page</span>
-  </button>
+  <div class="preview-section" id="events-section">
+    <div class="preview-header">
+      <span class="preview-title">Events</span>
+      <span class="preview-count" id="events-count"></span>
+    </div>
+    <div id="events-list"></div>
+  </div>
 
-  <div class="result-area" id="result-area" style="display:none"></div>
+  <div class="preview-section" id="resources-section" style="display:none">
+    <div class="preview-header">
+      <span class="preview-title">Resources</span>
+      <span class="preview-count" id="resources-count"></span>
+    </div>
+    <div id="resources-list"></div>
+  </div>
+
+  <div class="skipped-section" id="skipped-section" style="display:none">
+    <div class="skipped-toggle" id="skipped-toggle">
+      <span class="material-symbols-outlined" style="font-size:12px">expand_more</span>
+      <span id="skipped-count">Skipped (0)</span>
+    </div>
+    <div class="skipped-list" id="skipped-list"></div>
+  </div>
+
+  <button class="btn-primary" id="import-btn" disabled>
+    <span class="material-symbols-outlined" style="font-size:16px">cloud_upload</span>
+    <span id="import-btn-text">Import 0 selected</span>
+  </button>
+  <button class="btn-secondary" id="cancel-btn">
+    <span class="material-symbols-outlined" style="font-size:14px">arrow_back</span> Cancel
+  </button>
+</div>
+
+<!-- Step 3: Result (hidden until import) -->
+<div id="step-result" style="display:none">
+  <div class="result-area" id="result-area"></div>
+  <button class="btn-secondary" id="done-btn">
+    <span class="material-symbols-outlined" style="font-size:14px">check_circle</span> Done
+  </button>
 </div>
 
 <div class="footer">
