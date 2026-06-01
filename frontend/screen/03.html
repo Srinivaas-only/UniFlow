@@ -19,11 +19,6 @@
     .custom-scrollbar::-webkit-scrollbar-thumb{background:rgba(158,151,179,0.25);border-radius:10px}
     @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
     .fade-in-up{animation:fadeInUp 0.4s ease-out forwards;opacity:0}
-    @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-    .skeleton{background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .searching-spin{animation:spin 1.5s linear infinite}
-    .tab-active{background:rgba(214,196,255,0.2);color:#D6C4FF;border-color:rgba(214,196,255,0.3)}
 </style>
 </head>
 <body class="bg-background text-on-surface">
@@ -36,63 +31,37 @@
 
 <main class="md:ml-[280px] pt-20 h-screen overflow-y-auto custom-scrollbar">
     <div id="auth-loading"></div>
-<div id="page-content" class="px-margin-mobile md:px-margin-desktop pr-4 pb-24 space-y-6 max-w-6xl">
-        <!-- Search Bar -->
+    <div id="page-content" class="px-margin-mobile md:px-margin-desktop pr-4 pb-24 space-y-6 max-w-6xl">
+
+        <!-- Header + Refresh -->
         <div class="bg-surface-container/60 rounded-3xl p-6 border border-outline-variant/10 fade-in-up" style="animation-delay:0ms">
-            <h2 class="text-headline-sm font-bold text-primary mb-4 flex items-center gap-2">
-                <span class="material-symbols-outlined">library_books</span> Study Resources
-            </h2>
-            <p class="text-on-surface-variant text-body-md mb-4">Powered by Bright Data — search the web for past papers, notes, textbooks, and video tutorials.</p>
-            <div class="flex gap-3">
-                <input id="search-input" type="text" placeholder="e.g. Data Structures, Calculus, OS..." class="flex-1 bg-surface-container rounded-2xl px-4 py-3 text-on-surface border border-outline-variant/30 focus:border-primary outline-none transition-all"/>
-                <button onclick="searchResources()" id="search-btn" class="px-6 py-3 bg-primary text-on-primary rounded-2xl font-bold hover:brightness-110 active:scale-[0.97] transition-all flex items-center gap-2">
-                    <span class="material-symbols-outlined">search</span> Search
-                </button>
-            </div>
-        </div>
-
-        <!-- Searching State -->
-        <div id="searching-state" style="display:none" class="bg-surface-container/60 rounded-3xl p-8 border border-outline-variant/10 text-center">
-            <span class="material-symbols-outlined text-primary text-5xl searching-spin">sync</span>
-            <h3 class="text-headline-sm font-bold text-primary mt-4 mb-2">Searching the web...</h3>
-            <p class="text-on-surface-variant text-body-md">Bright Data is finding study resources across universities, YouTube, and academic sites.</p>
-            <div class="mt-4 space-y-2 max-w-md mx-auto">
-                <div class="skeleton h-4 w-full"></div>
-                <div class="skeleton h-4 w-3/4"></div>
-                <div class="skeleton h-4 w-1/2"></div>
-            </div>
-        </div>
-
-        <!-- Results -->
-        <div id="results-section" style="display:none">
-            <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
-                <h3 class="text-label-lg font-bold text-on-surface" id="results-count">0 Results</h3>
-                <div class="flex gap-2 flex-wrap">
-                    <button onclick="filterType('all')" class="filter-tab px-3 py-1.5 rounded-xl text-[11px] font-bold border border-outline-variant/20 transition-all tab-active" data-type="all">All</button>
-                    <button onclick="filterType('past_paper')" class="filter-tab px-3 py-1.5 rounded-xl text-[11px] font-bold border border-outline-variant/20 text-on-surface-variant transition-all hover:text-primary" data-type="past_paper">Past Papers</button>
-                    <button onclick="filterType('notes')" class="filter-tab px-3 py-1.5 rounded-xl text-[11px] font-bold border border-outline-variant/20 text-on-surface-variant transition-all hover:text-primary" data-type="notes">Notes</button>
-                    <button onclick="filterType('textbook')" class="filter-tab px-3 py-1.5 rounded-xl text-[11px] font-bold border border-outline-variant/20 text-on-surface-variant transition-all hover:text-primary" data-type="textbook">Textbooks</button>
-                    <button onclick="filterType('video')" class="filter-tab px-3 py-1.5 rounded-xl text-[11px] font-bold border border-outline-variant/20 text-on-surface-variant transition-all hover:text-primary" data-type="video">Videos</button>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-headline-sm font-bold text-primary flex items-center gap-2">
+                    <span class="material-symbols-outlined">library_books</span> Study Resources
+                </h2>
+                <div class="flex items-center gap-3">
+                    <span id="total-count" class="text-label-sm text-on-surface-variant"></span>
+                    <button onclick="refreshResources()" class="p-2 rounded-xl hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-all" title="Refresh">
+                        <span class="material-symbols-outlined text-lg">refresh</span>
+                    </button>
                 </div>
             </div>
-            <div id="results-list" class="space-y-3"></div>
+            <p class="text-on-surface-variant text-body-md mb-2">Course materials imported from Spectrum via the UniFlow Chrome Extension.</p>
         </div>
 
-        <!-- Favorites -->
-        <div>
-            <h3 class="text-label-lg font-bold text-on-surface mb-4 flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary">favorite</span> Saved Resources
-            </h3>
-            <div id="favorites-list"></div>
-        </div>
+        <!-- Course Groups Container -->
+        <div id="course-groups" class="space-y-4"></div>
 
         <!-- Empty State -->
         <div id="empty-state" class="flex flex-col items-center justify-center py-16 text-center">
             <div class="w-14 h-14 rounded-3xl bg-surface-container-high flex items-center justify-center mb-4">
-                <span class="material-symbols-outlined text-on-surface-variant text-3xl">library_books</span>
+                <span class="material-symbols-outlined text-on-surface-variant text-3xl">cloud_download</span>
             </div>
-            <h3 class="text-headline-sm text-on-surface-variant mb-2">Search for study resources</h3>
-            <p class="text-on-surface-variant text-body-md max-w-sm">Type a subject above and we'll find past papers, lecture notes, textbooks, and video tutorials.</p>
+            <h3 class="text-headline-sm text-on-surface-variant mb-2">No resources yet</h3>
+            <p class="text-on-surface-variant text-body-md max-w-md mb-6">Open the UniFlow Chrome Extension on a Spectrum course page to import notes, quizzes, and study materials.</p>
+            <a href="https://github.com/Srinivaas-only/UniFlow/tree/main/extension" target="_blank" class="px-5 py-2.5 bg-primary/10 text-primary rounded-2xl text-label-sm font-bold hover:bg-primary/20 transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px]">extension</span> Download Extension
+            </a>
         </div>
     </div>
 </main>
@@ -109,113 +78,171 @@
 <script src="../js/components/toast.js"></script>
 <script src="../js/components/authGuard.js"></script>
 <script>
-var allResults=[];
-var currentFilter='all';
-var TYPE_CONFIG={
-    past_paper:{icon:'description',color:'text-amber-400',bg:'bg-amber-500/15',label:'Past Paper'},
-    notes:{icon:'note_stack',color:'text-blue-400',bg:'bg-blue-500/15',label:'Notes'},
-    textbook:{icon:'menu_book',color:'text-purple-400',bg:'bg-purple-500/15',label:'Textbook'},
-    video:{icon:'play_circle',color:'text-rose-400',bg:'bg-rose-500/15',label:'Video'},
-    other:{icon:'language',color:'text-gray-400',bg:'bg-gray-500/15',label:'Resource'}
-};
 function escapeHtml(t){var d=document.createElement('div');d.textContent=t;return d.innerHTML}
 
+// File type display config — ordered by importance
+var FILE_TYPE_ORDER = ['pdf','pptx','docx','xlsx','video','audio','link','folder','page','archive','quiz','other'];
+var FILE_TYPE_CONFIG = {
+    pdf:     {emoji:'📄', label:'PDF',          color:'text-red-400',     bg:'bg-red-500/15'},
+    pptx:    {emoji:'📊', label:'Slides',        color:'text-orange-400',  bg:'bg-orange-500/15'},
+    docx:    {emoji:'📝', label:'Documents',     color:'text-blue-400',    bg:'bg-blue-500/15'},
+    xlsx:    {emoji:'📈', label:'Spreadsheets',  color:'text-emerald-400', bg:'bg-emerald-500/15'},
+    video:   {emoji:'🎬', label:'Videos',        color:'text-purple-400',  bg:'bg-purple-500/15'},
+    audio:   {emoji:'🎵', label:'Audio',         color:'text-pink-400',    bg:'bg-pink-500/15'},
+    link:    {emoji:'🔗', label:'Links',         color:'text-cyan-400',    bg:'bg-cyan-500/15'},
+    folder:  {emoji:'📁', label:'Folders',       color:'text-amber-400',   bg:'bg-amber-500/15'},
+    page:    {emoji:'📃', label:'Pages',         color:'text-teal-400',    bg:'bg-teal-500/15'},
+    archive: {emoji:'🗜️', label:'Archives',      color:'text-gray-400',    bg:'bg-gray-500/15'},
+    quiz:    {emoji:'❓', label:'Quizzes',       color:'text-amber-400',   bg:'bg-amber-500/15'},
+    other:   {emoji:'📄', label:'Other',         color:'text-gray-400',    bg:'bg-gray-500/15'}
+};
+
+function getFileType(item) {
+    // Prefer file_type set by extension, fall back to modtype-based classification
+    if (item.file_type && item.file_type !== 'other') return item.file_type;
+    // Use original Moodle modtype (passed from backend) for structural classification
+    // Backend sets type="resource" for ALL resources, so check modtype first
+    var modtype = (item.modtype || item.type || '').toLowerCase();
+    if (modtype === 'quiz') return 'quiz';
+    if (modtype === 'url') return 'link';
+    if (modtype === 'folder') return 'folder';
+    if (modtype === 'book' || modtype === 'page') return 'page';
+    // Try to guess from title
+    var title = (item.title || '').toLowerCase();
+    if (/\.pdf\b/.test(title)) return 'pdf';
+    if (/\.pptx?\b/.test(title)) return 'pptx';
+    if (/\.docx?\b/.test(title)) return 'docx';
+    if (/\.xlsx?\b/.test(title)) return 'xlsx';
+    return 'other';
+}
+
 document.addEventListener('DOMContentLoaded',function(){
-renderSidebar('03');renderHeader({title:'Resources',subtitle:'Bright Data Search'});
-    initAuthGuard({onAuthenticated:function(){renderFavorites();}});
+    renderSidebar('03');renderHeader({title:'Resources',subtitle:'Spectrum Import'});
+    initAuthGuard({onAuthenticated:function(){
+        // Bridge now merges directly into Store — just render
+        var syncData=Store._get('spectrumSync');
+        if(syncData&&syncData.resources&&syncData.resources.length>0){
+            Store.addSpectrumResources(syncData.resources);
+        }
+        renderResources();
+    }});
+    // Listen for bridge data from the Chrome extension web_bridge.js
+    window.addEventListener('uniflow:spectrum-data-ready',function(){
+        var syncData=Store._get('spectrumSync');
+        if(syncData&&syncData.resources&&syncData.resources.length>0){
+            Store.addSpectrumResources(syncData.resources);
+        }
+        renderResources();
+    });
 });
 
-async function searchResources(){
-    var subject=document.getElementById('search-input').value.trim();
-    if(!subject){Toast.show('Please enter a subject to search for resources (e.g. "Data Structures", "Calculus").','warning');document.getElementById('search-input').focus();return}
-    var btn=document.getElementById('search-btn');
-    btn.disabled=true;
-    document.getElementById('empty-state').style.display='none';
-    document.getElementById('searching-state').style.display='block';
-    document.getElementById('results-section').style.display='none';
-    try{
-        var data=await Store.searchResources(subject);
-        allResults=data.resources||[];
-        document.getElementById('searching-state').style.display='none';
-        currentFilter='all';
-        renderResults();
-    }catch(err){
-        document.getElementById('searching-state').style.display='none';
-        document.getElementById('empty-state').style.display='flex';
-        Toast.show('Resource search failed because the server could not be reached. Please check your internet connection and try again.','error');
-    }finally{
-        btn.disabled=false;
+function refreshResources(){
+    renderResources();
+    if(typeof Toast!=='undefined') Toast.show('Resources refreshed','success');
+}
+
+function renderResources(){
+    var resources=Store.getSpectrumResources();
+    var container=document.getElementById('course-groups');
+    var emptyState=document.getElementById('empty-state');
+    var totalCount=document.getElementById('total-count');
+
+    if(!resources||resources.length===0){
+        container.innerHTML='';
+        emptyState.style.display='flex';
+        totalCount.textContent='';
+        return;
     }
-}
 
-function filterType(type){
-    currentFilter=type;
-    document.querySelectorAll('.filter-tab').forEach(function(btn){
-        btn.className='filter-tab px-3 py-1.5 rounded-xl text-[11px] font-bold border border-outline-variant/20 transition-all '+(btn.getAttribute('data-type')===type?'tab-active':'text-on-surface-variant hover:text-primary');
+    emptyState.style.display='none';
+    totalCount.textContent=resources.length+' resource'+(resources.length!==1?'s':'');
+
+    // Group by course (use course_code, fall back to course_name, then "Unknown Course")
+    var byCourse={};
+    resources.forEach(function(r){
+        var code=r.course_code||'';
+        var name=r.course_name||'';
+        var key=code||name||'Unknown Course';
+        if(!byCourse[key]) byCourse[key]={code:code,name:name||key,items:[]};
+        byCourse[key].items.push(r);
     });
-    renderResults();
-}
+    var courseKeys=Object.keys(byCourse).sort();
 
-function renderResults(){
-    var section=document.getElementById('results-section');
-    var list=document.getElementById('results-list');
-    var filtered=currentFilter==='all'?allResults:allResults.filter(function(r){return r.type===currentFilter});
-    document.getElementById('results-count').textContent=filtered.length+' Result'+(filtered.length!==1?'s':'');
-    section.style.display='block';
-    if(filtered.length===0){list.innerHTML='<p class="text-center py-8 text-on-surface-variant">No resources found for this filter.</p>';return}
     var html='';
-    filtered.forEach(function(r,idx){
-        var cfg=TYPE_CONFIG[r.type]||TYPE_CONFIG.other;
+    courseKeys.forEach(function(courseKey,cIdx){
+        var course=byCourse[courseKey];
+
+        // Sub-group items by file type
+        var byType={};
+        course.items.forEach(function(item){
+            var ft=getFileType(item);
+            if(!byType[ft]) byType[ft]=[];
+            byType[ft].push(item);
+        });
+
+        // Course card header
         html+=
-        '<div class="fade-in-up bg-surface-container/60 rounded-2xl p-4 border border-outline-variant/10 hover:border-primary/20 transition-all flex items-start gap-4" style="animation-delay:'+idx*60+'ms">'+
-            '<div class="p-2.5 '+cfg.bg+' rounded-xl flex-shrink-0"><span class="material-symbols-outlined '+cfg.color+'">'+cfg.icon+'</span></div>'+
-            '<div class="flex-1 min-w-0">'+
-                '<h4 class="text-label-sm font-bold text-on-surface truncate">'+escapeHtml(r.title)+'</h4>'+
-                '<div class="flex items-center gap-2 mt-1">'+
-                    '<span class="px-2 py-0.5 '+cfg.bg+' '+cfg.color+' rounded text-[9px] font-bold uppercase">'+cfg.label+'</span>'+
-                    '<span class="text-[10px] text-on-surface-variant">'+escapeHtml(r.source||'')+'</span>'+
+        '<div class="fade-in-up bg-surface-container/60 rounded-3xl border border-outline-variant/10 overflow-hidden" style="animation-delay:'+cIdx*60+'ms">'+
+            '<div class="p-5 border-b border-outline-variant/10">'+
+                '<div class="flex items-center gap-3">'+
+                    '<div class="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">'+
+                        '<span class="material-symbols-outlined text-primary">school</span>'+
+                    '</div>'+
+                    '<div class="flex-1 min-w-0">'+
+                        (course.code?'<h3 class="text-label-sm font-bold text-on-surface">'+escapeHtml(course.code)+'</h3>':'')+
+                        '<p class="text-[11px] text-on-surface-variant'+(course.code?'':' font-bold')+'">'+escapeHtml(course.name)+'</p>'+
+                    '</div>'+
+                    '<span class="text-[10px] text-on-surface-variant bg-surface-container-high px-2.5 py-1 rounded-full font-bold">'+course.items.length+' items</span>'+
                 '</div>'+
-                (r.description?'<p class="text-[11px] text-on-surface-variant mt-1.5 line-clamp-2">'+escapeHtml(r.description)+'</p>':'')+
-            '</div>'+
-            '<div class="flex items-center gap-1 flex-shrink-0">'+
-                (r.link?'<a href="'+escapeHtml(r.link)+'" target="_blank" class="p-2 rounded-xl hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-all"><span class="material-symbols-outlined text-lg">open_in_new</span></a>':'')+
-                '<button onclick="saveFav('+idx+')" class="p-2 rounded-xl hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-all"><span class="material-symbols-outlined text-lg">favorite</span></button>'+
-            '</div>'+
-        '</div>';
+            '</div>';
+
+        // Render each file type sub-group (only types that have items)
+        FILE_TYPE_ORDER.forEach(function(ft){
+            if(!byType[ft]||byType[ft].length===0) return;
+            var cfg=FILE_TYPE_CONFIG[ft]||FILE_TYPE_CONFIG.other;
+            var items=byType[ft];
+
+            html+=
+            '<div class="px-5 pt-4 pb-1">'+
+                '<div class="flex items-center gap-2 mb-3">'+
+                    '<span class="text-label-sm font-bold text-on-surface-variant">'+cfg.emoji+' '+cfg.label+'</span>'+
+                    '<span class="text-[10px] text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-full">'+items.length+'</span>'+
+                '</div>'+
+                '<div class="space-y-2">';
+
+            items.forEach(function(item){
+                var sectionLabel=item.section||item.section_name?'<span class="text-[10px] text-on-surface-variant">'+escapeHtml(item.section||item.section_name)+'</span>':'';
+                var importedDate='';
+                if(item.imported_at||item.createdAt){
+                    try{
+                        var dt=new Date(item.imported_at||item.createdAt);
+                        if(!isNaN(dt))importedDate='<span class="text-[10px] text-on-surface-variant">'+dt.toLocaleDateString('en-MY',{day:'numeric',month:'short',year:'numeric'})+'</span>';
+                    }catch(e){}
+                }
+                var openUrl=item.url||item.source_url||'';
+
+                html+=
+                '<div class="flex items-center gap-3 p-3 bg-surface-container/40 rounded-2xl hover:bg-surface-container/60 transition-all">'+
+                    '<div class="p-2 '+cfg.bg+' rounded-xl flex-shrink-0"><span class="text-[14px]">'+cfg.emoji+'</span></div>'+
+                    '<div class="flex-1 min-w-0">'+
+                        '<p class="text-label-sm font-bold truncate">'+escapeHtml(item.title||'Untitled')+'</p>'+
+                        '<div class="flex items-center gap-2 mt-0.5">'+
+                            sectionLabel+
+                            (sectionLabel&&importedDate?'<span class="text-on-surface-variant opacity-30">·</span>':'')+
+                            importedDate+
+                        '</div>'+
+                    '</div>'+
+                    (openUrl?'<a href="'+escapeHtml(openUrl)+'" target="_blank" class="p-2 rounded-xl hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-all" title="Open in Spectrum"><span class="material-symbols-outlined text-lg">open_in_new</span></a>':'')+
+                '</div>';
+            });
+
+            html+='</div></div>';
+        });
+
+        html+='</div>';
     });
-    list.innerHTML=html;
-}
 
-function saveFav(idx){
-    var filtered=currentFilter==='all'?allResults:allResults.filter(function(r){return r.type===currentFilter});
-    if(filtered[idx]){Store.saveResource(filtered[idx]);Toast.show('Resource saved to favorites!','success')}
-    renderFavorites();
-}
-
-function renderFavorites(){
-    var favs=Store.getSavedResources();
-    var list=document.getElementById('favorites-list');
-    if(favs.length===0){list.innerHTML='<p class="text-on-surface-variant text-body-md text-center py-6">No saved resources yet. Search and favorite results above.</p>';return}
-    var html='';
-    favs.forEach(function(r,idx){
-        var cfg=TYPE_CONFIG[r.type]||TYPE_CONFIG.other;
-        html+=
-        '<div class="flex items-center gap-3 p-3 bg-surface-container/40 rounded-2xl mb-2 hover:bg-surface-container/60 transition-all">'+
-            '<span class="material-symbols-outlined '+cfg.color+'">'+cfg.icon+'</span>'+
-            '<div class="flex-1 min-w-0"><p class="text-label-sm font-bold truncate">'+escapeHtml(r.title)+'</p>'+
-            '<span class="text-[10px] text-on-surface-variant">'+cfg.label+' · '+escapeHtml(r.source||'')+'</span></div>'+
-            (r.link?'<a href="'+escapeHtml(r.link)+'" target="_blank" class="text-primary text-label-sm font-bold hover:underline">Open</a>':'')+
-            '<button onclick="removeFav('+idx+')" class="p-1 text-on-surface-variant hover:text-rose-400 transition-colors"><span class="material-symbols-outlined text-lg">delete</span></button>'+
-        '</div>';
-    });
-    list.innerHTML=html;
-}
-
-function removeFav(idx){
-    var favs=Store.getSavedResources();
-    favs.splice(idx,1);
-    try{localStorage.setItem('uniflow_savedResources',JSON.stringify(favs))}catch(e){}
-    renderFavorites();
+    container.innerHTML=html;
 }
 </script>
 </body>

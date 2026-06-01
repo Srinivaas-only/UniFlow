@@ -192,10 +192,19 @@
           const { items, type } = request;
           DBG.info(`Committing ${items.length} items of type ${type}`);
 
+          // Re-extract to get the course context (popup only sends selected items, not context)
+          const pageType = detectPageType();
+          let courseContext = null;
+          if (pageType === 'course') {
+            const result = EX.extractCourse();
+            courseContext = result.course || null;
+          }
+
           const payload = {
             type: type,
             source_url: location.href,
             extracted_at: new Date().toISOString(),
+            course_context: courseContext,
             raw_items: items
           };
 
@@ -207,9 +216,25 @@
           DEDUPE.markImported(items, history);
           await DEDUPE.saveImportHistory(history);
 
-          // Store result for frontend pickup
+          // Store result for frontend pickup via web_bridge.js
+          // web_bridge.js runs on the UniFlow domain and reads chrome.storage.local
+          // to bridge data across origins (Spectrum → UniFlow localStorage)
+          const resources = result.resources || [];
+
+          // Accumulate resources into a persistent store in chrome.storage.local
+          const existingStored = await chrome.storage.local.get('spectrum_resources_all');
+          const existingResources = existingStored.spectrum_resources_all || [];
+          const newResources = resources.filter(r =>
+            !existingResources.some(er => (er.url || er.source_url) === (r.url || r.source_url))
+          );
+          const allResources = existingResources.concat(newResources);
+
           await chrome.storage.local.set({
-            spectrum_pending: result,
+            spectrum_pending: {
+              ...result,
+              synced_at: new Date().toISOString()
+            },
+            spectrum_resources_all: allResources,
             last_spectrum_sync_time: new Date().toISOString()
           });
 

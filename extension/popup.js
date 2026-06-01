@@ -208,7 +208,8 @@
   }
 
   function renderItem(item, idx, group) {
-    const checked = !item._already_imported;
+    // Always show as checked — Store handles dedup so re-importing won't duplicate
+    const checked = true;
     const type = item.event_type || item.type || 'other';
     const dateStr = item.iso_date || item.name_embedded_date || '';
     const dateConf = item.date_confidence || (dateStr ? 'medium' : 'none');

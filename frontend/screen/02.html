@@ -69,7 +69,7 @@
 <div id="page-content" class="flex-1 overflow-y-auto custom-scrollbar px-margin-mobile md:px-margin-desktop pr-4 pb-24 max-w-6xl">
         <!-- Top Bar -->
         <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 flex-wrap">
                 <button onclick="navigateWeek(-1)" class="nav-btn p-2 rounded-xl transition-all">
                     <span class="material-symbols-outlined text-on-surface-variant">chevron_left</span>
                 </button>
@@ -79,10 +79,10 @@
                 </button>
                 <button onclick="goToday()" class="px-4 py-2 bg-primary/10 text-primary rounded-2xl text-label-sm font-bold hover:bg-primary/20 active:scale-[0.97] transition-all">Today</button>
                 <button onclick="syncUniCalendar()" id="sync-uni-btn" class="px-4 py-2 bg-secondary/10 text-secondary rounded-2xl text-label-sm font-bold hover:bg-secondary/20 active:scale-[0.97] transition-all flex items-center gap-1.5">
-                    <span class="material-symbols-outlined text-[16px]">sync</span>Sync UM Calendar
+                    <span class="material-symbols-outlined text-[16px]">sync</span>UM Calendar
                 </button>
                 <button onclick="pullFromSpectrum()" id="spectrum-btn" class="px-4 py-2 bg-violet-400/10 text-violet-400 rounded-2xl text-label-sm font-bold hover:bg-violet-400/20 active:scale-[0.97] transition-all flex items-center gap-1.5">
-                    <span class="material-symbols-outlined text-[16px]">cloud_download</span>Pull Spectrum
+                    <span class="material-symbols-outlined text-[16px]">cloud_download</span>Spectrum
                 </button>
             </div>
             <div class="flex items-center gap-2 bg-surface-container-high rounded-2xl p-1">
@@ -105,6 +105,29 @@
 
         <!-- Calendar Container -->
         <div id="calendar-container" class="bg-surface-container/30 rounded-3xl border border-outline-variant/10 overflow-hidden"></div>
+
+        <!-- Spectrum Sync Banner -->
+        <div id="spectrum-banner" style="display:none" class="fade-in-up bg-violet-500/10 border border-violet-400/20 rounded-2xl p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-violet-400 text-2xl">cloud_download</span>
+                <div>
+                    <span id="spectrum-banner-text" class="text-label-sm font-bold text-violet-300">📥 0 new items from Spectrum</span>
+                    <p class="text-[11px] text-on-surface-variant">Click to merge into your schedule</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="mergeSpectrumPending()" class="px-4 py-2 bg-violet-500/20 text-violet-300 rounded-xl text-label-sm font-bold hover:bg-violet-500/30 active:scale-[0.97] transition-all">Merge</button>
+                <button onclick="dismissSpectrumBanner()" class="px-3 py-2 text-on-surface-variant hover:text-rose-400 transition-all">
+                    <span class="material-symbols-outlined text-lg">close</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Spectrum Sync Indicator -->
+        <div id="spectrum-sync-indicator" style="display:none" class="text-[11px] text-on-surface-variant opacity-50 text-right mt-1">
+            <span class="material-symbols-outlined text-[12px] align-middle">schedule</span>
+            <span id="spectrum-sync-time"></span>
+        </div>
 
         <!-- Empty State -->
         <div id="empty-state" class="flex flex-col items-center justify-center py-20 text-center" style="display:none;">
@@ -170,7 +193,19 @@ function escapeHtml(t) { var d=document.createElement('div'); d.textContent=t; r
 document.addEventListener('DOMContentLoaded', function() {
     renderSidebar('02');
     renderHeader({ title:'Schedule', subtitle:'Your Calendar' });
-    initAuthGuard({ onAuthenticated: function() { renderCalendar(); } });
+    initAuthGuard({ onAuthenticated: function() {
+        autoJumpToEvents();
+        renderCalendar();
+        checkSpectrumPending();
+        updateSyncIndicator();
+    } });
+    // Listen for bridge data from the Chrome extension web_bridge.js
+    window.addEventListener('uniflow:spectrum-data-ready', function() {
+        autoJumpToEvents();
+        checkSpectrumPending();
+        updateSyncIndicator();
+        renderCalendar();
+    });
 });
 
 function navigateWeek(dir) {
@@ -181,6 +216,41 @@ function goToday() {
     currentWeekStart = getMonday(new Date());
     renderCalendar();
 }
+
+function autoJumpToEvents() {
+    var events = Store.getEvents().filter(function(e) { return e.type !== 'expense'; });
+    var dated = events.filter(function(e) { return e.date; });
+    if (dated.length === 0) return;
+    // Check if current week already has dated events
+    var we = new Date(currentWeekStart);
+    we.setDate(we.getDate() + 6);
+    var ws = fmt(currentWeekStart), we2 = fmt(we);
+    var inWeek = dated.filter(function(e) { return e.date >= ws && e.date <= we2; });
+    if (inWeek.length > 0) return;
+    // Navigate to the nearest week with events
+    var sorted = dated.slice().sort(function(a,b) { return a.date.localeCompare(b.date); });
+    var target = sorted[0];
+    if (target && target.date) {
+        var d = new Date(target.date + 'T00:00:00');
+        if (!isNaN(d)) currentWeekStart = getMonday(d);
+    }
+}
+
+function jumpToNextEvents() {
+    var events = Store.getEvents().filter(function(e) { return e.type !== 'expense'; });
+    var dated = events.filter(function(e) { return e.date; });
+    if (dated.length === 0) return;
+    var today = fmt(new Date());
+    var future = dated.filter(function(e) { return e.date > today; })
+        .sort(function(a,b) { return a.date.localeCompare(b.date); });
+    var target = future.length > 0 ? future[0] : dated.sort(function(a,b) { return a.date.localeCompare(b.date); })[0];
+    if (target && target.date) {
+        var d = new Date(target.date + 'T00:00:00');
+        if (!isNaN(d)) currentWeekStart = getMonday(d);
+    }
+    renderCalendar();
+}
+
 function setView(v) {
     currentView = v;
     document.getElementById('view-week').className = 'px-4 py-2 rounded-xl text-label-sm font-bold transition-all ' + (v==='week'?'view-toggle-active':'text-on-surface-variant hover:text-primary');
@@ -191,8 +261,15 @@ function setView(v) {
 function renderCalendar() {
     var container = document.getElementById('calendar-container');
     var emptyState = document.getElementById('empty-state');
-    var events = Store.getEvents().filter(function(e) { return e.type !== 'expense' && e.date; });
+    // Include ALL non-expense events, even those without dates
+    var events = Store.getEvents().filter(function(e) { return e.type !== 'expense'; });
     var uniEvents = Store.getUniEvents();
+
+    // Debug: log Spectrum events to help diagnose calendar issues
+    var spectrumInStore = events.filter(function(e) { return e.source === 'spectrum'; });
+    if (spectrumInStore.length > 0) {
+        console.log('[UniFlow Calendar] ' + spectrumInStore.length + ' Spectrum events in Store. Dates:', spectrumInStore.map(function(e) { return e.date || '(no date)'; }).join(', '));
+    }
 
     // Update week label
     var endOfWeek = new Date(currentWeekStart);
@@ -206,9 +283,24 @@ function renderCalendar() {
         renderMonthView(container, events, uniEvents);
     }
 
-    var hasEvents = events.length > 0 || uniEvents.length > 0;
-    emptyState.style.display = hasEvents ? 'none' : 'flex';
-    container.style.display = hasEvents ? 'block' : 'none';
+    // Check if current view week has events (not just globally)
+    var datedEvents = events.filter(function(e) { return e.date; });
+    var globalHasEvents = datedEvents.length > 0 || uniEvents.length > 0;
+    var _we = new Date(currentWeekStart); _we.setDate(_we.getDate() + 6);
+    var _ws = fmt(currentWeekStart), _we2 = fmt(_we);
+    var viewDated = datedEvents.filter(function(e) { return e.date >= _ws && e.date <= _we2; });
+    var viewUni = uniEvents.filter(function(ue) { return ue.date && ue.date >= _ws && ue.date <= _we2; });
+    var viewHasEvents = viewDated.length > 0 || viewUni.length > 0;
+    container.style.display = globalHasEvents ? 'block' : 'none';
+    if (!viewHasEvents && globalHasEvents) {
+        emptyState.style.display = 'flex';
+        var etH3 = emptyState.querySelector('h3');
+        var etP = emptyState.querySelector('p');
+        if (etH3) etH3.textContent = 'No events this week';
+        if (etP) etP.innerHTML = 'Events exist in other weeks. <button onclick="jumpToNextEvents()" class="text-primary font-bold hover:underline">Jump to next events →</button>';
+    } else {
+        emptyState.style.display = viewHasEvents ? 'none' : 'flex';
+    }
 }
 
 function renderWeekView(container, events, uniEvents) {
@@ -217,7 +309,7 @@ function renderWeekView(container, events, uniEvents) {
     var hours = [];
     for (var h=7; h<=22; h++) hours.push(h);
 
-    // Group events by day
+    // Group events by day — only events with dates that fall in this week
     var eventsByDay = {};
     for (var i=0; i<7; i++) {
         var d = new Date(currentWeekStart);
@@ -225,8 +317,9 @@ function renderWeekView(container, events, uniEvents) {
         eventsByDay[fmt(d)] = [];
     }
 
+    // Add all dated events to their day (Store.events already includes Spectrum events)
     events.forEach(function(evt) {
-        if (eventsByDay[evt.date]) eventsByDay[evt.date].push(evt);
+        if (evt.date && eventsByDay[evt.date]) eventsByDay[evt.date].push(evt);
     });
 
     // Also add uni events to the day groups
@@ -333,6 +426,27 @@ function renderWeekView(container, events, uniEvents) {
     html += '</div>';
 
     container.innerHTML = html;
+
+    // Show undated Spectrum events in a list below the calendar grid
+    var undated = events.filter(function(e) { return e.source === 'spectrum' && (!e.date || e.date === ''); });
+    if (undated.length > 0) {
+        var undatedHtml = '<div class="mt-4 p-4 bg-violet-500/10 border border-violet-400/20 rounded-2xl">';
+        undatedHtml += '<div class="flex items-center gap-2 mb-3"><span class="material-symbols-outlined text-violet-400">cloud_download</span>';
+        undatedHtml += '<span class="text-label-sm font-bold text-violet-300">' + undated.length + ' Spectrum items without dates</span>';
+        undatedHtml += '<span class="text-[10px] text-on-surface-variant ml-2">(dates not available in Moodle — shown here for reference)</span></div>';
+        undatedHtml += '<div class="space-y-1 max-h-[200px] overflow-y-auto custom-scrollbar">';
+        undated.forEach(function(evt) {
+            var typeColor = TYPE_COLORS[evt.type] || TYPE_COLORS.other;
+            undatedHtml += '<div class="flex items-center gap-2 py-1 px-2 rounded-lg hover:bg-surface-container/40">';
+            undatedHtml += '<span class="w-2 h-2 rounded-full ' + typeColor.bg + ' flex-shrink-0"></span>';
+            undatedHtml += '<span class="text-[11px] text-on-surface truncate flex-1">' + escapeHtml(evt.title) + '</span>';
+            if (evt.course_code) undatedHtml += '<span class="text-[9px] text-on-surface-variant">' + escapeHtml(evt.course_code) + '</span>';
+            if (evt.source_url) undatedHtml += '<a href="' + escapeHtml(evt.source_url) + '" target="_blank" class="material-symbols-outlined text-[12px] text-on-surface-variant hover:text-primary">open_in_new</a>';
+            undatedHtml += '</div>';
+        });
+        undatedHtml += '</div></div>';
+        container.innerHTML += undatedHtml;
+    }
 }
 
 function renderMonthView(container, events, uniEvents) {
@@ -352,6 +466,7 @@ function renderMonthView(container, events, uniEvents) {
     // Group events by date
     var eventsByDate = {};
     events.forEach(function(evt) {
+        if (!evt.date) return;
         if (!eventsByDate[evt.date]) eventsByDate[evt.date] = [];
         eventsByDate[evt.date].push(evt);
     });
@@ -411,27 +526,79 @@ function renderMonthView(container, events, uniEvents) {
 function openEventModal(id) {
     var events = Store.getEvents();
     var evt = events.find(function(e) { return e.id === id; });
+
+    // Also check spectrum and uni events not in Store.events
+    if (!evt) {
+        var spectrumSync = Store._get('spectrumSync');
+        if (spectrumSync && spectrumSync.events) {
+            var se = spectrumSync.events.find(function(e) {
+                return ('spectrum_' + (e.title || '').replace(/\s/g,'').slice(0,10) + '_' + (e.date || '')) === id;
+            });
+            if (se) {
+                evt = {
+                    id: id,
+                    title: se.title,
+                    date: se.date,
+                    time: se.time,
+                    type: 'spectrum',
+                    completed: false,
+                    source: 'spectrum',
+                    source_url: se.source_url || '',
+                    course_code: se.course_code || '',
+                    course_name: se.course_name || ''
+                };
+            }
+        }
+    }
+
     if (!evt) return;
-    currentModalEventId = id;
+    currentModalEventId = evt.id || id;
 
     var cfg = TYPE_COLORS[evt.type] || TYPE_COLORS.other;
     var icon = TYPE_ICONS[evt.type] || 'event';
     var dateObj = new Date(evt.date + 'T00:00:00');
     var dateStr = !isNaN(dateObj) ? dateObj.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}) : evt.date;
 
-    document.getElementById('modal-title').textContent = evt.title;
+    // Build source badge HTML
+    var sourceBadge = '';
+    if (evt.source === 'spectrum' || evt.type === 'spectrum') {
+        sourceBadge = '<span class="px-2 py-0.5 bg-violet-500/15 text-violet-400 rounded text-[9px] font-bold ml-2">Spectrum</span>';
+    } else if (evt.type === 'uni_event') {
+        sourceBadge = '<span class="px-2 py-0.5 bg-cyan-500/15 text-cyan-400 rounded text-[9px] font-bold ml-2">Uni Event</span>';
+    }
+
+    document.getElementById('modal-title').innerHTML = escapeHtml(evt.title) + sourceBadge;
     document.getElementById('modal-body').innerHTML =
         '<div class="flex items-center gap-3 p-3 ' + cfg.light + ' rounded-2xl">' +
             '<span class="material-symbols-outlined ' + cfg.text + ' text-2xl">' + icon + '</span>' +
-            '<div><div class="text-label-sm font-bold capitalize ' + cfg.text + '">' + evt.type + '</div></div>' +
+            '<div><div class="text-label-sm font-bold capitalize ' + cfg.text + '">' + (evt.type || '').replace('_',' ') + '</div></div>' +
             (evt.completed ? '<span class="ml-auto material-symbols-outlined text-primary">check_circle</span>' : '') +
         '</div>' +
         '<div class="space-y-2 text-on-surface-variant">' +
             '<div class="flex items-center gap-2"><span class="material-symbols-outlined text-lg">calendar_today</span><span class="text-body-md">' + dateStr + '</span></div>' +
             (evt.time ? '<div class="flex items-center gap-2"><span class="material-symbols-outlined text-lg">schedule</span><span class="text-body-md">' + evt.time + '</span></div>' : '') +
+            (evt.course_code ? '<div class="flex items-center gap-2"><span class="material-symbols-outlined text-lg">school</span><span class="text-body-md">' + escapeHtml(evt.course_code) + (evt.course_name ? ' — ' + escapeHtml(evt.course_name) : '') + '</span></div>' : '') +
         '</div>';
 
-    document.getElementById('modal-toggle-btn').textContent = evt.completed ? 'Mark Incomplete' : 'Mark Complete';
+    // Spectrum events get "Open in Spectrum" button instead of toggle/delete
+    var isSpectrum = evt.source === 'spectrum' || evt.type === 'spectrum';
+    var isUni = evt.type === 'uni_event';
+
+    if (isSpectrum || isUni) {
+        var url = evt.source_url || '';
+        document.getElementById('modal-toggle-btn').style.display = url ? 'flex' : 'none';
+        document.getElementById('modal-toggle-btn').innerHTML = '<span class="material-symbols-outlined text-[16px]">open_in_new</span> Open' + (isSpectrum ? ' in Spectrum' : '');
+        document.getElementById('modal-toggle-btn').onclick = function() {
+            if (url) window.open(url, '_blank');
+        };
+        document.getElementById('modal-delete-btn').style.display = 'none';
+    } else {
+        document.getElementById('modal-toggle-btn').style.display = 'flex';
+        document.getElementById('modal-toggle-btn').textContent = evt.completed ? 'Mark Incomplete' : 'Mark Complete';
+        document.getElementById('modal-toggle-btn').onclick = function() { toggleModalEvent(); };
+        document.getElementById('modal-delete-btn').style.display = 'inline-flex';
+    }
+
     document.getElementById('event-modal').style.display = 'flex';
 }
 
@@ -519,31 +686,208 @@ async function pullFromSpectrum() {
     btn.disabled = true;
     btn.innerHTML = '<span class="material-symbols-outlined text-[16px] searching-spin">sync</span>Pulling...';
     try {
-        // Check if the extension stored data in localStorage (set via backend response)
+        // STEP 1: Check if bridge wrote sync data we haven't consumed yet
         var lastSync = Store._get('spectrumSync');
-        if (lastSync && lastSync.events) {
-            var events = lastSync.events;
-            var added = Store.addEvents(events.map(function(e) {
-                return {
-                    title: e.title,
-                    date: e.date,
-                    time: e.time,
-                    type: e.type || 'other',
-                    source: 'spectrum',
-                    source_url: e.source_url || ''
-                };
-            }));
-            Store._set('spectrumSync', null);
+        if (lastSync && lastSync.events && lastSync.events.length > 0) {
+            mergeSpectrumPending();
+        }
+
+        // STEP 2: Check if bridge already merged events directly into Store
+        var allEvents = Store.getEvents();
+        var spectrumEvts = allEvents.filter(function(e) { return e.source === 'spectrum'; });
+
+        // STEP 3: If nothing in Store, try to find raw bridge data in localStorage
+        if (spectrumEvts.length === 0) {
+            // The bridge writes events to uniflow_events — let's check directly
+            var rawEvents = localStorage.getItem('uniflow_events');
+            if (rawEvents) {
+                try {
+                    var parsed = JSON.parse(rawEvents);
+                    console.log('[Pull Spectrum] Raw uniflow_events count:', parsed.length);
+                    spectrumEvts = parsed.filter(function(e) { return e.source === 'spectrum'; });
+                    console.log('[Pull Spectrum] Spectrum events in raw data:', spectrumEvts.length);
+                } catch(e2) {
+                    console.log('[Pull Spectrum] Failed to parse raw events');
+                }
+            } else {
+                console.log('[Pull Spectrum] No uniflow_events key in localStorage at all');
+            }
+        }
+
+        // STEP 4: Check if there's data in chrome.storage that bridge hasn't picked up
+        // (we can't read chrome.storage from the page, but we can check spectrumSync)
+        var syncData = Store._get('spectrumSync');
+        console.log('[Pull Spectrum] spectrumSync exists:', !!syncData);
+        if (syncData) {
+            console.log('[Pull Spectrum] spectrumSync events:', (syncData.events || []).length);
+            console.log('[Pull Spectrum] spectrumSync resources:', (syncData.resources || []).length);
+        }
+
+        console.log('[Pull Spectrum] FINAL: spectrumEvts.length =', spectrumEvts.length);
+        console.log('[Pull Spectrum] FINAL: allEvents.length =', allEvents.length);
+
+        if (spectrumEvts.length > 0) {
+            // Navigate to the week of the nearest FUTURE dated event
+            var today = new Date().toISOString().slice(0, 10);
+            var futureDated = spectrumEvts.filter(function(e) { return e.date && e.date >= today; })
+                .sort(function(a, b) { return a.date.localeCompare(b.date); });
+            var target = futureDated.length > 0 ? futureDated[0] : spectrumEvts.find(function(e) { return e.date; });
+            if (target && target.date) {
+                var targetDate = new Date(target.date + 'T00:00:00');
+                if (!isNaN(targetDate)) {
+                    currentWeekStart = getMonday(targetDate);
+                }
+            } else {
+                // No dated events — stay on current week
+                currentWeekStart = getMonday(new Date());
+            }
+            updateSyncIndicator();
             renderCalendar();
-            Toast.show(added.length + ' Spectrum events added to schedule!', 'success');
+            var dated = spectrumEvts.filter(function(e) { return e.date; }).length;
+            Toast.show(spectrumEvts.length + ' Spectrum events loaded (' + dated + ' with dates)!', 'success');
         } else {
-            Toast.show('No pending Spectrum data. Use the Chrome extension to import first.', 'warning');
+            Toast.show('No Spectrum events found. Import from the extension first, then come back.', 'warning');
+            console.log('[Pull Spectrum] DUMP of all localStorage keys starting with uniflow_:');
+            for (var i = 0; i < localStorage.length; i++) {
+                var key = localStorage.key(i);
+                if (key.indexOf('uniflow_') === 0) {
+                    var val = localStorage.getItem(key);
+                    console.log('  ' + key + ': ' + (val ? val.substring(0, 120) + '...' : '(empty)'));
+                }
+            }
         }
     } catch(err) {
+        console.error('[Pull Spectrum] Error:', err);
         Toast.show('Failed to pull: ' + (err.message || 'Unknown error'), 'error');
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">cloud_download</span>Pull Spectrum';
+    }
+}
+
+// ── Spectrum Pending Banner ──
+function checkSpectrumPending() {
+    var sync = Store._get('spectrumSync');
+    var banner = document.getElementById('spectrum-banner');
+    var bannerText = document.getElementById('spectrum-banner-text');
+
+    if (sync && sync.events && sync.events.length > 0) {
+        // Check if these events are already merged into Store.events
+        var alreadyMerged = Store.getEvents().filter(function(e) { return e.source === 'spectrum'; });
+        var unmergedCount = sync.events.filter(function(se) {
+            return !alreadyMerged.some(function(e) { return e.title === se.title && e.date === se.date; });
+        }).length;
+
+        if (unmergedCount > 0) {
+            bannerText.textContent = '📥 ' + unmergedCount + ' new item' + (unmergedCount !== 1 ? 's' : '') + ' from Spectrum';
+            banner.style.display = 'flex';
+        } else {
+            // Already merged, clean up
+            Store._set('spectrumSync', null);
+            banner.style.display = 'none';
+        }
+    } else {
+        banner.style.display = 'none';
+    }
+}
+
+function mergeSpectrumPending() {
+    var sync = Store._get('spectrumSync');
+    if (!sync || !sync.events || sync.events.length === 0) {
+        Toast.show('No pending Spectrum data.', 'warning');
+        return;
+    }
+
+    // Dedupe against existing events (match on title + source_url for items without dates)
+    var existingEvents = Store.getEvents();
+    var newEvents = sync.events.filter(function(se) {
+        return !existingEvents.some(function(e) {
+            if (e.source !== 'spectrum') return false;
+            // If both have dates, match on title + date
+            if (se.date && e.date) return e.title === se.title && e.date === se.date;
+            // If no dates, match on title + source_url
+            return e.title === se.title && (e.source_url || '') === (se.source_url || '');
+        });
+    });
+
+    if (newEvents.length === 0) {
+        Toast.show('All Spectrum events are already in your schedule.', 'info');
+        Store._set('spectrumSync', null);
+        document.getElementById('spectrum-banner').style.display = 'none';
+        return;
+    }
+
+    var added = Store.addEvents(newEvents.map(function(e) {
+        return {
+            title: e.title,
+            date: e.date,
+            time: e.time,
+            type: e.type || 'other',
+            source: 'spectrum',
+            source_url: e.source_url || '',
+            course_code: e.course_code || '',
+            course_name: e.course_name || ''
+        };
+    }));
+
+    // Store the sync time for the indicator
+    Store._set('lastSpectrumSyncTime', sync.synced_at || new Date().toISOString());
+
+    // Clear pending data
+    Store._set('spectrumSync', null);
+
+    // Also store resources for Resources screen
+    if (sync.resources && sync.resources.length > 0) {
+        Store.addSpectrumResources(sync.resources);
+    }
+
+    // Hide banner, update indicator, re-render
+    document.getElementById('spectrum-banner').style.display = 'none';
+    updateSyncIndicator();
+    renderCalendar();
+    Toast.show(added.length + ' Spectrum events added to schedule!', 'success');
+}
+
+function dismissSpectrumBanner() {
+    document.getElementById('spectrum-banner').style.display = 'none';
+}
+
+function updateSyncIndicator() {
+    var indicator = document.getElementById('spectrum-sync-indicator');
+    var timeEl = document.getElementById('spectrum-sync-time');
+    var syncTime = Store._get('lastSpectrumSyncTime');
+
+    // Also check spectrum events in Store.events for last sync time
+    if (!syncTime) {
+        var spectrumEvts = Store.getEvents().filter(function(e) { return e.source === 'spectrum'; });
+        if (spectrumEvts.length > 0) {
+            syncTime = spectrumEvts[0].createdAt || null;
+        }
+    }
+
+    if (syncTime) {
+        try {
+            var dt = new Date(syncTime);
+            var now = new Date();
+            var diffMs = now - dt;
+            var diffMins = Math.floor(diffMs / 60000);
+            var diffHrs = Math.floor(diffMs / 3600000);
+
+            if (diffMins < 1) {
+                timeEl.textContent = 'Last Spectrum sync: just now';
+            } else if (diffMins < 60) {
+                timeEl.textContent = 'Last Spectrum sync: ' + diffMins + ' min' + (diffMins !== 1 ? 's' : '') + ' ago';
+            } else if (diffHrs < 24) {
+                timeEl.textContent = 'Last Spectrum sync: ' + diffHrs + ' hr' + (diffHrs !== 1 ? 's' : '') + ' ago';
+            } else {
+                timeEl.textContent = 'Last Spectrum sync: ' + dt.toLocaleDateString('en-MY', { day: 'numeric', month: 'short' });
+            }
+            indicator.style.display = 'block';
+        } catch(e) {
+            indicator.style.display = 'none';
+        }
+    } else {
+        indicator.style.display = 'none';
     }
 }
 </script>

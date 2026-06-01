@@ -101,3 +101,30 @@ class CalendarEvent(BaseModel):
 class UniCalendarResponse(BaseModel):
     university: str
     events: list[CalendarEvent] = Field(default_factory=list)
+
+
+# --- Internship models ---
+
+class InternshipProfile(BaseModel):
+    cgpa: float = Field(..., description="Current CGPA")
+    course: str = Field(..., description="Course/program name")
+    year: int = Field(..., description="Year of study")
+    semester: int = Field(default=2, description="Semester")
+    state: str = Field(default="Selangor", description="State in Malaysia")
+
+
+class InternshipResult(BaseModel):
+    company: str = ""
+    role: str = ""
+    duration: str = ""
+    location: str = ""
+    allowance: str = ""
+    eligibility: str = ""
+    deadline: str = ""
+    link: str = ""
+    snippet: str = ""
+    match_score: int = 0
+
+
+class InternshipResponse(BaseModel):
+    internships: list[InternshipResult] = Field(default_factory=list)

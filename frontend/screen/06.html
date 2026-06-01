@@ -124,7 +124,9 @@ var currentGroupId = null;
 document.addEventListener('DOMContentLoaded', function() {
     renderSidebar('06');
     renderHeader({ title:'Group Projects', subtitle:'Collaborate' });
-    initAuthGuard({onAuthenticated:function(){renderGroups();}});
+    initAuthGuard({onAuthenticated:function(){
+        renderGroups();
+    }});
 });
 
 function escapeHtml(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }

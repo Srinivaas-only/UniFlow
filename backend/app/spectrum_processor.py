@@ -96,6 +96,7 @@ def process_items(raw_items: list, course_context: dict = None) -> dict:
 
     for item in raw_items:
         classification = classify_item(item)
+        mod_type = (item.get("type") or "").lower()
 
         if classification["category"] == "skip":
             skipped.append({
@@ -127,14 +128,22 @@ def process_items(raw_items: list, course_context: dict = None) -> dict:
         # Build source URL
         source_url = item.get("url", "")
 
+        # Course context: prefer per-item fields, fall back to top-level context
+        item_course_code = item.get("course_code", "")
+        item_course_name = item.get("course_name", "")
+        effective_code = item_course_code or course_code
+        effective_name = item_course_name or course_name
+
         if classification["category"] == "resource":
             resources.append({
                 "title": clean_title,
                 "url": source_url,
                 "type": "resource",
-                "course_code": course_code,
-                "course_name": course_name,
+                "modtype": mod_type,
+                "course_code": effective_code,
+                "course_name": effective_name,
                 "section": item.get("section_name", ""),
+                "file_type": item.get("file_type", "other"),
             })
         else:
             event = {
@@ -144,11 +153,12 @@ def process_items(raw_items: list, course_context: dict = None) -> dict:
                 "type": classification["event_type"],
                 "source": "spectrum",
                 "source_url": source_url,
-                "course_code": course_code,
-                "course_name": course_name,
+                "course_code": effective_code,
+                "course_name": effective_name,
                 "confidence": confidence or ("high" if iso_date else "none"),
                 "event_id": item.get("event_id"),
                 "module_id": item.get("module_id"),
+                "completion_status": item.get("completion_status"),
             }
 
             if needs_llm_flag or not iso_date:
@@ -238,18 +248,30 @@ async def llm_enrich(items: list) -> list:
     )
 
     items_text = json.dumps([
-        {"title": i.get("title"), "source_url": i.get("source_url"),
-         "raw_date": i.get("iso_date"), "type": i.get("type")}
-        for i in items
+        {
+            "index": i,
+            "title": item.get("title"),
+            "source_url": item.get("source_url"),
+            "course_code": item.get("course_code"),
+            "course_name": item.get("course_name"),
+            "type": item.get("type"),
+            "event_id": item.get("event_id"),
+        }
+        for i, item in enumerate(items)
     ], indent=2)
 
     today = datetime.now().strftime("%Y-%m-%d")
     prompt = (
-        f"Clean up these Moodle event items. Today: {today}\n\n"
-        f"Items:\n{items_text[:3000]}\n\n"
-        f"For each item, extract a clean title and ISO date (YYYY-MM-DD) if possible. "
-        f"Return a JSON array: [{{\"title\": \"...\", \"iso_date\": \"YYYY-MM-DD\" or null}}]\n"
-        f"No markdown fences."
+        f"You are extracting dates from Moodle calendar event items. Today's date: {today}\n"
+        f"The academic semester is May 2026 – September 2026 (Universiti Malaya).\n\n"
+        f"For each item below, try to determine the event date.\n"
+        f"- If the title contains a date (e.g. 'Quiz 2 - 15 June', 'Midterm 3/6/2026'), extract it.\n"
+        f"- If the source_url contains a 'time=' parameter, that's a Unix timestamp — convert it to YYYY-MM-DD.\n"
+        f"- If you cannot determine a date from the title or URL, set iso_date to null.\n"
+        f"- Clean up the title: remove date fragments, keep the event name.\n\n"
+        f"Return a JSON array with objects: [{{\"index\": N, \"title\": \"clean title\", \"iso_date\": \"YYYY-MM-DD\" or null}}]\n"
+        f"No markdown fences. No explanation.\n\n"
+        f"Items:\n{items_text[:5000]}"
     )
 
     try:
@@ -268,14 +290,18 @@ async def llm_enrich(items: list) -> list:
 
         parsed = json.loads(content)
 
-        # Merge LLM results back
-        for i, llm_item in enumerate(parsed):
-            if i < len(items) and isinstance(llm_item, dict):
-                if llm_item.get("title"):
-                    items[i]["title"] = llm_item["title"]
-                if llm_item.get("iso_date"):
-                    items[i]["iso_date"] = llm_item["iso_date"]
-                    items[i]["confidence"] = "medium"
+        # Merge LLM results back using index field for reliable matching
+        for llm_item in parsed:
+            if not isinstance(llm_item, dict):
+                continue
+            idx = llm_item.get("index", -1)
+            if idx < 0 or idx >= len(items):
+                continue
+            if llm_item.get("title"):
+                items[idx]["title"] = llm_item["title"]
+            if llm_item.get("iso_date"):
+                items[idx]["iso_date"] = llm_item["iso_date"]
+                items[idx]["confidence"] = "medium"
 
         return items
 

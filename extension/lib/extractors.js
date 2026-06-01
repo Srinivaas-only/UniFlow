@@ -59,6 +59,120 @@
     return null;
   }
 
+  /**
+   * Detect the file type of a course activity from its icon, name, and link URL.
+   * Returns: 'pdf' | 'pptx' | 'docx' | 'xlsx' | 'video' | 'audio' |
+   *          'link' | 'folder' | 'page' | 'archive' | 'other'
+   */
+  function detectFileType(activityEl) {
+    // 0. Check all image sources in the activity (Moove theme uses multiple icon elements)
+    const allImgs = activityEl.querySelectorAll('img');
+    const allImgSrcs = [...allImgs].map(img => img.src || img.getAttribute('src') || '').join(' ');
+
+    // 1. Check icon image source (Moodle uses standard icon filenames + Moove monologo variants)
+    const iconImg = activityEl.querySelector('.activityiconcontainer img, .activity-icon img, img.icon, img.iconlarge');
+    const iconSrc = iconImg?.src || '';
+    // Also check SVG use href for inline icons
+    const svgUse = activityEl.querySelector('svg use');
+    const svgHref = svgUse?.getAttribute('href') || svgUse?.getAttribute('xlink:href') || '';
+
+    const combinedSrc = (iconSrc + ' ' + allImgSrcs + ' ' + svgHref).toLowerCase();
+
+    if (combinedSrc.includes('pdf') || combinedSrc.includes('pdf-monologo')) return 'pdf';
+    if (combinedSrc.includes('powerpoint') || combinedSrc.includes('pptx') || combinedSrc.includes('powerpoint-monologo')) return 'pptx';
+    if (combinedSrc.includes('document') || combinedSrc.includes('docx') || combinedSrc.includes('word') || combinedSrc.includes('word-monologo')) return 'docx';
+    if (combinedSrc.includes('spreadsheet') || combinedSrc.includes('xlsx') || combinedSrc.includes('excel') || combinedSrc.includes('spreadsheet-monologo')) return 'xlsx';
+    if (combinedSrc.includes('video') || combinedSrc.includes('mp4') || combinedSrc.includes('movie')) return 'video';
+    if (combinedSrc.includes('audio') || combinedSrc.includes('mp3')) return 'audio';
+    if (combinedSrc.includes('archive') || combinedSrc.includes('zip')) return 'archive';
+
+    // 2. Check activity name for file extension hints
+    const name = activityEl.getAttribute('data-activityname') ||
+                 activityEl.querySelector('.instancename')?.textContent || '';
+    if (/\.(pdf)\b/i.test(name)) return 'pdf';
+    if (/\.(pptx?|ppt)\b/i.test(name)) return 'pptx';
+    if (/\.(docx?|doc)\b/i.test(name)) return 'docx';
+    if (/\.(xlsx?|xls)\b/i.test(name)) return 'xlsx';
+    if (/\.(mp4|mov|avi|webm)\b/i.test(name)) return 'video';
+    if (/\.(mp3|wav|m4a)\b/i.test(name)) return 'audio';
+    if (/\.(zip|rar|7z|tar)\b/i.test(name)) return 'archive';
+
+    // 3. Check the resource link URL for file extension hints
+    // modtype_resource links may redirect to actual files, but the anchor href has clues
+    const linkEl = activityEl.querySelector('a.aalink, .activityname a, a[href*="/mod/"]');
+    const linkHref = linkEl?.getAttribute('href') || linkEl?.href || '';
+
+    // 4. Check pluginfile.php URLs in any element (actual file download links)
+    const pluginfileLinks = activityEl.querySelectorAll('a[href*="pluginfile.php"]');
+    if (pluginfileLinks.length > 0) {
+      const fileUrl = pluginfileLinks[0].getAttribute('href') || '';
+      if (/\.pdf/i.test(fileUrl)) return 'pdf';
+      if (/\.pptx?/i.test(fileUrl)) return 'pptx';
+      if (/\.docx?/i.test(fileUrl)) return 'docx';
+      if (/\.xlsx?/i.test(fileUrl)) return 'xlsx';
+      if (/\.mp4|\.mov|\.webm/i.test(fileUrl)) return 'video';
+    }
+
+    // 5. Check for content type text in the activity's extra info
+    const contentText = (activityEl.textContent || '').toLowerCase();
+    if (contentText.includes('pdf document') || contentText.includes('.pdf')) return 'pdf';
+    if (contentText.includes('powerpoint') || contentText.includes('presentation') || contentText.includes('.pptx')) return 'pptx';
+    if (contentText.includes('word document') || contentText.includes('.docx')) return 'docx';
+    if (contentText.includes('excel') || contentText.includes('spreadsheet') || contentText.includes('.xlsx')) return 'xlsx';
+    if (contentText.includes('video') || contentText.includes('.mp4')) return 'video';
+
+    // 6. Check modtype for structural classification
+    const modtype = [...activityEl.classList].find(c => c.startsWith('modtype_'))?.replace('modtype_', '');
+    if (modtype === 'url') return 'link';
+    if (modtype === 'folder') return 'folder';
+    if (modtype === 'book' || modtype === 'page') return 'page';
+
+    return 'other';
+  }
+
+  /**
+   * Detect completion status of an assignment from Moodle's completion UI.
+   * Returns: 'complete' | 'pending' | 'unknown'
+   */
+  function detectCompletion(activityEl) {
+    const completionEl = activityEl.querySelector(
+      '[data-region="completion-info"], .completion-info, .completion-icon, ' +
+      '[data-region="activity-completion-info"], .activity-completionstatus'
+    );
+    if (!completionEl) return 'unknown';
+
+    const text = (completionEl.textContent || '').toLowerCase();
+    if (text.includes('done') || text.includes('complet')) return 'complete';
+    if (text.includes('not done') || text.includes('to do') || text.includes('pending')) return 'pending';
+
+    // Check for completion checkbox state
+    const completionCheckbox = activityEl.querySelector('[data-action="toggle-manual-completion"]');
+    const ariaPressed = completionCheckbox?.getAttribute('aria-pressed');
+    if (ariaPressed === 'true') return 'complete';
+    if (ariaPressed === 'false') return 'pending';
+
+    return 'pending'; // safe default for assignments
+  }
+
+  /**
+   * Infer file type from the Moodle icon alt text (used for dashboard items
+   * where the full activity element isn't available).
+   */
+  function _fileTypeFromIcon(iconAlt) {
+    if (!iconAlt) return 'other';
+    const alt = iconAlt.toLowerCase();
+    if (alt.includes('pdf')) return 'pdf';
+    if (alt.includes('powerpoint') || alt.includes('ppt') || alt.includes('slides')) return 'pptx';
+    if (alt.includes('word') || alt.includes('document') || alt.includes('doc')) return 'docx';
+    if (alt.includes('excel') || alt.includes('spreadsheet')) return 'xlsx';
+    if (alt.includes('video') || alt.includes('mp4')) return 'video';
+    if (alt.includes('audio') || alt.includes('mp3')) return 'audio';
+    if (alt.includes('archive') || alt.includes('zip')) return 'archive';
+    if (alt.includes('url') || alt.includes('link')) return 'link';
+    if (alt.includes('folder')) return 'folder';
+    return 'other';
+  }
+
   // ══════════════════════════════════════════
   //  EXTRACTOR 1 — DASHBOARD
   // ══════════════════════════════════════════
@@ -114,6 +228,8 @@
         // Classification
         category: classification.category,
         event_type: classification.event_type,
+        // File type hint from icon
+        file_type: _fileTypeFromIcon(iconAlt),
         extractor: 'dashboard'
       });
     });
@@ -175,6 +291,20 @@
       (document.body.className.match(/course-(\d+)/) || [])[1] || '';
 
     DBG.info(`Course: "${courseFullName}" (id=${courseId})`);
+
+    // Expand ALL collapsed sections so hidden modules become visible in the DOM
+    // Moodle Moove theme uses collapsed sections that hide content
+    const collapsedSections = qa('.section.collapsed, .course-section.collapsed, [data-state="collapsed"]');
+    collapsedSections.forEach(section => {
+      section.classList.remove('collapsed');
+      section.setAttribute('data-state', 'expanded');
+      // Also click any toggle buttons inside
+      const toggleBtn = section.querySelector('.section-toggle, .toggle-section, [data-action="toggle-section"]');
+      if (toggleBtn) toggleBtn.click();
+    });
+    // Also click "Expand all" if it exists
+    const expandAllBtn = q('#toggle-all-sections, .btn-expand-all, [data-action="expand-all"]');
+    if (expandAllBtn) expandAllBtn.click();
 
     const items = [];
     const skipped = [];
@@ -260,6 +390,10 @@
         // Classification
         category: classification.category,
         event_type: classification.event_type,
+        // File type detection (for resources)
+        file_type: detectFileType(mod),
+        // Completion detection (for assignments)
+        completion_status: (modType === 'assign') ? detectCompletion(mod) : undefined,
         extractor: 'course'
       });
     });
@@ -292,17 +426,61 @@
       const eventId = link.getAttribute('data-event-id') || '';
       const url = hrefOf(link);
 
-      // Walk up to parent day cell for timestamp
-      const dayCell = link.closest('[data-region="day"]');
-      const dayTimestamp = dayCell ? parseInt(dayCell.getAttribute('data-new-event-timestamp'), 10) : null;
+      // Strategy 1: Walk up to parent day cell for timestamp
+      let dayCell = link.closest('[data-region="day"]');
+      let dayTimestamp = dayCell ? parseInt(dayCell.getAttribute('data-new-event-timestamp'), 10) : null;
+
+      // Strategy 2: Check URL for time parameter (calendar view.php?view=day&time=XXXX)
+      if (!dayTimestamp || isNaN(dayTimestamp)) {
+        const urlTimestamp = DP.extractTimestampFromUrl(url);
+        if (urlTimestamp) dayTimestamp = urlTimestamp;
+      }
+
+      // Strategy 3: Check href of the link itself for time param
+      if (!dayTimestamp || isNaN(dayTimestamp)) {
+        const linkHref = link.getAttribute('href') || '';
+        const urlTs = DP.extractTimestampFromUrl(linkHref);
+        if (urlTs) dayTimestamp = urlTs;
+      }
+
+      // Strategy 4: Look for date text in parent container
+      // Moodle shows "Friday, 30 May 2026" in the event's context
+      let rawDateText = '';
+      if (!dayTimestamp) {
+        // Check parent elements for date text
+        let parent = link.parentElement;
+        for (let p = 0; p < 5 && parent; p++) {
+          const dateEl = parent.querySelector('.date, [data-region="event-date"], .event-date');
+          if (dateEl) {
+            rawDateText = textOf(dateEl);
+            break;
+          }
+          // Also check for hidden timestamp attributes
+          const tsAttr = parent.getAttribute('data-day-timestamp') || parent.getAttribute('data-timestamp');
+          if (tsAttr) {
+            const ts = parseInt(tsAttr, 10);
+            if (!isNaN(ts)) { dayTimestamp = ts; break; }
+          }
+          parent = parent.parentElement;
+        }
+      }
 
       const courseId = DP.extractCourseIdFromUrl(url);
 
       // Event subtype from class
       const subtype = detectEventSubtype(link.className);
 
-      // Parse date
-      const dateParsed = DP.parseMoodleDate(null, dayTimestamp);
+      // Parse date — prefer timestamp, then raw text
+      let dateParsed;
+      if (dayTimestamp && !isNaN(dayTimestamp)) {
+        dateParsed = DP.parseMoodleDate(null, dayTimestamp);
+      } else if (rawDateText) {
+        dateParsed = DP.parseMoodleDate(rawDateText, null);
+      } else {
+        // Last resort: try to extract date from the link's surrounding text
+        const surroundingText = (link.parentElement ? link.parentElement.textContent : '') || '';
+        dateParsed = DP.parseMoodleDate(surroundingText.trim(), null);
+      }
 
       // Classify from title
       const classification = CL.classify({ type: 'event', name: title, raw_title: title });

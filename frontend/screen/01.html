@@ -118,7 +118,7 @@
                     </a>
                     <a href="03.html" class="quick-action flex items-center gap-3 p-3 bg-emerald-500/10 rounded-2xl hover:bg-emerald-500/20 transition-all">
                         <span class="material-symbols-outlined text-emerald-400">library_books</span>
-                        <span class="text-label-sm text-emerald-400 font-bold">Search Resources</span>
+                        <span class="text-label-sm text-emerald-400 font-bold">Open Resources</span>
                         <span class="material-symbols-outlined text-emerald-400 text-lg ml-auto">arrow_forward</span>
                     </a>
                 </div>
@@ -165,16 +165,19 @@
 var TYPE_COLORS = {
     exam:'text-rose-400', assignment:'text-blue-400', meeting:'text-purple-400',
     class:'text-amber-400', social:'text-emerald-400', deadline:'text-red-400',
-    reminder:'text-cyan-400', other:'text-gray-400', expense:'text-green-400'
+    reminder:'text-cyan-400', other:'text-gray-400', expense:'text-green-400',
+    uni_event:'text-cyan-400', spectrum:'text-violet-400'
 };
 var TYPE_ICONS = {
     exam:'quiz', assignment:'assignment', meeting:'groups', class:'school',
-    social:'celebration', deadline:'alarm', reminder:'notifications', other:'event'
+    social:'celebration', deadline:'alarm', reminder:'notifications', other:'event',
+    uni_event:'school', spectrum:'cloud_download'
 };
 var TYPE_BG = {
     exam:'bg-rose-500/15', assignment:'bg-blue-500/15', meeting:'bg-purple-500/15',
     class:'bg-amber-500/15', social:'bg-emerald-500/15', deadline:'bg-red-500/15',
-    reminder:'bg-cyan-500/15', other:'bg-gray-500/15'
+    reminder:'bg-cyan-500/15', other:'bg-gray-500/15',
+    uni_event:'bg-cyan-500/15', spectrum:'bg-violet-500/15'
 };
 
 function escapeHtml(t) { var d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
@@ -195,6 +198,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 Toast.show('Using offline data — cloud sync unavailable', 'warning');
             });
         }
+    });
+    // Auto-refresh when Spectrum bridge delivers new data
+    window.addEventListener('uniflow:spectrum-data-ready', function() {
+        var syncData = Store._get('spectrumSync');
+        if (syncData && syncData.events && syncData.events.length > 0) {
+            var existing = Store.getEvents();
+            var newEvts = syncData.events.filter(function(se) {
+                return !existing.some(function(e) {
+                    if (e.source !== 'spectrum') return false;
+                    if (se.date && e.date) return e.title === se.title && e.date === se.date;
+                    return e.title === se.title && (e.source_url || '') === (se.source_url || '');
+                });
+            });
+            if (newEvts.length > 0) {
+                Store.addEvents(newEvts.map(function(e) {
+                    return {
+                        title: e.title, date: e.date, time: e.time,
+                        type: e.type || 'other', source: 'spectrum',
+                        source_url: e.source_url || '', course_code: e.course_code || '',
+                        course_name: e.course_name || '', completion_status: e.completion_status || null
+                    };
+                }));
+            }
+            if (syncData.resources && syncData.resources.length > 0) Store.addSpectrumResources(syncData.resources);
+            Store._set('spectrumSync', null);
+            Store._set('lastSpectrumSyncTime', syncData.synced_at || new Date().toISOString());
+        }
+        renderDashboard();
     });
 });
 
@@ -221,15 +252,23 @@ function renderDashboard() {
     }
 
     // ── Stats ──
-    var exams = events.filter(function(e) { return e.type === 'exam' && e.date >= today; });
-    document.getElementById('stat-exams').textContent = exams.length;
+    // Exams: count all upcoming exams (with dates) + total dateless exams from Spectrum
+    var examsDated = events.filter(function(e) { return e.type === 'exam' && e.date && e.date >= today; });
+    var examsDateless = events.filter(function(e) { return e.type === 'exam' && (!e.date || e.date === '') && e.source === 'spectrum'; });
+    document.getElementById('stat-exams').textContent = examsDated.length + (examsDateless.length > 0 ? '+' + examsDateless.length : '');
 
-    // Assignments due this week
+    // Assignments due this week (includes Spectrum deadlines) + dateless pending
     var weekEnd = new Date(now);
     weekEnd.setDate(weekEnd.getDate() + 7);
     var weekEndStr = weekEnd.toISOString().slice(0,10);
-    var assignmentsWeek = events.filter(function(e) { return e.type === 'assignment' && e.date >= today && e.date <= weekEndStr; });
-    document.getElementById('stat-assignments').textContent = assignmentsWeek.length;
+    var assignmentsDated = events.filter(function(e) {
+        return (e.type === 'assignment' || (e.type === 'deadline' && e.source === 'spectrum'))
+            && e.date && e.date >= today && e.date <= weekEndStr && !e.completed;
+    });
+    var assignmentsDateless = events.filter(function(e) {
+        return (e.type === 'assignment') && (!e.date || e.date === '') && !e.completed;
+    });
+    document.getElementById('stat-assignments').textContent = assignmentsDated.length + (assignmentsDateless.length > 0 ? '+' + assignmentsDateless.length : '');
 
     // Budget spent this week
     var expenses = events.filter(function(e) {
@@ -247,8 +286,12 @@ function renderDashboard() {
     var budgetLimit = Store.getBudgetLimit();
     if (budgetLimit > 0) {
         var remaining = budgetLimit - totalSpent;
-        document.getElementById('stat-budget-sub').textContent = 'RM ' + remaining.toFixed(0) + ' remaining';
-        if (remaining < 0) document.getElementById('stat-budget').classList.add('text-rose-400');
+        if (remaining < 0) {
+            document.getElementById('stat-budget-sub').textContent = 'RM ' + Math.abs(remaining).toFixed(0) + ' over limit';
+            document.getElementById('stat-budget').classList.add('text-rose-400');
+        } else {
+            document.getElementById('stat-budget-sub').textContent = 'RM ' + remaining.toFixed(0) + ' remaining';
+        }
     }
 
     // Streak
@@ -328,15 +371,17 @@ function renderDashboard() {
     var weeklyActivity = document.getElementById('weekly-activity');
     var days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
     var dayCounts = {};
+    var weekTotal = 0;
     days.forEach(function(d,i) {
         var dd = new Date(now);
         dd.setDate(dd.getDate() - dd.getDay() + (i+1));
         dayCounts[dd.toISOString().slice(0,10)] = 0;
     });
+    // Count events SCHEDULED this week (by date field), not created this week
     events.forEach(function(e) {
-        if (e.createdAt) {
-            var cd = e.createdAt.slice(0,10);
-            if (dayCounts[cd] !== undefined) dayCounts[cd]++;
+        if (e.date && e.type !== 'expense' && dayCounts[e.date] !== undefined) {
+            dayCounts[e.date]++;
+            weekTotal++;
         }
     });
     var maxCount = Math.max.apply(null, Object.values(dayCounts).map(function(v){return v;}));
@@ -361,8 +406,8 @@ function renderDashboard() {
     actHtml += '</div>';
     actHtml += '<div class="mt-4 pt-4 border-t border-outline-variant/10">';
     actHtml += '<div class="flex items-center justify-between">';
-    actHtml += '<span class="text-[11px] text-on-surface-variant">Total events created</span>';
-    actHtml += '<span class="text-label-sm font-bold text-primary">' + events.length + '</span>';
+    actHtml += '<span class="text-[11px] text-on-surface-variant">Events this week</span>';
+    actHtml += '<span class="text-label-sm font-bold text-primary">' + weekTotal + '</span>';
     actHtml += '</div></div>';
     weeklyActivity.innerHTML = actHtml;
 }

@@ -60,7 +60,8 @@ const Store = {
       if (doc.exists) {
         var data = doc.data();
         var keys = ['events', 'groups', 'budgetLimit', 'uniEvents',
-                     'savedScholarships', 'savedResources', 'profile', 'chatHistory'];
+                     'savedScholarships', 'savedResources', 'savedInternships',
+                     'spectrumResources', 'profile', 'chatHistory'];
         keys.forEach(function(k) {
           if (data[k] !== undefined) {
             localStorage.setItem('uniflow_' + k, JSON.stringify(data[k]));
@@ -105,12 +106,29 @@ const Store = {
 
   // ── Assignments ──
   getAssignments() {
-    return this.getEvents().filter(e => e.type === "assignment");
+    return this.getEvents().filter(e => e.type === "assignment" || (e.type === "deadline" && e.source === "spectrum"));
   },
   getAssignmentStats() {
     const all = this.getAssignments();
     const completed = all.filter(a => a.completed).length;
     return { total: all.length, completed, percent: all.length ? Math.round(completed / all.length * 100) : 0 };
+  },
+  getPendingAssignments() {
+    return this.getAssignments().filter(e => !e.completed && e.completion_status !== 'complete');
+  },
+  getCompleteAssignments() {
+    return this.getAssignments().filter(e => e.completed === true || e.completion_status === 'complete');
+  },
+  markAssignmentComplete(id) {
+    const events = this.getEvents();
+    const evt = events.find(e => e.id === id);
+    if (evt) {
+      evt.completed = true;
+      evt.completion_status = 'complete';
+      evt.completed_at = new Date().toISOString();
+      this._set("events", events);
+    }
+    return evt;
   },
 
   // ── Expenses ──
@@ -232,6 +250,80 @@ const Store = {
     } catch {}
   },
 
+  // ── Saved Internships ──
+  getSavedInternships() {
+    try { return this._get("savedInternships") || []; } catch { return []; }
+  },
+  saveInternship(i) {
+    try {
+      const saved = this.getSavedInternships();
+      if (!saved.find(x => x.link === i.link)) {
+        saved.push(i);
+        this._set("savedInternships", saved);
+      }
+    } catch {}
+  },
+  removeSavedInternship(link) {
+    try {
+      const saved = this.getSavedInternships().filter(x => x.link !== link);
+      this._set("savedInternships", saved);
+    } catch {}
+  },
+
+  // ── Spectrum Resources (imported from Chrome extension) ──
+  getSpectrumResources() {
+    try { return this._get("spectrumResources") || []; } catch { return []; }
+  },
+  getSpectrumResourcesByCourse() {
+    var resources = this.getSpectrumResources();
+    var byCourse = {};
+    resources.forEach(function(r) {
+      var code = r.course_code || "Uncategorized";
+      if (!byCourse[code]) byCourse[code] = { code: code, name: r.course_name || code, items: [] };
+      byCourse[code].items.push(r);
+    });
+    return Object.values(byCourse);
+  },
+  addSpectrumResources(resources) {
+    try {
+      var existing = this.getSpectrumResources();
+      var existingByKey = {};
+      existing.forEach(function(r) {
+        var key = (r.url || r.source_url || '') || ('_t_' + (r.title || ''));
+        if (key) existingByKey[key] = r;
+      });
+
+      var added = 0;
+      var updated = 0;
+      resources.forEach(function(r) {
+        var url = r.url || r.source_url || '';
+        var key = url || ('_t_' + (r.title || ''));
+        if (!key) return;
+
+        if (existingByKey[key]) {
+          // Update existing item with any non-empty fields from the new data
+          var existingItem = existingByKey[key];
+          var fieldsToMerge = ['course_code', 'course_name', 'file_type', 'section', 'title', 'modtype'];
+          fieldsToMerge.forEach(function(field) {
+            if (r[field] && r[field] !== 'other' && (!existingItem[field] || existingItem[field] === '' || existingItem[field] === 'other')) {
+              existingItem[field] = r[field];
+              updated++;
+            }
+          });
+        } else {
+          existing.push(r);
+          existingByKey[key] = r;
+          added++;
+        }
+      });
+
+      if (added > 0 || updated > 0) {
+        this._set("spectrumResources", existing);
+      }
+      return added;
+    } catch { return 0; }
+  },
+
   // ── API Calls ──
   async parseMessage(message) {
     const res = await fetch(BACKEND_URL + "/api/parse", {
@@ -277,6 +369,19 @@ const Store = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ university }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      throw new Error((err && err.detail) || "Server error: " + res.status);
+    }
+    return res.json();
+  },
+
+  async searchInternships(profile) {
+    const res = await fetch(BACKEND_URL + "/api/internships", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(profile),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => null);

@@ -16,6 +16,7 @@ from app.models import (
     ScholarshipProfile, ScholarshipResponse, ScholarshipResult,
     ResourceRequest, ResourceResponse, ResourceResult,
     UniCalendarRequest, UniCalendarResponse, CalendarEvent,
+    InternshipProfile, InternshipResponse, InternshipResult,
 )
 from app.parser import parse_events
 from app.brightdata import search_serp, web_unlock
@@ -108,7 +109,7 @@ async def parse(request: ParseRequest) -> ParseResponse:
 # ──────────────────────────────────────────────
 #  POST /api/scholarships — Bright Data search
 # ──────────────────────────────────────────────
-_executor = ThreadPoolExecutor(max_workers=4)
+_executor = ThreadPoolExecutor(max_workers=8)
 
 
 @app.post("/api/scholarships", response_model=ScholarshipResponse)
@@ -228,11 +229,244 @@ def _extract_deadline(text: str) -> str:
 
 
 # ──────────────────────────────────────────────
-#  POST /api/resources — Bright Data search
+#  POST /api/internships — Bright Data search
+# ──────────────────────────────────────────────
+
+
+@app.post("/api/internships", response_model=InternshipResponse)
+async def internships(profile: InternshipProfile) -> InternshipResponse:
+    """Search for Malaysian internships using Bright Data SERP API + Groq LLM extraction."""
+    if not settings.BRIGHTDATA_API_KEY:
+        raise HTTPException(
+            status_code=500,
+            detail="BRIGHTDATA_API_KEY is not configured.",
+        )
+    try:
+        queries = [
+            # Tier 1: Major SEA tech companies
+            f"Grab internship {profile.course} Malaysia 2026",
+            f"Shopee internship {profile.course} Kuala Lumpur 2026",
+            f"TikTok internship Malaysia {profile.course} 2026",
+            f"AirAsia internship Malaysia {profile.course} 2026",
+            # Tier 2: Malaysian banks + telcos + corporates
+            f"Maybank CIMB Petronas Axiata internship {profile.course} Malaysia 2026",
+            # Tier 3: General Malaysian internship boards
+            f"{profile.course} internship Malaysia 2026 undergraduate",
+            f"paid internship {profile.course} {profile.state} Malaysia 2026",
+            # Tier 4: Generic catch-all
+            f"internship program Malaysia {profile.course} year {profile.year}",
+        ]
+
+        # Run all 8 SERP queries in parallel via thread pool
+        loop = asyncio.get_event_loop()
+        search_tasks = [
+            loop.run_in_executor(_executor, search_serp, q)
+            for q in queries
+        ]
+        search_results = await asyncio.gather(*search_tasks)
+
+        # Aggregate and dedupe by URL
+        all_raw = {}
+        for results in search_results:
+            for r in results:
+                link = r.get("link", "")
+                if not link or link in all_raw:
+                    continue
+                all_raw[link] = {
+                    "title": r.get("title", ""),
+                    "link": link,
+                    "snippet": r.get("snippet", ""),
+                    "source_domain": r.get("source_domain", ""),
+                }
+
+        if not all_raw:
+            logger.info(f"Internship search returned 0 SERP results for course={profile.course}")
+            return InternshipResponse(internships=[])
+
+        # Use Groq LLM to extract structured internship data from title + snippet
+        structured = await _llm_extract_internships(list(all_raw.values()), profile)
+
+        # Dedupe by company name + role (merge same company+role, keep higher score)
+        company_deduped = {}
+        for item in structured:
+            key = (item.company or "").strip().lower() + "|" + (item.role or "").strip().lower()
+            if not key.strip("|"):
+                continue
+            if key not in company_deduped or item.match_score > company_deduped[key].match_score:
+                company_deduped[key] = item
+        structured = list(company_deduped.values()) if company_deduped else structured
+
+        # Enforce diversity: max 2 results per company
+        MAX_PER_COMPANY = 2
+        company_counts = {}
+        diverse = []
+        remainder = []
+        for item in sorted(structured, key=lambda x: x.match_score, reverse=True):
+            company_key = (item.company or "").strip().lower()
+            if not company_key:
+                remainder.append(item)
+                continue
+            count = company_counts.get(company_key, 0)
+            if count < MAX_PER_COMPANY:
+                diverse.append(item)
+                company_counts[company_key] = count + 1
+            else:
+                remainder.append(item)
+        # Fill remaining slots with overflow items
+        for item in remainder:
+            if len(diverse) >= 12:
+                break
+            diverse.append(item)
+        structured = diverse
+
+        # Calculate match scores
+        for item in structured:
+            text = (item.role + " " + item.company + " " + item.snippet + " " + item.eligibility).lower()
+            score = 0
+            # Course keyword match (+30)
+            course_words = [w for w in profile.course.lower().split() if len(w) > 3]
+            if any(w in text for w in course_words):
+                score += 30
+            # Year/semester appropriate — internships for year 2-3 students (+20)
+            if profile.year in (2, 3):
+                year_terms = ["undergraduate", "intern", "student", "year 2", "year 3", "penyear"]
+                if any(t in text for t in year_terms):
+                    score += 20
+            elif "freshman" not in text and "entry" in text:
+                score += 10
+            # State match (+15)
+            if profile.state.lower() in text or "kuala lumpur" in text or "selangor" in text:
+                score += 15
+            # CGPA eligibility mentioned and student qualifies (+15)
+            cgpa_match = re.search(r'(?:cgpa|gpa)\s*(?:min\.?|minimum)?\s*([\d.]+)', text)
+            if cgpa_match:
+                try:
+                    min_cgpa = float(cgpa_match.group(1))
+                    if profile.cgpa >= min_cgpa:
+                        score += 15
+                except ValueError:
+                    pass
+            elif "cgpa" not in text and "gpa" not in text:
+                pass
+            # Recency — 2026 in title/snippet (+20)
+            if "2026" in text:
+                score += 20
+            # Tier-1 company boost (+15)
+            TIER_1_COMPANIES = [
+                'grab', 'shopee', 'tiktok', 'bytedance', 'airasia',
+                'maybank', 'cimb', 'petronas', 'axiata', 'maxis',
+                'celcom', 'digi', 'public bank', 'rhb',
+                'ibm', 'microsoft', 'google', 'aws', 'accenture',
+                'pwc', 'kpmg', 'ey', 'deloitte', 'sea group', 'lazada',
+            ]
+            for company in TIER_1_COMPANIES:
+                if company in text:
+                    score += 15
+                    break
+            item.match_score = min(score, 100)
+
+        # Sort by match_score descending, take top 12
+        ranked = sorted(structured, key=lambda x: x.match_score, reverse=True)[:12]
+        logger.info(f"Internship search returned {len(ranked)} results for course={profile.course}")
+        return InternshipResponse(internships=ranked)
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+async def _llm_extract_internships(raw_items: list[dict], profile: InternshipProfile) -> list[InternshipResult]:
+    """Use Groq LLM to extract structured internship data from SERP results."""
+    if not raw_items or not settings.DEEPSEEK_API_KEY:
+        return []
+
+    from openai import OpenAI
+
+    client = OpenAI(
+        api_key=settings.DEEPSEEK_API_KEY,
+        base_url=settings.DEEPSEEK_BASE_URL,
+    )
+
+    # Build items text for LLM — include up to 40 items for broader coverage
+    items_text = json.dumps([
+        {"index": i, "title": r["title"], "snippet": r["snippet"][:200], "link": r["link"]}
+        for i, r in enumerate(raw_items[:40])
+    ], indent=2)
+
+    prompt = (
+        f"You are extracting internship listings from Malaysian web search results.\n"
+        f"Student profile: {profile.course}, Year {profile.year} Semester {profile.semester}, CGPA {profile.cgpa}, State: {profile.state}\n\n"
+        f"For EACH search result below, extract structured internship information. "
+        f"If a result is NOT about an internship (e.g., it's a course page, a news article, unrelated), skip it.\n\n"
+        f"Return a JSON array of objects with keys:\n"
+        f"- company: company or organization name\n"
+        f"- role: job title or internship role\n"
+        f"- duration: e.g. '3 months', '6 months', '12 weeks' (empty string if unknown)\n"
+        f"- location: city/region in Malaysia (empty string if unknown)\n"
+        f"- allowance: salary/allowance info e.g. 'RM 1500/month' (empty string if unknown)\n"
+        f"- eligibility: brief eligibility summary (empty string if unknown)\n"
+        f"- deadline: application deadline as text (empty string if unknown)\n"
+        f"- index: the original index number from the input\n\n"
+        f"Search results:\n{items_text[:5000]}\n\n"
+        f"Return ONLY a valid JSON array. No markdown fences. No explanation."
+    )
+
+    try:
+        resp = client.chat.completions.create(
+            model=settings.DEEPSEEK_MODEL,
+            messages=[
+                {"role": "system", "content": "You extract structured internship data from search results. Return ONLY a valid JSON array."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.1,
+        )
+        content = resp.choices[0].message.content.strip()
+        # Strip markdown fences if present
+        if content.startswith("```"):
+            content = re.sub(r'^```\w*\n?', '', content)
+            content = re.sub(r'\n?```$', '', content)
+
+        parsed = json.loads(content)
+        results = []
+        for item in parsed:
+            if not isinstance(item, dict):
+                continue
+            idx = item.get("index", 0)
+            if idx < 0 or idx >= len(raw_items):
+                continue
+            raw = raw_items[idx]
+            results.append(InternshipResult(
+                company=item.get("company", ""),
+                role=item.get("role", raw["title"]),
+                duration=item.get("duration", ""),
+                location=item.get("location", ""),
+                allowance=item.get("allowance", ""),
+                eligibility=item.get("eligibility", ""),
+                deadline=item.get("deadline", ""),
+                link=raw["link"],
+                snippet=raw["snippet"][:200],
+            ))
+        return results
+    except Exception as e:
+        logger.error(f"LLM internship extraction failed: {e}")
+        # Fallback: return raw results as-is with basic field mapping
+        return [
+            InternshipResult(
+                company="",
+                role=r["title"],
+                link=r["link"],
+                snippet=r["snippet"][:200],
+            )
+            for r in raw_items[:10]
+        ]
+
+
+# ──────────────────────────────────────────────
+#  POST /api/resources — DEPRECATED (kept for backward compatibility)
 # ──────────────────────────────────────────────
 @app.post("/api/resources", response_model=ResourceResponse)
 async def resources(req: ResourceRequest) -> ResourceResponse:
-    """Search for study resources using Bright Data SERP API."""
+    """Search for study resources using Bright Data SERP API.
+    # DEPRECATED — kept for backward compatibility. Resources screen now uses Spectrum data only."""
     if not settings.BRIGHTDATA_API_KEY:
         raise HTTPException(
             status_code=500,

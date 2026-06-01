@@ -88,7 +88,8 @@
             <div class="h-4 w-full bg-surface-container-high rounded-full overflow-hidden">
                 <div id="budget-progress-bar" class="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all" style="width:0%;"></div>
             </div>
-            <p id="budget-hint" class="text-label-sm text-on-surface-variant mt-3">Set a budget limit to track your spending.</p>
+            <div id="weekly-trend" class="mt-4"></div>
+    <p id="budget-hint" class="text-label-sm text-on-surface-variant mt-3">Set a budget limit to track your spending.</p>
         </div>
 
         <!-- Breakdown -->
@@ -169,35 +170,80 @@ function renderBudget() {
     }
 
     if (limit > 0) {
-        var pct = Math.min(Math.round(totals.total / limit * 100), 100);
-        document.getElementById('budget-progress-bar').style.width = pct + '%';
-        document.getElementById('budget-percent').textContent = pct + '%';
+        var rawPct = Math.round(totals.total / limit * 100);
+        var barWidth = Math.min(rawPct, 100);
+        document.getElementById('budget-progress-bar').style.width = barWidth + '%';
+        var pctEl = document.getElementById('budget-percent');
+        pctEl.textContent = rawPct + '%';
         var bar = document.getElementById('budget-progress-bar');
-        bar.className = 'h-full rounded-full transition-all ' + (pct > 90 ? 'bg-gradient-to-r from-rose-500 to-rose-400' : pct > 70 ? 'bg-gradient-to-r from-amber-500 to-amber-400' : 'bg-gradient-to-r from-emerald-500 to-emerald-400');
-        document.getElementById('budget-hint').textContent = pct > 90 ? '?? Almost at your budget limit!' : pct > 70 ? 'Getting close to your limit.' : 'On track. Keep it up!';
+        var barColor = rawPct > 100 ? 'bg-gradient-to-r from-rose-500 to-rose-400' : rawPct > 80 ? 'bg-gradient-to-r from-amber-500 to-amber-400' : 'bg-gradient-to-r from-emerald-500 to-emerald-400';
+        bar.className = 'h-full rounded-full transition-all ' + barColor;
+        pctEl.className = 'text-label-sm font-bold ' + (rawPct > 100 ? 'text-rose-400' : rawPct > 80 ? 'text-amber-400' : 'text-emerald-400');
+        var hintEl = document.getElementById('budget-hint');
+        if (rawPct > 100) {
+            hintEl.innerHTML = '<span class="flex items-center gap-1"><span class="material-symbols-outlined text-rose-400 text-[16px]">warning</span><span class="text-rose-400">Over budget by RM' + (totals.total - limit).toFixed(2) + '!</span></span>';
+        } else if (rawPct > 80) {
+            hintEl.innerHTML = '<span class="flex items-center gap-1"><span class="material-symbols-outlined text-amber-400 text-[16px]">trending_up</span><span>Getting close to your limit.</span></span>';
+        } else {
+            hintEl.innerHTML = '<span class="flex items-center gap-1"><span class="material-symbols-outlined text-emerald-400 text-[16px]">check_circle</span><span>On track. Keep it up!</span></span>';
+        }
     } else {
         document.getElementById('budget-progress-bar').style.width = '0%';
         document.getElementById('budget-percent').textContent = '—';
         document.getElementById('budget-hint').textContent = 'Set a budget limit to track your spending.';
     }
 
+    var CHART_COLORS = ['#D6C4FF', '#A3DAFF', '#FFC2DC', '#7EE787', '#FFB454', '#FFB4AB'];
     var catEl = document.getElementById('category-bars');
     if (totals.count > 0) {
-        catEl.innerHTML = Object.entries(totals.byCategory).map(function(entry) {
+        var maxAmt = Math.max.apply(null, Object.values(totals.byCategory));
+        var sorted = Object.entries(totals.byCategory).sort(function(a,b) { return b[1] - a[1]; });
+        catEl.innerHTML = sorted.map(function(entry, i) {
             var cat = entry[0], amt = entry[1];
             var pct = totals.total > 0 ? Math.round(amt / totals.total * 100) : 0;
-            var color = CAT_COLORS[cat] || CAT_COLORS.other;
+            var barPct = maxAmt > 0 ? Math.round(amt / maxAmt * 100) : 0;
+            var color = CHART_COLORS[i % CHART_COLORS.length];
             var icon = CAT_ICONS[cat] || CAT_ICONS.other;
-            return '<div class="flex items-center gap-4">' +
-                '<div class="w-8 text-center"><span class="material-symbols-outlined text-lg text-on-surface-variant">' + icon + '</span></div>' +
-                '<div class="flex-1">' +
-                    '<div class="flex justify-between text-label-sm mb-1"><span class="capitalize text-on-surface">' + cat + '</span><span class="text-on-surface-variant">RM' + amt.toFixed(2) + ' (' + pct + '%)</span></div>' +
-                    '<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden"><div class="h-full ' + color + ' rounded-full" style="width:' + pct + '%;"></div></div>' +
+            return '<div class="flex items-center gap-3">' +
+                '<div class="w-8 text-center flex-shrink-0"><span class="material-symbols-outlined text-lg" style="color:' + color + '">' + icon + '</span></div>' +
+                '<div class="flex-1 min-w-0">' +
+                    '<div class="flex justify-between text-label-sm mb-1"><span class="capitalize text-on-surface font-medium">' + cat + '</span><span class="text-on-surface-variant">RM' + amt.toFixed(2) + ' <span class="text-[10px] opacity-60">(' + pct + '%)</span></span></div>' +
+                    '<div class="h-2.5 w-full bg-surface-container-high rounded-full overflow-hidden"><div class="h-full rounded-full transition-all" style="width:' + barPct + '%;background:' + color + ';"></div></div>' +
                 '</div>' +
             '</div>';
         }).join('');
     } else {
         catEl.innerHTML = '<p class="text-on-surface-variant text-center py-6">No expenses logged yet. <a href="09.html" class="text-primary hover:underline">Chat with AI</a> to log spending.</p>';
+    }
+
+    // Weekly spending trend mini-chart
+    var trendEl = document.getElementById('weekly-trend');
+    if (expenses.length > 0) {
+        var wDays = [];
+        var wToday = new Date();
+        for (var wi = 6; wi >= 0; wi--) {
+            var wd = new Date(wToday); wd.setDate(wd.getDate() - wi);
+            var wds = wd.toISOString().slice(0,10);
+            var wTotal = 0;
+            expenses.forEach(function(e) {
+                var eDate = e.date || (e.createdAt ? e.createdAt.slice(0,10) : '');
+                if (eDate === wds) wTotal += parseFloat((e.amount || '0').replace(/[^0-9.]/g, '')) || 0;
+            });
+            wDays.push({date:wds, label:wd.toLocaleDateString('en-US',{weekday:'short'}), amount:wTotal, isToday:wi===0});
+        }
+        var wMax = Math.max.apply(null, wDays.map(function(d){return d.amount;})) || 1;
+        var cH = 48, sH = cH + 18, bW = 24, sp = 40;
+        var wSvg = wDays.map(function(d, i) {
+            var h = Math.max(3, (d.amount / wMax) * cH);
+            var x = i * sp + (sp - bW) / 2;
+            var y = cH - h;
+            var fill = d.isToday ? '#D6C4FF' : 'rgba(158,151,179,0.25)';
+            return '<rect x="'+x+'" width="'+bW+'" y="'+y+'" height="'+h+'" rx="4" fill="'+fill+'"/>' +
+                '<text x="'+(x+bW/2)+'" y="'+(cH+12)+'" text-anchor="middle" fill="'+(d.isToday ? '#D6C4FF' : 'rgba(158,151,179,0.5)')+'" font-size="9" font-family="Plus Jakarta Sans">'+d.label.slice(0,2)+'</text>';
+        }).join('');
+        trendEl.innerHTML = '<div class="flex items-center justify-between mb-2"><span class="text-[11px] text-on-surface-variant font-medium">Last 7 days</span><span class="text-[11px] text-primary font-bold">Today</span></div><svg viewBox="0 0 280 '+sH+'" preserveAspectRatio="xMidYMid meet" class="w-full" style="max-height:'+sH+'px">'+wSvg+'</svg>';
+    } else {
+        trendEl.innerHTML = '';
     }
 
     var listEl = document.getElementById('expense-list');
